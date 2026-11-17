@@ -51,6 +51,10 @@
       </div>
 
       <div class="flex items-center space-x-2.5">
+        <button type="button" id="btnBackHome" onclick="showHome()" style="display:none"
+          class="inline-flex items-center px-3 py-2 rounded-lg text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors">
+          ← Cotizaciones
+        </button>
         <button type="button" onclick="nuevaCotizacion()"
           class="inline-flex items-center px-3.5 py-2 rounded-lg text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 shadow-sm transition-colors">
           <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -64,7 +68,7 @@
   </header>
 
   <!-- Barra Persistente de Resumen Técnico y Financiero en Vivo -->
-  <div class="bg-slate-900 text-white border-b border-slate-800 no-print">
+  <div id="liveBar" class="bg-slate-900 text-white border-b border-slate-800 no-print">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5">
       <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-xs">
         <div class="flex flex-col">
@@ -105,7 +109,40 @@
 
   <!-- Contenedor Principal -->
   <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+    <!-- ===================================================================== -->
+    <!-- PANTALLA DE INICIO: COTIZACIONES GUARDADAS + NUEVA COTIZACIÓN          -->
+    <!-- ===================================================================== -->
+    <div id="homeView" class="max-w-3xl mx-auto space-y-5 no-print">
+      <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-xl font-bold text-slate-900">Cotizaciones</h2>
+          <p class="text-xs text-slate-500 mt-1">Abre una cotización guardada o empieza una nueva.</p>
+        </div>
+        <button type="button" onclick="nuevaCotizacion()"
+          class="inline-flex items-center justify-center px-5 py-3 rounded-xl text-sm font-semibold text-white bg-slate-900 hover:bg-slate-800 shadow-sm transition-colors">
+          + Nueva Cotización
+        </button>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6">
+        <div class="flex items-center justify-between gap-3">
+          <h3 class="text-sm font-semibold text-slate-900 uppercase tracking-wider">Cotizaciones guardadas (<span id="savedCount">0</span>)</h3>
+        </div>
+        <input type="text" id="savedSearch" placeholder="Buscar por cliente o proyecto…" oninput="renderSavedQuotes()"
+          class="w-full mt-4 px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-slate-400" />
+        <div id="savedQuotesList" class="mt-3 divide-y divide-slate-100"></div>
+        <div class="mt-4 pt-3 border-t border-slate-100 flex gap-4 text-[11px]">
+          <button type="button" onclick="exportQuotes()" class="text-slate-500 underline hover:text-slate-900">Exportar respaldo</button>
+          <label class="text-slate-500 underline hover:text-slate-900 cursor-pointer">Importar respaldo<input type="file" accept=".json,application/json" class="hidden" onchange="importQuotes(this)" /></label>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- EDITOR DE COTIZACIÓN (se muestra al crear o abrir una cotización)       -->
+    <!-- ===================================================================== -->
+    <div id="editorView" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start" style="display:none">
 
       <!-- COLUMNA IZQUIERDA: FORMULARIO DE COTIZACIÓN (5 columnas en desktop) -->
       <section class="lg:col-span-5 space-y-5 no-print">
@@ -118,24 +155,12 @@
               <p id="quoteStatus" class="text-[11px] text-slate-500 mt-0.5">Se guarda sola en cuanto escribas el nombre del cliente.</p>
             </div>
             <div class="flex items-center gap-2 shrink-0">
+              <button type="button" onclick="showHome()" title="Volver a la lista de cotizaciones" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200">← Lista</button>
               <button type="button" onclick="guardarCotizacion(true)" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200">Guardar</button>
               <button type="button" onclick="duplicarCotizacion()" title="Crear una copia de esta cotización" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200">Duplicar</button>
             </div>
           </div>
 
-          <details id="savedQuotesBox" class="group mt-4 pt-3 border-t border-slate-100" open>
-            <summary class="flex items-center justify-between text-xs font-semibold text-slate-700 cursor-pointer select-none">
-              <span>Cotizaciones guardadas (<span id="savedCount">0</span>)</span>
-              <span class="group-open:rotate-180 transition-transform text-slate-400">▼</span>
-            </summary>
-            <input type="text" id="savedSearch" placeholder="Buscar por cliente o proyecto…" oninput="renderSavedQuotes()"
-              class="w-full mt-3 px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-slate-400" />
-            <div id="savedQuotesList" class="mt-2 max-h-64 overflow-y-auto divide-y divide-slate-100"></div>
-            <div class="mt-3 flex gap-3 text-[11px]">
-              <button type="button" onclick="exportQuotes()" class="text-slate-500 underline hover:text-slate-900">Exportar respaldo</button>
-              <label class="text-slate-500 underline hover:text-slate-900 cursor-pointer">Importar respaldo<input type="file" accept=".json,application/json" class="hidden" onchange="importQuotes(this)" /></label>
-            </div>
-          </details>
         </div>
 
         <!-- Tarjeta 1: Datos Generales del Proyecto -->
@@ -1252,6 +1277,29 @@
       onConfigChange();
     }
 
+    // =========================================================================
+    // NAVEGACIÓN: INICIO (lista) ↔ EDITOR (pestañas)
+    // =========================================================================
+    function showHome() {
+      if (currentQuoteId || document.getElementById("clientName").value.trim() || document.getElementById("projectName").value.trim()) {
+        clearTimeout(autosaveTimer);
+        guardarCotizacion(false);
+      }
+      document.getElementById("homeView").style.display = "";
+      document.getElementById("editorView").style.display = "none";
+      document.getElementById("liveBar").style.display = "none";
+      document.getElementById("btnBackHome").style.display = "none";
+      renderSavedQuotes();
+      window.scrollTo({ top: 0 });
+    }
+    function showEditor() {
+      document.getElementById("homeView").style.display = "none";
+      document.getElementById("editorView").style.display = "";
+      document.getElementById("liveBar").style.display = "";
+      document.getElementById("btnBackHome").style.display = "";
+      window.scrollTo({ top: 0 });
+    }
+
     function nuevaCotizacion(silent) {
       currentQuoteId = null;
       loadingQuote = true;
@@ -1264,6 +1312,7 @@
       renderSavedQuotes();
       switchTab("comercial");
       if (!silent) {
+        showEditor();
         document.getElementById("clientName").focus();
         showToast("Nueva cotización lista", "success");
       }
@@ -1373,7 +1422,7 @@
       updateQuoteHeader();
       renderSavedQuotes();
       switchTab("comercial");
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      showEditor();
       showToast(`Abierta: ${q.clientName || q.projectName}`, "info");
     }
 
@@ -1422,9 +1471,9 @@
       if (!all.length) { box.innerHTML = `<p class="py-3 text-[11px] text-slate-400">Todavía no hay cotizaciones guardadas.</p>`; return; }
       if (!list.length) { box.innerHTML = `<p class="py-3 text-[11px] text-slate-400">Ninguna coincide con la búsqueda.</p>`; return; }
       box.innerHTML = list.map(q => `
-        <div class="py-2 flex items-center gap-2 ${q.id === currentQuoteId ? "bg-slate-50 -mx-2 px-2 rounded-lg" : ""}">
+        <div class="py-3 flex items-center gap-3">
           <button type="button" onclick="abrirCotizacion('${q.id}')" class="flex-1 min-w-0 text-left">
-            <p class="text-xs font-semibold text-slate-800 truncate">${escapeHtml(q.clientName || "(sin cliente)")}${q.id === currentQuoteId ? ' <span class="text-[10px] font-medium text-emerald-700">• abierta</span>' : ""}</p>
+            <p class="text-xs font-semibold text-slate-800 truncate">${escapeHtml(q.clientName || "(sin cliente)")}</p>
             <p class="text-[11px] text-slate-500 truncate">${escapeHtml(q.projectName || "")}${q.projectName ? " • " : ""}${Number(q.potenciaKw || 0).toFixed(2)} kWp • ${fmtFecha(q.updatedAt)}</p>
           </button>
           <span class="text-xs font-semibold text-slate-900 whitespace-nowrap">${fmtUSD(q.total)}</span>
@@ -1901,6 +1950,7 @@
       loadParams();
       refreshSelects();
       nuevaCotizacion(true);
+      showHome();
     });
   </script>
 </body>
