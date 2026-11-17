@@ -50,7 +50,6 @@
         </div>
       </div>
 
-      <!-- Indicador y Botón de Conexión Supabase -->
       <div class="flex items-center space-x-2.5">
         <button type="button" onclick="nuevaCotizacion()"
           class="inline-flex items-center px-3.5 py-2 rounded-lg text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 shadow-sm transition-colors">
@@ -60,17 +59,6 @@
           Nueva Cotización
         </button>
 
-        <div id="connectionBadge" class="hidden md:flex items-center space-x-2 px-3 py-1.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
-          <span id="connectionDot" class="w-2 h-2 rounded-full bg-amber-500"></span>
-          <span id="connectionText">Modo Local (Sin Anon Key)</span>
-        </div>
-        <button onclick="toggleConfigModal(true)" class="inline-flex items-center px-3 py-2 rounded-lg text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors">
-          <svg class="w-4 h-4 mr-1.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
-          <span class="hidden sm:inline">Conexión Supabase</span>
-        </button>
       </div>
     </div>
   </header>
@@ -146,22 +134,13 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label class="block text-xs font-medium text-slate-600 mb-1">Provincia (HSP & Costo)</label>
-                <select id="provinceSelect" onchange="recalculateAll()"
+                <select id="provinceSelect" onchange="onConfigChange()"
                   class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400">
-                  <option value="Santiago" selected>Santiago (Local • HSP 4.11)</option>
-                  <option value="Puerto Plata">Puerto Plata (Media 50-100km • HSP 4.15)</option>
-                  <option value="La Vega">La Vega (Media 50-100km • HSP 4.20)</option>
-                  <option value="Moca">Moca (Media 50-100km • HSP 4.15)</option>
-                  <option value="San Francisco">San Francisco (Media 50-100km • HSP 4.20)</option>
-                  <option value="Santo Domingo">Santo Domingo (>100km • HSP 4.30)</option>
-                  <option value="Baní">Baní (>100km • HSP 4.45)</option>
-                  <option value="La Romana">La Romana (>100km • HSP 4.40)</option>
-                  <option value="Punta Cana">Punta Cana (>100km • HSP 4.55)</option>
                 </select>
               </div>
               <div>
                 <label class="block text-xs font-medium text-slate-600 mb-1">Modalidad del Sistema</label>
-                <select id="modalidadSelect" onchange="recalculateAll()"
+                <select id="modalidadSelect" onchange="applyProvinceIndex(); recalculateAll()"
                   class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400">
                   <option value="hibrido" selected>Híbrido (Con Baterías)</option>
                   <option value="ongrid">On-Grid (Interconexión)</option>
@@ -169,67 +148,50 @@
               </div>
             </div>
 
-            <!-- Selectores Rápidos de Catálogo (Auto-precio editable) -->
+            <!-- Índice de costos de la provincia (entra en la fórmula del precio) -->
+            <div class="hidden" style="display:none">
+              <div>
+                <label class="block text-[11px] font-semibold text-emerald-900 mb-1">Índice de Costos</label>
+                <input type="number" id="indiceCosto" value="4.15" step="0.01" oninput="recalculateAll()"
+                  class="w-full px-2.5 py-1.5 text-sm font-semibold bg-white border border-emerald-300 rounded-lg focus:outline-none focus:border-emerald-500" />
+              </div>
+              <p id="indiceInfo" class="col-span-2 text-[11px] text-emerald-900 leading-snug"></p>
+            </div>
+
+            <!-- Configuración de Equipos (precios tomados de la pestaña "Precios y Reglas") -->
             <div class="p-3.5 rounded-xl bg-slate-50/90 border border-slate-200/80 space-y-3">
               <div class="flex items-center justify-between">
-                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-700">Configuración Rápida de Equipos</span>
-                <span class="text-[10px] text-slate-500">Auto-calcula precios (editables abajo)</span>
+                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-700">Configuración de Equipos</span>
+                <button type="button" onclick="switchTab('precios')" class="text-[10px] text-slate-500 underline hover:text-slate-900">Editar precios</button>
               </div>
 
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                <div>
-                  <label class="block text-[11px] font-medium text-slate-600 mb-1">Panel Solar</label>
-                  <select id="quickPanelSelect" onchange="applyQuickCatalogSelection()"
-                    class="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-slate-400">
-                    <option value="650|98" selected>Panel 650W ($98.00)</option>
-                    <option value="585|88">Panel 585W ($88.00)</option>
-                    <option value="700|108">Panel 700W ($108.00)</option>
-                  </select>
-                </div>
+              <div class="grid grid-cols-1 gap-2.5">
                 <div>
                   <label class="block text-[11px] font-medium text-slate-600 mb-1">Tipo de Estructura</label>
-                  <select id="quickStructureSelect" onchange="applyQuickCatalogSelection()"
+                  <select id="quickStructureSelect" onchange="onConfigChange()"
                     class="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-slate-400">
-                    <option value="Techo Plano / Losa|52.50" selected>Techo Plano / Losa ($52.50/panel)</option>
-                    <option value="Techo Inclinado / Aluzinc|38.00">Techo Inclinado / Aluzinc ($38.00/panel)</option>
-                    <option value="Pérgola / Estructura Elevada|75.00">Pérgola / Elevada ($75.00/panel)</option>
-                    <option value="Suelo / Ground Mount|85.00">Suelo / Ground Mount ($85.00/panel)</option>
                   </select>
                 </div>
+              </div>
+
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <label class="block text-[11px] font-medium text-slate-600">Inversores</label>
+                  <button type="button" onclick="addInverterRow()" class="text-[11px] font-semibold text-slate-700 hover:text-slate-900">+ Combinar otro inversor</button>
+                </div>
+                <div id="inverterRows" class="space-y-2"></div>
               </div>
 
               <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-end">
-                <div class="sm:col-span-5">
-                  <label class="block text-[11px] font-medium text-slate-600 mb-1">Inversor</label>
-                  <select id="quickInverterSelect" onchange="applyQuickCatalogSelection()"
+                <div class="sm:col-span-9">
+                  <label class="block text-[11px] font-medium text-slate-600 mb-1">Batería</label>
+                  <select id="quickBatterySelect" onchange="onConfigChange()"
                     class="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-slate-400">
-                    <option value="Inversor DEYE 12K Híbrido|2300" selected>DEYE 12K Híbrido ($2,300)</option>
-                    <option value="Inversor DEYE 8K Híbrido|1750">DEYE 8K Híbrido ($1,750)</option>
-                    <option value="Inversor DEYE 16K Híbrido|3100">DEYE 16K Híbrido ($3,100)</option>
-                    <option value="Inversor DEYE 50K Trifásico|6800">DEYE 50K Trifásico ($6,800)</option>
-                    <option value="Inversor On-Grid 10K|1250">On-Grid 10K ($1,250)</option>
-                    <option value="Inversor On-Grid 25K|2200">On-Grid 25K ($2,200)</option>
-                    <option value="Inversor On-Grid 50K|3600">On-Grid 50K ($3,600)</option>
                   </select>
-                </div>
-                <div class="sm:col-span-2">
-                  <label class="block text-[11px] font-medium text-slate-600 mb-1">Cant. Inv.</label>
-                  <input type="number" id="quickInverterQty" value="1" min="0" step="1" oninput="applyQuickCatalogSelection()"
-                    class="w-full px-2 py-1.5 text-xs text-center bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-slate-400" />
                 </div>
                 <div class="sm:col-span-3">
-                  <label class="block text-[11px] font-medium text-slate-600 mb-1">Batería</label>
-                  <select id="quickBatterySelect" onchange="applyQuickCatalogSelection()"
-                    class="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-slate-400">
-                    <option value="Batería PYTES 16kWh|2755" selected>PYTES 16kWh ($2,755)</option>
-                    <option value="Batería PYTES 5.12kWh|1150">PYTES 5.12kWh ($1,150)</option>
-                    <option value="Batería DEYE 10kWh|2100">DEYE 10kWh ($2,100)</option>
-                    <option value="Sin Baterías|0">Sin Baterías ($0)</option>
-                  </select>
-                </div>
-                <div class="sm:col-span-2">
                   <label class="block text-[11px] font-medium text-slate-600 mb-1">Cant. Bat.</label>
-                  <input type="number" id="quickBatteryQty" value="2" min="0" step="1" oninput="applyQuickCatalogSelection()"
+                  <input type="number" id="quickBatteryQty" value="2" min="0" step="1" oninput="onConfigChange()"
                     class="w-full px-2 py-1.5 text-xs text-center bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-slate-400" />
                 </div>
               </div>
@@ -238,12 +200,12 @@
             <div class="grid grid-cols-3 gap-3">
               <div>
                 <label class="block text-xs font-medium text-slate-600 mb-1">Panel (W)</label>
-                <input type="number" id="panelW" value="650" min="100" step="5" oninput="syncPanelQuantityFromInput()"
+                <input type="number" id="panelW" value="650" min="100" step="5" oninput="onConfigChange()"
                   class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-slate-400" />
               </div>
               <div>
                 <label class="block text-xs font-medium text-slate-600 mb-1">Cant. Paneles</label>
-                <input type="number" id="panelQty" value="20" min="1" step="1" oninput="syncPanelLineQty()"
+                <input type="number" id="panelQty" value="20" min="1" step="1" oninput="onConfigChange()"
                   class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-slate-400" />
               </div>
               <div>
@@ -261,6 +223,9 @@
                 <p class="text-[11px] text-amber-800 mt-0.5">Regla de Viáticos: Fuera del rango estándar (1–100 paneles). <strong>Favor consultar contigo o con Albaro</strong> para validar días y tarifa de viáticos.</p>
               </div>
             </div>
+
+            <!-- Avisos de reglas eléctricas (precio faltante, fuera de tabla, etc.) -->
+            <div id="rulesWarnings" class="hidden p-3 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs space-y-1"></div>
 
             <!-- Selector de Lista de Precio -->
             <div class="pt-1">
@@ -286,12 +251,12 @@
               <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-3 pt-2">
                 <div>
                   <label class="block text-[11px] text-slate-500 mb-1">Tasa Venta (RD$)</label>
-                  <input type="number" id="tasaVenta" value="61.45" step="0.05" oninput="recalculateAll()"
+                  <input type="number" id="tasaVenta" value="60.50" step="0.05" oninput="recalculateAll()"
                     class="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-md" />
                 </div>
                 <div>
                   <label class="block text-[11px] text-slate-500 mb-1">Tasa Compra (RD$)</label>
-                  <input type="number" id="tasaCompra" value="58.00" step="0.05" oninput="recalculateAll()"
+                  <input type="number" id="tasaCompra" value="56.75" step="0.05" oninput="recalculateAll()"
                     class="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-md" />
                 </div>
                 <div>
@@ -327,7 +292,7 @@
               <p class="text-xs text-slate-500">Calculados por regla • Todos los valores son editables</p>
             </div>
             <div class="flex items-center space-x-1.5">
-              <button type="button" onclick="reapplyLogisticsRules(true)" title="Recalcular transporte, viáticos y programación según provincia y paneles"
+              <button type="button" onclick="reapplyLogisticsRules(true)" title="Recalcular equipos, eléctricos, estructura, transporte y viáticos con las reglas"
                 class="inline-flex items-center px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors">
                 ↻ Reglas Auto
               </button>
@@ -355,18 +320,11 @@
             </table>
           </div>
 
-          <!-- Botón Principal de Acción y Sincronización con Supabase -->
+          <!-- Botones de acción -->
           <div class="mt-5 pt-4 border-t border-slate-100 flex flex-col sm:flex-row gap-2.5">
-            <button type="button" id="btnSyncSupabase" onclick="enviarASupabase()"
-              class="flex-1 inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-slate-900 hover:bg-slate-800 shadow-sm transition-all">
-              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-              </svg>
-              Guardar y Calcular en Supabase
-            </button>
             <button type="button" onclick="nuevaCotizacion()" title="Limpiar formulario para iniciar una cotización nueva"
-              class="px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors">
-              + Nueva
+              class="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-slate-900 hover:bg-slate-800 shadow-sm transition-colors">
+              + Nueva Cotización
             </button>
             <button type="button" onclick="resetDefaultData()" title="Restaurar ejemplo de muestra"
               class="px-3 py-2.5 rounded-xl text-xs font-medium text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors">
@@ -389,6 +347,10 @@
             <button type="button" id="tabBtnContabilidad" onclick="switchTab('contabilidad')"
               class="flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-all flex items-center justify-center space-x-2">
               <span>Informe Interno (Hoja 1 - Contabilidad)</span>
+            </button>
+            <button type="button" id="tabBtnPrecios" onclick="switchTab('precios')"
+              class="flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-all flex items-center justify-center space-x-2">
+              <span>Precios y Reglas</span>
             </button>
           </div>
         </div>
@@ -640,7 +602,7 @@
                   </div>
                   <div class="pt-2 border-t border-slate-200/70 space-y-1.5">
                     <div class="flex justify-between">
-                      <span class="text-slate-600">Mano de Obra (RD$):</span>
+                      <span id="accMoLabel" class="text-slate-600">Mano de Obra (Índice × W) RD$:</span>
                       <span id="accMoDop" class="font-medium text-slate-800">RD$ 53,950.00</span>
                     </div>
                     <div class="flex justify-between">
@@ -685,371 +647,499 @@
           </div>
         </div>
 
+        <!-- ===================================================================== -->
+        <!-- PESTAÑA C: PRECIOS Y REGLAS (EDITABLES)                               -->
+        <!-- ===================================================================== -->
+        <div id="viewPrecios" class="hidden space-y-5 no-print">
+          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5">
+            <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+              <div>
+                <h2 class="text-sm font-semibold text-slate-900 uppercase tracking-wider">Precios y Reglas</h2>
+                <p class="text-xs text-slate-500 mt-1 max-w-md">Todo lo que cambies aquí se guarda solo en este navegador y se usa en las cotizaciones nuevas. Para pasarlo a otra computadora usa <strong>Exportar</strong> e <strong>Importar</strong>.</p>
+              </div>
+              <div class="flex flex-wrap gap-2">
+                <button type="button" onclick="exportSettings()" class="px-3 py-2 rounded-lg text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200">Exportar</button>
+                <label class="px-3 py-2 rounded-lg text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 cursor-pointer">
+                  Importar<input type="file" accept=".json,application/json" class="hidden" onchange="importSettings(this)" />
+                </label>
+                <button type="button" onclick="restoreExcelSettings()" class="px-3 py-2 rounded-lg text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100">Restaurar precios del Excel</button>
+              </div>
+            </div>
+          </div>
+          <div id="settingsContainer" class="space-y-5"></div>
+        </div>
+
       </section>
     </div>
   </main>
 
-  <!-- Modal de Configuración de Conexión Supabase -->
-  <div id="configModal" class="fixed inset-0 z-50 hidden bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 no-print">
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-md w-full p-6">
-      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-        <h3 class="text-base font-bold text-slate-900">Conexión con Supabase</h3>
-        <button onclick="toggleConfigModal(false)" class="text-slate-400 hover:text-slate-600 text-lg font-bold">&times;</button>
-      </div>
-
-      <div class="mt-4 space-y-4 text-xs">
-        <p class="text-slate-600 leading-relaxed">
-          Conecta este portal directamente a tu Edge Function <strong>Calcular-Propuestas</strong> en Supabase. Si dejas la llave vacía, el portal funcionará en modo local con las mismas fórmulas exactas.
-        </p>
-
-        <div>
-          <label class="block font-semibold text-slate-700 mb-1">URL de la Edge Function</label>
-          <input type="text" id="supabaseUrlInput" value="https://ufkrlcjsixhvhjjwpcya.supabase.co/functions/v1/Calcular-Propuestas"
-            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:border-slate-400" />
-        </div>
-
-        <div>
-          <label class="block font-semibold text-slate-700 mb-1">Supabase Anon / Publishable Key</label>
-          <input type="password" id="supabaseKeyInput" placeholder="Pega aquí tu llave anon (eyJhbG...)"
-            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:border-slate-400" />
-          <p class="text-[11px] text-slate-400 mt-1">La encuentras en Supabase → Project Settings → API → anon public.</p>
-        </div>
-      </div>
-
-      <div class="mt-6 flex justify-end space-x-2">
-        <button type="button" onclick="toggleConfigModal(false)"
-          class="px-4 py-2 rounded-xl text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200">
-          Cancelar
-        </button>
-        <button type="button" onclick="saveSupabaseConfig()"
-          class="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800">
-          Guardar Conexión
-        </button>
-      </div>
-    </div>
-  </div>
 
   <!-- ========================================================================= -->
-  <!-- MOTOR DE CÁLCULO Y LÓGICA DE INTERFAZ (calc.ts + informeInterno.ts)       -->
+  <!-- MOTOR DE CÁLCULO Y LÓGICA DE INTERFAZ                                    -->
   <!-- ========================================================================= -->
   <script>
-    // Funciones de formateo monetario y numérico
+    // =========================================================================
+    // FORMATEO
+    // =========================================================================
     function fmtUSD(val) {
       if (isNaN(val)) return "$0.00";
       return "$" + Number(val).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
-
     function fmtDOP(val) {
       if (isNaN(val)) return "RD$ 0.00";
       return "RD$ " + Number(val).toLocaleString("es-DO", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
-
     function fmtInt(val) {
       if (isNaN(val)) return "0";
       return Math.round(Number(val)).toLocaleString("es-DO");
     }
-
-    // Selección de tipo de precio comercial (Standard vs Preferencial)
-    function setTipoPrecio(tipo) {
-      selectedTipoPrecio = tipo;
-      const btnStd = document.getElementById("btnPriceStandard");
-      const btnPref = document.getElementById("btnPricePreferencial");
-      if (tipo === "standard") {
-        btnStd.className = "py-1.5 px-3 rounded-lg text-xs font-semibold bg-white text-slate-900 shadow-sm transition-all";
-        btnPref.className = "py-1.5 px-3 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 transition-all";
-      } else {
-        btnPref.className = "py-1.5 px-3 rounded-lg text-xs font-semibold bg-white text-slate-900 shadow-sm transition-all";
-        btnStd.className = "py-1.5 px-3 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 transition-all";
-      }
-      recalculateAll();
-    }
-
-    // Cambio entre pestañas Comercial y Contabilidad
-    function switchTab(tab) {
-      const vCom = document.getElementById("viewComercial");
-      const vAcc = document.getElementById("viewContabilidad");
-      const bCom = document.getElementById("tabBtnComercial");
-      const bAcc = document.getElementById("tabBtnContabilidad");
-
-      if (tab === "comercial") {
-        vCom.classList.remove("hidden");
-        vAcc.classList.add("hidden");
-        bCom.className = "flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold bg-slate-900 text-white shadow-sm transition-all flex items-center justify-center space-x-2";
-        bAcc.className = "flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-all flex items-center justify-center space-x-2";
-      } else {
-        vAcc.classList.remove("hidden");
-        vCom.classList.add("hidden");
-        bAcc.className = "flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold bg-slate-900 text-white shadow-sm transition-all flex items-center justify-center space-x-2";
-        bCom.className = "flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-all flex items-center justify-center space-x-2";
-      }
-    }
-
-    // 1. Catálogo de Parámetros Provinciales y Zona Logística ('local' | 'media' | 'mayor')
-    // Reglas:
-    // - Santiago = 'local' (Transporte $150, Viáticos $35/día, Programación $50)
-    // - Distancias medias 50-100 km = 'media' (Transporte $250, Viáticos $75/día, Programación $100)
-    // - Distancias mayores >100 km = 'mayor' (Transporte $300, Viáticos $75/día, Programación $150)
-    const PROVINCE_PARAMS = {
-      "Santiago":      { hsp: 4.11, indexHibrido: 4.15, indexOnGrid: 3.65, zone: "local" },
-      "Puerto Plata":  { hsp: 4.15, indexHibrido: 4.25, indexOnGrid: 3.75, zone: "media" },
-      "La Vega":       { hsp: 4.20, indexHibrido: 4.15, indexOnGrid: 3.70, zone: "media" },
-      "Moca":          { hsp: 4.15, indexHibrido: 4.15, indexOnGrid: 3.70, zone: "media" },
-      "San Francisco": { hsp: 4.20, indexHibrido: 4.20, indexOnGrid: 3.75, zone: "media" },
-      "Santo Domingo": { hsp: 4.30, indexHibrido: 4.15, indexOnGrid: 3.45, zone: "mayor" },
-      "Baní":          { hsp: 4.45, indexHibrido: 4.15, indexOnGrid: 3.70, zone: "mayor" },
-      "La Romana":     { hsp: 4.40, indexHibrido: 4.30, indexOnGrid: 3.80, zone: "mayor" },
-      "Punta Cana":    { hsp: 4.55, indexHibrido: 4.25, indexOnGrid: 3.95, zone: "mayor" }
-    };
-
-    // Calcula automáticamente Transporte, Viáticos y Programación según provincia y cantidad de paneles
-    function computeLogisticsByRules(province, panelQty) {
-      const prov = PROVINCE_PARAMS[province] || PROVINCE_PARAMS["Santiago"];
-      const zone = prov.zone;
-
-      // 1) Transporte, Carga y Mensajería
-      let baseTransport = 150;
-      if (zone === "media") baseTransport = 250;
-      else if (zone === "mayor") baseTransport = 300;
-      // Si el proyecto pasa de 50 paneles (> 50), incrementar en un 60%
-      const transportCost = panelQty > 50 ? +(baseTransport * 1.60).toFixed(2) : baseTransport;
-      const transportLabel = panelQty > 50
-        ? `Transporte y Carga (${province} +60% >50p)`
-        : `Transporte y Carga (${province})`;
-
-      // 2) Viáticos
-      const viaticosRate = zone === "local" ? 35 : 75;
-      let viaticosDays = 4;
-      let over100 = false;
-      if (panelQty < 50) {
-        viaticosDays = 4;
-      } else if (panelQty <= 100) {
-        viaticosDays = 7;
-      } else {
-        viaticosDays = 7;
-        over100 = true;
-      }
-      const viaticosLabel = over100
-        ? `Viáticos (Consultar c/ Albaro >100p)`
-        : `Viáticos (${viaticosDays} días - ${zone === 'local' ? 'Santiago' : 'Fuera Santiago'})`;
-
-      // 3) Programación de Equipos
-      let progCost = 50;
-      if (zone === "media") progCost = 100;
-      else if (zone === "mayor") progCost = 150;
-      const progLabel = `Programación de Equipos (${province})`;
-
-      return {
-        transportCost,
-        transportLabel,
-        viaticosRate,
-        viaticosDays,
-        viaticosLabel,
-        progCost,
-        progLabel,
-        over100
-      };
-    }
-
-    // 2. Estado Inicial de Líneas con roles auto-actualizables pero 100% editables
-    function buildInitialItems(province = "Santiago", panelQty = 20) {
-      const log = computeLogisticsByRules(province, panelQty);
-      return [
-        { id: 1, role: "panel", concepto: "Panel Solar (650W)", pu: 98.00, cant: panelQty, grupo: "equipos_materiales", isPanel: true },
-        { id: 2, role: "inverter", concepto: "Inversor DEYE 12K Híbrido", pu: 2300.00, cant: 1, grupo: "equipos_materiales" },
-        { id: 3, role: "battery", concepto: "Batería PYTES 16kWh", pu: 2755.00, cant: 2, grupo: "equipos_materiales" },
-        { id: 4, role: "electrical", concepto: "Materiales Eléctricos (Est. Base)", pu: 1400.00, cant: 1, grupo: "equipos_materiales" },
-        { id: 5, role: "structure", concepto: "Estructura: Techo Plano / Losa", pu: 52.50, cant: panelQty, grupo: "equipos_materiales" },
-        { id: 6, role: "sometimiento", concepto: "Sometimiento / Trámites", pu: 100.00, cant: 1, grupo: "adicionales" },
-        { id: 7, role: "transport", concepto: log.transportLabel, pu: log.transportCost, cant: 1, grupo: "adicionales" },
-        { id: 8, role: "viaticos", concepto: log.viaticosLabel, pu: log.viaticosRate, cant: log.viaticosDays, grupo: "adicionales" },
-        { id: 9, role: "programming", concepto: log.progLabel, pu: log.progCost, cant: 1, grupo: "adicionales" }
-      ];
-    }
-
-    const DEFAULT_ITEMS = buildInitialItems("Santiago", 20);
-
-    let lineItems = JSON.parse(JSON.stringify(DEFAULT_ITEMS));
-    let selectedTipoPrecio = "standard"; // 'standard' | 'preferencial'
-    let latestCalculationResult = null;
-    let lastProvinceForLogistics = "Santiago";
-    let lastPanelQtyForLogistics = 20;
-
-    // Configuración persistente de Supabase (se guarda en el navegador del usuario)
-    const DEFAULT_SUPABASE_URL = "https://ufkrlcjsixhvhjjwpcya.supabase.co/functions/v1/Calcular-Propuestas";
-    const supabaseConfig = { url: DEFAULT_SUPABASE_URL, anonKey: "" };
-
-    function loadSupabaseConfig() {
-      try {
-        supabaseConfig.url = localStorage.getItem("feg_supabase_url") || DEFAULT_SUPABASE_URL;
-        supabaseConfig.anonKey = localStorage.getItem("feg_supabase_key") || "";
-      } catch (e) {
-        // localStorage puede no estar disponible (modo privado); se trabaja en modo local
-      }
-      document.getElementById("supabaseUrlInput").value = supabaseConfig.url;
-      document.getElementById("supabaseKeyInput").value = supabaseConfig.anonKey;
-      updateConnectionBadge();
-    }
-
-    // Escapa texto para insertarlo de forma segura dentro de HTML / atributos
     function escapeHtml(str) {
       return String(str ?? "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#39;");
+        .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+    }
+    const round2 = (n) => Math.round(n * 100) / 100;
+
+    // =========================================================================
+    // PRECIOS Y REGLAS POR DEFECTO (tomados del Excel "hibrido e inyeccion Freedom"
+    // y del "Documento para presupuestos"). Todo es editable en la pestaña
+    // "Precios y Reglas" y se guarda en el navegador.
+    // =========================================================================
+    const EXCEL_SETTINGS = {
+      panel: { w: 650, pricePerW: 0.155 },   // Precio del panel = vatios × US$ por vatio
+
+      // Inversores (Excel: "Precios de Inversores"). tipo: hibrido | inyeccion
+      inverters: [
+        { id: "inv_ion5",   group: "Híbrido ION",  name: "ION de 5K",   type: "hibrido", kw: 5,  price: 1500 },
+        { id: "inv_ion8",   group: "Híbrido ION",  name: "ION de 8K",   type: "hibrido", kw: 8,  price: 1800 },
+        { id: "inv_ion12",  group: "Híbrido ION",  name: "ION de 12K",  type: "hibrido", kw: 12, price: 2300 },
+        { id: "inv_ion16",  group: "Híbrido ION",  name: "ION de 16K",  type: "hibrido", kw: 16, price: 2700 },
+        { id: "inv_deye6",  group: "Híbrido DEYE", name: "DEYE 6K",     type: "hibrido", kw: 6,  price: 1700 },
+        { id: "inv_deye8",  group: "Híbrido DEYE", name: "DEYE 8K",     type: "hibrido", kw: 8,  price: 1860 },
+        { id: "inv_deye10", group: "Híbrido DEYE", name: "DEYE 10K",    type: "hibrido", kw: 10, price: 2100 },
+        { id: "inv_deye12", group: "Híbrido DEYE", name: "DEYE 12K",    type: "hibrido", kw: 12, price: 2300 },
+        { id: "inv_sol3",   group: "Inyección Solis", name: "Solis de 3K",  type: "inyeccion", kw: 3,  price: 475 },
+        { id: "inv_sol4",   group: "Inyección Solis", name: "Solis de 4K",  type: "inyeccion", kw: 4,  price: 500 },
+        { id: "inv_sol5",   group: "Inyección Solis", name: "Solis de 5K",  type: "inyeccion", kw: 5,  price: 525 },
+        { id: "inv_sol7",   group: "Inyección Solis", name: "Solis de 7K",  type: "inyeccion", kw: 7,  price: 750 },
+        { id: "inv_sol8",   group: "Inyección Solis", name: "Solis de 8K",  type: "inyeccion", kw: 8,  price: 810 },
+        { id: "inv_sol9",   group: "Inyección Solis", name: "Solis de 9K",  type: "inyeccion", kw: 9,  price: 850 },
+        { id: "inv_sol10",  group: "Inyección Solis", name: "Solis de 10K", type: "inyeccion", kw: 10, price: 995 },
+        { id: "inv_sol15",  group: "Inyección Solis", name: "Solis de 15K a 208V",  type: "inyeccion", kw: 15,  price: 2200 },
+        { id: "inv_sol30",  group: "Inyección Solis", name: "Solis de 30K a 208V",  type: "inyeccion", kw: 30,  price: 2530 },
+        { id: "inv_sol40",  group: "Inyección Solis", name: "Solis de 40K a 480V",  type: "inyeccion", kw: 40,  price: 2525 },
+        { id: "inv_sol60a", group: "Inyección Solis", name: "Solis de 60K a 208V",  type: "inyeccion", kw: 60,  price: 4075 },
+        { id: "inv_sol60b", group: "Inyección Solis", name: "Solis 60K 480V",       type: "inyeccion", kw: 60,  price: 2590 },
+        { id: "inv_sol100", group: "Inyección Solis", name: "Solis 100K 480V",      type: "inyeccion", kw: 100, price: 3900 },
+        { id: "inv_sol125", group: "Inyección Solis", name: "Solis 125K 480V",      type: "inyeccion", kw: 125, price: 4025 },
+        { id: "inv_solh30", group: "Híbrido Trifásico", name: "Solis Híbrido Trifásico 30K 208V", type: "hibrido", kw: 30, price: 5265 },
+        { id: "inv_solh60", group: "Híbrido Trifásico", name: "Híbrido Trifásico 60K 480V",       type: "hibrido", kw: 60, price: 6970 }
+      ],
+
+      // Baterías (Excel: "Precios de Baterias"). Soluna ya incluye el 5% de descuento del Excel.
+      batteries: [
+        { id: "bat_sol_r5",  group: "Soluna", name: "Soluna tipo Rack 5K",   price: 1045 },
+        { id: "bat_sol_p5",  group: "Soluna", name: "Soluna de Pared 5K",    price: 1233.10 },
+        { id: "bat_sol16",   group: "Soluna", name: "Soluna 16K",            price: 2755 },
+        { id: "bat_sol32",   group: "Soluna", name: "Soluna 32K",            price: 4465 },
+        { id: "bat_ion_p5",  group: "ION", name: "ION de 5K tipo Pared",     price: 1003 },
+        { id: "bat_ion_r5",  group: "ION", name: "ION de 5K tipo Rack",      price: 1003 },
+        { id: "bat_ion10",   group: "ION", name: "ION de 10K",               price: 2006 },
+        { id: "bat_ion15",   group: "ION", name: "ION de 15K",               price: 2714 },
+        { id: "bat_must5",   group: "MUST", name: "MUST 5K",                 price: 944 },
+        { id: "bat_must10",  group: "MUST", name: "MUST 10K",                price: 1974 },
+        { id: "bat_must15",  group: "MUST", name: "MUST 15K",                price: 2450 },
+        { id: "bat_am5",     group: "American Lithium", name: "American 5K 100A",  price: 827 },
+        { id: "bat_am15",    group: "American Lithium", name: "American 15K 300A", price: 2295 },
+        { id: "bat_py5",     group: "PYTES", name: "PYTES 5K",               price: 1085.60 },
+        { id: "bat_py10",    group: "PYTES", name: "PYTES 10K",              price: 2129.90 },
+        { id: "bat_py12",    group: "PYTES", name: "PYTES 12K",              price: 2342.30 },
+        { id: "bat_py16",    group: "PYTES", name: "PYTES 16K",              price: 2708.10 }
+      ],
+
+      // Estructura: costo fijo POR PANEL según el tipo
+      structures: [
+        { name: "Plano / Concreto",             price: 45.5341 },
+        { name: "Plano / Aluzinc",              price: 38.572 },
+        { name: "Al Ras / Concreto",            price: 36.4331 },
+        { name: "Al Ras / Aluzinc",             price: 29.471 },
+        { name: "Alto / Bajo Perfil / Concreto", price: 54.6355 },
+        { name: "Alto / Bajo Perfil / Aluzinc",  price: 47.673 }
+      ],
+
+      // Eléctricos híbridos: precio completo, precio integración (-25%) y bypass para 2+ equipos
+      elecHibrido: [
+        { kw: 6,  completo: 812.50,  integracion: 609.38,  bypass: 0 },
+        { kw: 8,  completo: 900.00,  integracion: 675.00,  bypass: 0 },
+        { kw: 12, completo: 1250.00, integracion: 937.50,  bypass: 800 },
+        { kw: 16, completo: 1550.00, integracion: 1162.50, bypass: 900 }
+      ],
+      // Eléctricos de inyección: precio por inversor
+      elecInyeccion: [
+        { kw: 3,  price: 325 },
+        { kw: 5,  price: 375 },
+        { kw: 7,  price: 500 },
+        { kw: 9,  price: 600 },
+        { kw: 10, price: 700 }
+      ],
+
+      rules: {
+        hibDescDesde: 3,        // Híbridos: a partir de este equipo se usa el precio de Integración
+        inyDescPct: 10,         // Inyección: % de descuento por cada inversor adicional
+        pbKwUmbral: 24,         // Panel Board si la potencia total de inversores pasa de esto (kW)
+        pbEquiposDesde: 3,      // Panel Board a partir de esta cantidad de inversores
+        pbPrecio: 0,            // Precio Panel Board (pendiente)
+        embBatDesde: 3,         // Embarrado a partir de esta cantidad de baterías
+        embPrecio: 0,           // Precio embarrado (pendiente)
+        cableriaPorDif: 80      // US$ por cada batería que exceda la cantidad de inversores
+      },
+
+      logistics: {
+        transporte: { local: 150, media: 250, mayor: 300 },
+        transporteUmbralPaneles: 50,
+        transporteRecargoPct: 60,
+        viaticos: { local: 35, fuera: 75 },
+        sometimiento: 100
+      },
+
+      // Provincias (Excel: tabla Ciudad/provincia). zona: local | media | mayor
+      provinces: [
+        { name: "Santiago",           indexHibrido: 4.15, hsp: 4.11, indexOnGrid: 3.70, zone: "local" },
+        { name: "Sabana Iglesia",     indexHibrido: 4.35, hsp: 4.11, indexOnGrid: 3.70, zone: "media" },
+        { name: "Moca",               indexHibrido: 4.25, hsp: 4.11, indexOnGrid: 3.70, zone: "media" },
+        { name: "Salcedo",            indexHibrido: 4.25, hsp: 4.11, indexOnGrid: 3.70, zone: "media" },
+        { name: "Hermanas Mirabal",   indexHibrido: 4.30, hsp: 4.11, indexOnGrid: 3.70, zone: "media" },
+        { name: "La Vega",            indexHibrido: 4.35, hsp: 3.97, indexOnGrid: 3.70, zone: "media" },
+        { name: "San Francisco",      indexHibrido: 4.35, hsp: 3.97, indexOnGrid: 3.70, zone: "media" },
+        { name: "Bonao",              indexHibrido: 4.30, hsp: 3.97, indexOnGrid: 3.70, zone: "media" },
+        { name: "Constanza",          indexHibrido: 4.30, hsp: 3.97, indexOnGrid: 3.70, zone: "media" },
+        { name: "Jarabacoa",          indexHibrido: 4.30, hsp: 3.97, indexOnGrid: 3.70, zone: "media" },
+        { name: "Sabaneta de Yásica", indexHibrido: 4.30, hsp: 3.97, indexOnGrid: 3.70, zone: "media" },
+        { name: "Cotuí",              indexHibrido: 4.35, hsp: 4.11, indexOnGrid: 3.70, zone: "media" },
+        { name: "Puerto Plata",       indexHibrido: 4.30, hsp: 4.11, indexOnGrid: 3.70, zone: "media" },
+        { name: "Mamey-La Isabela",   indexHibrido: 4.35, hsp: 4.23, indexOnGrid: 4.20, zone: "media" },
+        { name: "Mao",                indexHibrido: 4.35, hsp: 4.23, indexOnGrid: 4.20, zone: "media" },
+        { name: "Santiago Rodríguez", indexHibrido: 4.30, hsp: 4.23, indexOnGrid: 4.20, zone: "media" },
+        { name: "Villa Vásquez",      indexHibrido: 4.35, hsp: 4.23, indexOnGrid: 4.20, zone: "media" },
+        { name: "Nagua",              indexHibrido: 4.50, hsp: 4.11, indexOnGrid: 4.00, zone: "mayor" },
+        { name: "Samaná",             indexHibrido: 4.50, hsp: 4.11, indexOnGrid: 3.70, zone: "mayor" },
+        { name: "Dajabón",            indexHibrido: 4.50, hsp: 4.23, indexOnGrid: 4.20, zone: "mayor" },
+        { name: "Montecristi",        indexHibrido: 4.50, hsp: 4.23, indexOnGrid: 4.20, zone: "mayor" },
+        { name: "Santo Domingo",      indexHibrido: 5.20, hsp: 4.50, indexOnGrid: 3.80, zone: "mayor" },
+        { name: "Punta Cana",         indexHibrido: 5.20, hsp: 4.50, indexOnGrid: 3.95, zone: "mayor" },
+        { name: "Barahona",           indexHibrido: 6.00, hsp: 4.50, indexOnGrid: 4.30, zone: "mayor" }
+      ]
+    };
+
+    const SETTINGS_KEY = "feg_precios_v2";
+    let settings = JSON.parse(JSON.stringify(EXCEL_SETTINGS));
+
+    function loadSettings() {
+      try {
+        const raw = localStorage.getItem(SETTINGS_KEY);
+        if (raw) {
+          const saved = JSON.parse(raw);
+          settings = Object.assign(JSON.parse(JSON.stringify(EXCEL_SETTINGS)), saved);
+          settings.panel = Object.assign({}, EXCEL_SETTINGS.panel, saved.panel || {});
+          delete settings.panel.price;
+          settings.rules = Object.assign({}, EXCEL_SETTINGS.rules, saved.rules || {});
+          settings.logistics = Object.assign(JSON.parse(JSON.stringify(EXCEL_SETTINGS.logistics)), saved.logistics || {});
+        }
+      } catch (e) { /* sin almacenamiento: se usan los precios del Excel */ }
+    }
+    function saveSettings() {
+      try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch (e) { }
     }
 
-    // Actualiza un campo de una línea de la tabla sin volver a dibujarla (así no se pierde el foco al escribir)
+    // =========================================================================
+    // ESTADO
+    // =========================================================================
+    let lineItems = [];
+    let selectedTipoPrecio = "standard";
+    let latestCalculationResult = null;
+    let currentWarnings = [];
+
+    function getProvince(name) {
+      return settings.provinces.find(p => p.name === name) || settings.provinces[0];
+    }
+    function getInverter(id) { return settings.inverters.find(i => i.id === id) || null; }
+    function getBattery(id) { return settings.batteries.find(b => b.id === id) || null; }
+
+    // =========================================================================
+    // LLENADO DE LISTAS DESPLEGABLES
+    // =========================================================================
+    function buildGroupedOptions(list, extraFirst) {
+      const groups = {};
+      list.forEach(it => { (groups[it.group || "Otros"] = groups[it.group || "Otros"] || []).push(it); });
+      let html = extraFirst || "";
+      Object.keys(groups).forEach(g => {
+        html += `<optgroup label="${escapeHtml(g)}">` +
+          groups[g].map(it => `<option value="${it.id}">${escapeHtml(it.name)}</option>`).join("") +
+          `</optgroup>`;
+      });
+      return html;
+    }
+
+    function refreshSelects() {
+      const prov = document.getElementById("provinceSelect");
+      const provVal = prov.value;
+      prov.innerHTML = settings.provinces.map(p =>
+        `<option value="${escapeHtml(p.name)}">${escapeHtml(p.name)} (${p.zone === "local" ? "Local" : p.zone === "media" ? "Media 50-100km" : ">100km"} • HSP ${Number(p.hsp).toFixed(2)})</option>`).join("");
+      prov.value = settings.provinces.some(p => p.name === provVal) ? provVal : settings.provinces[0].name;
+
+      const st = document.getElementById("quickStructureSelect");
+      const stVal = st.value;
+      st.innerHTML = settings.structures.map((t, i) => `<option value="${i}">${escapeHtml(t.name)}</option>`).join("");
+      st.value = stVal !== "" && settings.structures[stVal] !== undefined ? stVal : "0";
+
+      inverterRows.forEach(r => { if (!getInverter(r.invId)) r.invId = defaultInverterId(); });
+      renderInverterRows();
+
+      const bat = document.getElementById("quickBatterySelect");
+      const batVal = bat.value;
+      bat.innerHTML = buildGroupedOptions(settings.batteries, `<option value="none">Sin Baterías</option>`);
+      bat.value = (batVal === "none" || getBattery(batVal)) ? batVal : (getBattery("bat_py16") ? "bat_py16" : "none");
+    }
+
+    // =========================================================================
+    // REGLAS
+    // =========================================================================
+    // Índice de costos: se toma de la provincia y la modalidad (híbrido / inyección).
+    // Solo se reescribe cuando cambia la provincia o la modalidad, así se respeta si lo editas a mano.
+    let lastIndexKey = "";
+    function applyProvinceIndex(force) {
+      const province = document.getElementById("provinceSelect").value;
+      const modalidad = document.getElementById("modalidadSelect").value;
+      const key = province + "|" + modalidad;
+      if (!force && key === lastIndexKey) return;
+      lastIndexKey = key;
+      const prov = getProvince(province);
+      const idx = Number(modalidad === "hibrido" ? prov.indexHibrido : prov.indexOnGrid);
+      document.getElementById("indiceCosto").value = idx;
+    }
+
+    // Transporte y viáticos según provincia y cantidad de paneles
+    function computeLogisticsByRules(provinceName, panelQty) {
+      const prov = getProvince(provinceName);
+      const L = settings.logistics;
+      const zone = prov.zone;
+      const base = Number(L.transporte[zone]) || 0;
+      const over = panelQty > L.transporteUmbralPaneles;
+      const transportCost = over ? round2(base * (1 + L.transporteRecargoPct / 100)) : base;
+      const transportLabel = over
+        ? `Transporte y Carga (${prov.name} +${L.transporteRecargoPct}% >${L.transporteUmbralPaneles}p)`
+        : `Transporte y Carga (${prov.name})`;
+
+      const viaticosRate = zone === "local" ? Number(L.viaticos.local) : Number(L.viaticos.fuera);
+      let viaticosDays = panelQty < 50 ? 4 : 7;
+      const over100 = panelQty > 100;
+      const viaticosLabel = over100
+        ? `Viáticos (Consultar c/ Albaro >100p)`
+        : `Viáticos (${viaticosDays} días - ${zone === "local" ? "Santiago" : "Fuera de Santiago"})`;
+      return { transportCost, transportLabel, viaticosRate, viaticosDays, viaticosLabel, over100 };
+    }
+
+    // Presupuesto eléctrico según el "Documento para presupuestos".
+    // Acepta una combinación de inversores: [{ inv, qty }, ...]
+    function findTier(table, kw) {
+      const sorted = [...table].sort((a, b) => a.kw - b.kw);
+      return { tier: sorted.find(t => t.kw >= kw) || sorted[sorted.length - 1], fuera: !sorted.some(t => t.kw >= kw) };
+    }
+
+    function computeElectrical(combo, batQty) {
+      const R = settings.rules;
+      const lines = [];
+      const warnings = [];
+      const add = (role, concepto, pu, extra) => {
+        const ex = lines.find(l => l.role === role && l.concepto === concepto && l.pu === pu);
+        if (ex) ex.cant += 1; else lines.push(Object.assign({ role, concepto, pu, cant: 1 }, extra || {}));
+      };
+      const warnFuera = (inv, tier, tipo) => {
+        const m = `El inversor ${inv.name} (${inv.kw}kW) es más grande que la tabla de eléctricos ${tipo}. Se usó la fila de ${tier.kw}kW: revisa el precio.`;
+        if (!warnings.includes(m)) warnings.push(m);
+      };
+
+      // Una unidad por cada equipo; el más grande primero (es el que lleva el precio completo)
+      const units = [];
+      combo.forEach(c => { for (let k = 0; k < c.qty; k++) units.push(c.inv); });
+      units.sort((a, b) => b.kw - a.kw);
+      const hib = units.filter(u => u.type === "hibrido");
+      const iny = units.filter(u => u.type !== "hibrido");
+      if (!units.length) return { lines, warnings };
+
+      // Híbridos: precio Completo para los primeros equipos, Integración desde el equipo N
+      let maxBypass = 0, bypassKw = 0;
+      hib.forEach((inv, k) => {
+        const { tier, fuera } = findTier(settings.elecHibrido, inv.kw);
+        if (fuera) warnFuera(inv, tier, "híbridos");
+        if (k < R.hibDescDesde - 1) add("elec_base", `Eléctricos Híbrido ${tier.kw}kW (Completo)`, Number(tier.completo));
+        else add("elec_integ", `Eléctricos Híbrido ${tier.kw}kW (Integración, desde equipo ${R.hibDescDesde})`, Number(tier.integracion));
+        if (Number(tier.bypass) > maxBypass) { maxBypass = Number(tier.bypass); bypassKw = tier.kw; }
+      });
+      if (hib.length >= 2 && maxBypass > 0) {
+        lines.push({ role: "elec_bypass", concepto: `Bypass (${hib.length} equipos híbridos, ${bypassKw}kW)`, pu: maxBypass, cant: 1 });
+      }
+
+      // Inyección: el 1er inversor a precio completo y cada adicional con descuento
+      iny.forEach((inv, k) => {
+        const { tier, fuera } = findTier(settings.elecInyeccion, inv.kw);
+        if (fuera) warnFuera(inv, tier, "de inyección");
+        if (k === 0) add("elec_base", `Eléctricos Inyección ${tier.kw}kW (1er inversor)`, Number(tier.price));
+        else add("elec_integ", `Eléctricos Inyección ${tier.kw}kW (adicional -${R.inyDescPct}%)`, round2(tier.price * (1 - R.inyDescPct / 100)));
+      });
+
+      const totalKw = units.reduce((a, u) => a + Number(u.kw), 0);
+      const invQty = units.length;
+      if (totalKw > R.pbKwUmbral || invQty >= R.pbEquiposDesde) {
+        const why = totalKw > R.pbKwUmbral ? `${totalKw}kW > ${R.pbKwUmbral}kW` : `${invQty} equipos`;
+        lines.push({ role: "elec_pb", concepto: `Panel Board (${why})`, pu: Number(R.pbPrecio), cant: 1, pending: !(R.pbPrecio > 0) });
+      }
+      if (batQty >= R.embBatDesde) {
+        lines.push({ role: "elec_emb", concepto: `Embarrado (${batQty} baterías)`, pu: Number(R.embPrecio), cant: 1, pending: !(R.embPrecio > 0) });
+      }
+      if (batQty > invQty) {
+        lines.push({ role: "elec_cab", concepto: `Cablería extra (${batQty - invQty} batería(s) más que inversores)`, pu: Number(R.cableriaPorDif), cant: batQty - invQty });
+      }
+      return { lines, warnings };
+    }
+
+    // =========================================================================
+    // FILAS DE INVERSORES (se pueden combinar modelos distintos)
+    // =========================================================================
+    let inverterRows = [];
+    function defaultInverterId() { return getInverter("inv_deye12") ? "inv_deye12" : settings.inverters[0]?.id; }
+
+    function renderInverterRows() {
+      const opts = buildGroupedOptions(settings.inverters, "");
+      const sel = "w-full px-2.5 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-slate-400";
+      document.getElementById("inverterRows").innerHTML = inverterRows.map((r, i) => `
+        <div class="grid grid-cols-12 gap-2 items-center">
+          <select id="invSel_${i}" onchange="setInverterRow(${i}, 'invId', this.value)" class="col-span-8 ${sel}">${opts}</select>
+          <input type="number" min="0" step="1" value="${r.qty}" title="Cantidad" oninput="setInverterRow(${i}, 'qty', parseInt(this.value, 10) || 0)"
+            class="col-span-3 px-2 py-1.5 text-xs text-center bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-slate-400" />
+          <button type="button" onclick="removeInverterRow(${i})" title="Quitar" class="col-span-1 text-slate-400 hover:text-rose-600 font-bold ${inverterRows.length > 1 ? "" : "invisible"}">&times;</button>
+        </div>`).join("");
+      inverterRows.forEach((r, i) => { document.getElementById(`invSel_${i}`).value = r.invId; });
+    }
+
+    function setInverterRow(i, field, value) {
+      inverterRows[i][field] = value;
+      if (field === "invId") onInverterChange(); else onConfigChange();
+    }
+    function addInverterRow() {
+      inverterRows.push({ invId: inverterRows[inverterRows.length - 1]?.invId || defaultInverterId(), qty: 1 });
+      renderInverterRows();
+      onInverterChange();
+    }
+    function removeInverterRow(i) {
+      if (inverterRows.length <= 1) return;
+      inverterRows.splice(i, 1);
+      renderInverterRows();
+      onInverterChange();
+    }
+    function getInverterCombo() {
+      return inverterRows.map(r => ({ inv: getInverter(r.invId), qty: r.qty || 0 })).filter(c => c.inv && c.qty > 0);
+    }
+
+    // Reconstruye todas las líneas automáticas a partir de la configuración actual.
+    // Las líneas que agregaste a mano (+ Ítem) se conservan.
+    function applyAllRules() {
+      const province = document.getElementById("provinceSelect").value;
+      const panelQty = parseInt(document.getElementById("panelQty").value, 10) || 0;
+      const panelW = parseFloat(document.getElementById("panelW").value) || 650;
+      const panelPrice = round2(panelW * (Number(settings.panel.pricePerW) || 0));
+      const stIdx = parseInt(document.getElementById("quickStructureSelect").value, 10) || 0;
+      const combo = getInverterCombo();
+      const batId = document.getElementById("quickBatterySelect").value;
+      const bat = batId === "none" ? null : getBattery(batId);
+      const batQty = bat ? (parseInt(document.getElementById("quickBatteryQty").value, 10) || 0) : 0;
+
+      const stDef = settings.structures[stIdx] || settings.structures[0];
+      const st = { price: Number(stDef.price) || 0 };
+      const log = computeLogisticsByRules(province, panelQty);
+      const elec = computeElectrical(combo, batQty);
+
+      const customs = lineItems.filter(i => i.role === "custom");
+      let id = 1;
+      const eq = (o) => Object.assign({ id: id++, grupo: "equipos_materiales" }, o);
+      const ad = (o) => Object.assign({ id: id++, grupo: "adicionales" }, o);
+
+      const items = [
+        eq({ role: "panel", concepto: `Panel Solar (${panelW}W)`, pu: panelPrice, cant: panelQty, isPanel: true })
+      ];
+      combo.forEach(c => items.push(eq({ role: "inverter", concepto: `Inversor ${c.inv.name}`, pu: Number(c.inv.price), cant: c.qty })));
+      if (bat && batQty > 0) items.push(eq({ role: "battery", concepto: `Batería ${bat.name}`, pu: Number(bat.price), cant: batQty }));
+      elec.lines.forEach(l => items.push(eq(l)));
+      items.push(eq({ role: "structure", concepto: `Estructura: ${stDef.name}`, pu: st.price, cant: panelQty }));
+      items.push(ad({ role: "sometimiento", concepto: "Sometimiento / Trámites", pu: Number(settings.logistics.sometimiento), cant: 1 }));
+      items.push(ad({ role: "transport", concepto: log.transportLabel, pu: log.transportCost, cant: 1 }));
+      items.push(ad({ role: "viaticos", concepto: log.viaticosLabel, pu: log.viaticosRate, cant: log.viaticosDays }));
+      customs.forEach(c => items.push(Object.assign({}, c, { id: id++ })));
+      lineItems = items;
+
+      document.getElementById("panelOver100Alert").classList.toggle("hidden", !log.over100);
+
+      currentWarnings = elec.warnings;
+      renderWarnings();
+    }
+
+    function renderWarnings() {
+      const box = document.getElementById("rulesWarnings");
+      const pendientes = lineItems.filter(i => i.pending && !(i.pu > 0)).map(i => `${i.concepto} sin precio: complétalo en la tabla de abajo o en Precios y Reglas.`);
+      const msgs = currentWarnings.filter(w => !/sin precio/.test(w)).concat(pendientes);
+      if (!msgs.length) { box.classList.add("hidden"); box.innerHTML = ""; return; }
+      box.classList.remove("hidden");
+      box.innerHTML = msgs.map(m => `<p><span class="font-bold text-amber-600">⚠</span> ${escapeHtml(m)}</p>`).join("");
+    }
+
+    // Disparadores
+    function onConfigChange() {
+      applyProvinceIndex();
+      applyAllRules();
+      renderItemsTable();
+      recalculateAll();
+    }
+    function onInverterChange() {
+      const combo = getInverterCombo();
+      if (combo.length) {
+        const anyHib = combo.some(c => c.inv.type === "hibrido");
+        document.getElementById("modalidadSelect").value = anyHib ? "hibrido" : "ongrid";
+        if (!anyHib) document.getElementById("quickBatterySelect").value = "none";
+      }
+      onConfigChange();
+    }
+    function reapplyLogisticsRules(notifyUser) {
+      onConfigChange();
+      if (notifyUser) showToast("Equipos, eléctricos, estructura, transporte y viáticos recalculados", "success");
+    }
+
+    // =========================================================================
+    // TABLA EDITABLE
+    // =========================================================================
     function updateLineField(idx, field, value) {
       if (!lineItems[idx]) return;
       lineItems[idx][field] = value;
       if (field === "pu" || field === "cant") {
         const cell = document.getElementById(`lineTotal_${idx}`);
         if (cell) cell.textContent = fmtUSD((lineItems[idx].pu || 0) * (lineItems[idx].cant || 0));
+        if (lineItems[idx].pending) renderWarnings();
       }
       recalculateAll();
     }
 
-    // Sincronizar cantidad y potencia de paneles con la primera línea del catálogo
-    function syncPanelQuantityFromInput() {
-      const w = parseFloat(document.getElementById("panelW").value) || 650;
-      const panelItem = lineItems.find(item => item.isPanel);
-      if (panelItem) {
-        panelItem.concepto = `Panel Solar (${w}W)`;
-        renderItemsTable();
-      }
-      recalculateAll();
-    }
-
-    function syncPanelLineQty() {
-      const qty = parseInt(document.getElementById("panelQty").value, 10) || 1;
-      const panelItem = lineItems.find(item => item.isPanel);
-      if (panelItem) {
-        panelItem.cant = qty;
-      }
-      // Actualizar también cantidad de estructura por panel y materiales eléctricos estimados
-      const structItem = lineItems.find(item => item.role === "structure");
-      if (structItem) {
-        structItem.cant = qty;
-      }
-      const elecItem = lineItems.find(item => item.role === "electrical");
-      if (elecItem) {
-        elecItem.pu = Math.max(650, +(qty * 70).toFixed(2));
-      }
-      reapplyLogisticsRules(false);
-      renderItemsTable();
-      recalculateAll();
-    }
-
-    // Aplicar selección de los selectores rápidos (Panel, Estructura, Inversor, Batería)
-    function applyQuickCatalogSelection() {
-      const [pWattsStr, pPriceStr] = document.getElementById("quickPanelSelect").value.split("|");
-      const [sName, sPriceStr] = document.getElementById("quickStructureSelect").value.split("|");
-      const [iName, iPriceStr] = document.getElementById("quickInverterSelect").value.split("|");
-      const iQty = parseInt(document.getElementById("quickInverterQty").value, 10) || 0;
-      const [bName, bPriceStr] = document.getElementById("quickBatterySelect").value.split("|");
-      const bQty = parseInt(document.getElementById("quickBatteryQty").value, 10) || 0;
-
-      const panelW = parseFloat(pWattsStr) || 650;
-      const panelPu = parseFloat(pPriceStr) || 98;
-      const panelQty = parseInt(document.getElementById("panelQty").value, 10) || 20;
-
-      document.getElementById("panelW").value = panelW;
-
-      const panelItem = lineItems.find(i => i.role === "panel" || i.isPanel);
-      if (panelItem) {
-        panelItem.concepto = `Panel Solar (${panelW}W)`;
-        panelItem.pu = panelPu;
-        panelItem.cant = panelQty;
-      }
-
-      const invItem = lineItems.find(i => i.role === "inverter");
-      if (invItem) {
-        invItem.concepto = iName;
-        invItem.pu = parseFloat(iPriceStr) || 0;
-        invItem.cant = iQty;
-      }
-
-      const batItem = lineItems.find(i => i.role === "battery");
-      if (batItem) {
-        batItem.concepto = bName;
-        batItem.pu = parseFloat(bPriceStr) || 0;
-        batItem.cant = bName === "Sin Baterías" ? 0 : bQty;
-      }
-
-      const structItem = lineItems.find(i => i.role === "structure");
-      if (structItem) {
-        structItem.concepto = `Estructura: ${sName}`;
-        structItem.pu = parseFloat(sPriceStr) || 0;
-        structItem.cant = panelQty;
-      }
-
-      const elecItem = lineItems.find(i => i.role === "electrical");
-      if (elecItem) {
-        elecItem.pu = Math.max(650, +(panelQty * 70).toFixed(2));
-      }
-
-      renderItemsTable();
-      recalculateAll();
-    }
-
-    // Recalcular automáticamente Transporte, Viáticos y Programación según reglas del usuario
-    function reapplyLogisticsRules(notifyUser = false) {
-      const province = document.getElementById("provinceSelect").value;
-      const panelQty = parseInt(document.getElementById("panelQty").value, 10) || 1;
-      const log = computeLogisticsByRules(province, panelQty);
-
-      const tItem = lineItems.find(i => i.role === "transport");
-      if (tItem) {
-        tItem.concepto = log.transportLabel;
-        tItem.pu = log.transportCost;
-        tItem.cant = 1;
-      }
-
-      const vItem = lineItems.find(i => i.role === "viaticos");
-      if (vItem) {
-        vItem.concepto = log.viaticosLabel;
-        vItem.pu = log.viaticosRate;
-        vItem.cant = log.viaticosDays;
-      }
-
-      const pItem = lineItems.find(i => i.role === "programming");
-      if (pItem) {
-        pItem.concepto = log.progLabel;
-        pItem.pu = log.progCost;
-        pItem.cant = 1;
-      }
-
-      lastProvinceForLogistics = province;
-      lastPanelQtyForLogistics = panelQty;
-
-      // Mostrar u ocultar alerta de > 100 paneles
-      const alertBox = document.getElementById("panelOver100Alert");
-      if (alertBox) {
-        if (log.over100) alertBox.classList.remove("hidden");
-        else alertBox.classList.add("hidden");
-      }
-
-      if (notifyUser) {
-        renderItemsTable();
-        recalculateAll();
-        showToast("Transporte, viáticos y programación recalculados según tus reglas", "success");
-      }
-    }
-
-    // Renderizar tabla editable de equipos
     function renderItemsTable() {
       const tbody = document.getElementById("itemsTableBody");
-      tbody.innerHTML = lineItems.map((item, idx) => `
-        <tr class="hover:bg-slate-50/80 transition-colors">
+      tbody.innerHTML = lineItems.map((item, idx) => {
+        const warn = item.pending && !(item.pu > 0);
+        return `
+        <tr class="${warn ? "bg-amber-50" : "hover:bg-slate-50/80"} transition-colors">
           <td class="py-2.5 pr-2">
             <input type="text" value="${escapeHtml(item.concepto)}" oninput="updateLineField(${idx}, 'concepto', this.value)"
               class="w-full px-2 py-1 text-xs bg-transparent border border-transparent hover:border-slate-200 focus:border-slate-400 rounded focus:outline-none text-slate-800" />
           </td>
           <td class="py-2.5 px-1 w-20">
             <input type="number" step="0.01" value="${item.pu}" oninput="updateLineField(${idx}, 'pu', parseFloat(this.value) || 0)"
-              class="w-full px-2 py-1 text-xs text-right bg-slate-50/50 border border-slate-200 rounded focus:outline-none focus:border-slate-400" />
+              class="w-full px-2 py-1 text-xs text-right ${warn ? "bg-amber-100 border-amber-400" : "bg-slate-50/50 border-slate-200"} border rounded focus:outline-none focus:border-slate-400" />
           </td>
           <td class="py-2.5 px-1 w-14">
             <input type="number" step="1" value="${item.cant}" oninput="updateLineField(${idx}, 'cant', parseFloat(this.value) || 0)"
@@ -1061,8 +1151,8 @@
           <td class="py-2.5 w-6 text-center">
             <button type="button" onclick="removeLineItem(${idx})" class="text-slate-400 hover:text-rose-600 font-bold">&times;</button>
           </td>
-        </tr>
-      `).join("");
+        </tr>`;
+      }).join("");
     }
 
     function addNewLineItem() {
@@ -1072,8 +1162,8 @@
     }
 
     function removeLineItem(idx) {
-      if (lineItems.length <= 3) {
-        showToast("Debe mantener al menos los equipos principales", "error");
+      if (["panel", "inverter"].includes(lineItems[idx]?.role)) {
+        showToast("Los paneles e inversores se cambian arriba, en Configuración de Equipos", "error");
         return;
       }
       lineItems.splice(idx, 1);
@@ -1081,79 +1171,68 @@
       recalculateAll();
     }
 
-    // Limpia el formulario para iniciar una cotización nueva desde cero
-    function nuevaCotizacion() {
-      const province = "Santiago";
-      const panelQty = 10;
-      const panelW = 650;
-      const log = computeLogisticsByRules(province, panelQty);
-
-      document.getElementById("clientName").value = "";
-      document.getElementById("projectName").value = "";
-      document.getElementById("provinceSelect").value = province;
+    // =========================================================================
+    // COTIZACIÓN NUEVA / EJEMPLO
+    // =========================================================================
+    function setFormDefaults(panelQty) {
+      document.getElementById("provinceSelect").value = settings.provinces.some(p => p.name === "Santiago") ? "Santiago" : settings.provinces[0].name;
       document.getElementById("modalidadSelect").value = "hibrido";
-      document.getElementById("quickPanelSelect").value = "650|98";
-      document.getElementById("quickStructureSelect").value = "Techo Plano / Losa|52.50";
-      document.getElementById("quickInverterSelect").value = "Inversor DEYE 12K Híbrido|2300";
-      document.getElementById("quickInverterQty").value = 1;
-      document.getElementById("quickBatterySelect").value = "Batería PYTES 16kWh|2755";
+      document.getElementById("quickStructureSelect").value = "0";
+      inverterRows = [{ invId: defaultInverterId(), qty: 1 }];
+      renderInverterRows();
+      document.getElementById("quickBatterySelect").value = getBattery("bat_py16") ? "bat_py16" : "none";
       document.getElementById("quickBatteryQty").value = 2;
-      document.getElementById("panelW").value = panelW;
+      document.getElementById("panelW").value = settings.panel.w;
       document.getElementById("panelQty").value = panelQty;
       document.getElementById("margenPresupuesto").value = 2.0;
+      lineItems = [];
+      applyProvinceIndex(true);
+      setTipoPrecio("standard", true);
+      onConfigChange();
+    }
 
-      lineItems = [
-        { id: Date.now() + 1, role: "panel", concepto: `Panel Solar (${panelW}W)`, pu: 98.00, cant: panelQty, grupo: "equipos_materiales", isPanel: true },
-        { id: Date.now() + 2, role: "inverter", concepto: "Inversor DEYE 12K Híbrido", pu: 2300.00, cant: 1, grupo: "equipos_materiales" },
-        { id: Date.now() + 3, role: "battery", concepto: "Batería PYTES 16kWh", pu: 2755.00, cant: 2, grupo: "equipos_materiales" },
-        { id: Date.now() + 4, role: "electrical", concepto: "Materiales Eléctricos (Est. Base)", pu: Math.max(650, +(panelQty * 70).toFixed(2)), cant: 1, grupo: "equipos_materiales" },
-        { id: Date.now() + 5, role: "structure", concepto: "Estructura: Techo Plano / Losa", pu: 52.50, cant: panelQty, grupo: "equipos_materiales" },
-        { id: Date.now() + 6, role: "sometimiento", concepto: "Sometimiento / Trámites", pu: 100.00, cant: 1, grupo: "adicionales" },
-        { id: Date.now() + 7, role: "transport", concepto: log.transportLabel, pu: log.transportCost, cant: 1, grupo: "adicionales" },
-        { id: Date.now() + 8, role: "viaticos", concepto: log.viaticosLabel, pu: log.viaticosRate, cant: log.viaticosDays, grupo: "adicionales" },
-        { id: Date.now() + 9, role: "programming", concepto: log.progLabel, pu: log.progCost, cant: 1, grupo: "adicionales" }
-      ];
-
-      lastProvinceForLogistics = "Santiago";
-      lastPanelQtyForLogistics = 10;
-      document.getElementById("panelOver100Alert").classList.add("hidden");
-
-      setTipoPrecio("standard");
-      renderItemsTable();
-      recalculateAll();
+    function nuevaCotizacion() {
+      document.getElementById("clientName").value = "";
+      document.getElementById("projectName").value = "";
+      setFormDefaults(10);
       switchTab("comercial");
-
-      const clientInput = document.getElementById("clientName");
-      clientInput.focus();
+      document.getElementById("clientName").focus();
       showToast("Formulario listo para una nueva cotización desde cero", "success");
     }
 
     function resetDefaultData() {
-      lineItems = JSON.parse(JSON.stringify(buildInitialItems("Santiago", 20)));
       document.getElementById("clientName").value = "Patria Brea / Residencial";
       document.getElementById("projectName").value = "Sistema Solar 13 kWp";
-      document.getElementById("provinceSelect").value = "Santiago";
-      document.getElementById("modalidadSelect").value = "hibrido";
-      document.getElementById("quickPanelSelect").value = "650|98";
-      document.getElementById("quickStructureSelect").value = "Techo Plano / Losa|52.50";
-      document.getElementById("quickInverterSelect").value = "Inversor DEYE 12K Híbrido|2300";
-      document.getElementById("quickInverterQty").value = 1;
-      document.getElementById("quickBatterySelect").value = "Batería PYTES 16kWh|2755";
-      document.getElementById("quickBatteryQty").value = 2;
-      document.getElementById("panelW").value = 650;
-      document.getElementById("panelQty").value = 20;
-      document.getElementById("margenPresupuesto").value = 2.0;
-      lastProvinceForLogistics = "Santiago";
-      lastPanelQtyForLogistics = 20;
-      document.getElementById("panelOver100Alert").classList.add("hidden");
-      setTipoPrecio("standard");
-      renderItemsTable();
-      recalculateAll();
+      setFormDefaults(20);
       showToast("Valores de muestra restaurados", "info");
     }
 
     // =========================================================================
-    // MOTOR DE CÁLCULO DETERMINISTA (Fórmulas auditadas calc.ts)
+    // PESTAÑAS Y LISTA DE PRECIO
+    // =========================================================================
+    function setTipoPrecio(tipo, silent) {
+      selectedTipoPrecio = tipo;
+      const on = "py-1.5 px-3 rounded-lg text-xs font-semibold bg-white text-slate-900 shadow-sm transition-all";
+      const off = "py-1.5 px-3 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 transition-all";
+      document.getElementById("btnPriceStandard").className = tipo === "standard" ? on : off;
+      document.getElementById("btnPricePreferencial").className = tipo === "standard" ? off : on;
+      if (!silent) recalculateAll();
+    }
+
+    function switchTab(tab) {
+      const on = "flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold bg-slate-900 text-white shadow-sm transition-all flex items-center justify-center space-x-2";
+      const off = "flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-all flex items-center justify-center space-x-2";
+      [["comercial", "viewComercial", "tabBtnComercial"], ["contabilidad", "viewContabilidad", "tabBtnContabilidad"], ["precios", "viewPrecios", "tabBtnPrecios"]]
+        .forEach(([k, view, btn]) => {
+          document.getElementById(view).classList.toggle("hidden", k !== tab);
+          document.getElementById(btn).className = k === tab ? on : off;
+        });
+      if (tab === "precios") renderSettings();
+    }
+
+    // =========================================================================
+    // MOTOR DE CÁLCULO (mismas fórmulas del Excel)
+    // Precio = (Gasto Total × (1 + margen) + Índice de costos × Potencia(W) / Tasa compra) / 0.67 ó 0.69
     // =========================================================================
     function recalculateAll() {
       const clientName = document.getElementById("clientName").value || "Cliente";
@@ -1161,57 +1240,42 @@
       const province = document.getElementById("provinceSelect").value;
       const modalidad = document.getElementById("modalidadSelect").value;
       const panelW = parseFloat(document.getElementById("panelW").value) || 650;
-      const panelQty = parseInt(document.getElementById("panelQty").value, 10) || 20;
-
-      // Si cambió la provincia o la cantidad de paneles, recalcular reglas logísticas automáticamente
-      if (province !== lastProvinceForLogistics || panelQty !== lastPanelQtyForLogistics) {
-        reapplyLogisticsRules(false);
-        renderItemsTable();
-      }
+      const panelQty = parseInt(document.getElementById("panelQty").value, 10) || 0;
       const margenPresupuestoPct = parseFloat(document.getElementById("margenPresupuesto").value) || 0;
       const tasaVenta = parseFloat(document.getElementById("tasaVenta").value) || 61.45;
       const tasaCompra = parseFloat(document.getElementById("tasaCompra").value) || 58.00;
       const tarifaKwh = parseFloat(document.getElementById("tarifaKwh").value) || 14.04;
-      const omPct = parseFloat(document.getElementById("omPct").value) || 1.0;
-      const tasaAnual = parseFloat(document.getElementById("tasaAnual").value) || 14.0;
+      const omPct = parseFloat(document.getElementById("omPct").value) || 0;
+      const tasaAnual = parseFloat(document.getElementById("tasaAnual").value) || 0;
       const plazoMeses = parseInt(document.getElementById("plazoMeses").value, 10) || 60;
 
-      const provData = PROVINCE_PARAMS[province] || PROVINCE_PARAMS["Santiago"];
-      const hsp = provData.hsp;
-      const indiceCosto = modalidad === "hibrido" ? provData.indexHibrido : provData.indexOnGrid;
+      const provData = getProvince(province);
+      const hsp = Number(provData.hsp);
+      const indiceCosto = parseFloat(document.getElementById("indiceCosto").value) || 0;
 
-      // 1. Sumatorias de líneas por grupo
       const equiposList = lineItems.filter(i => i.grupo === "equipos_materiales");
       const adicionalesList = lineItems.filter(i => i.grupo === "adicionales");
+      const totalEquipos = equiposList.reduce((a, i) => a + i.pu * i.cant, 0);
+      const totalAdicionales = adicionalesList.reduce((a, i) => a + i.pu * i.cant, 0);
 
-      const totalEquipos = equiposList.reduce((acc, i) => acc + (i.pu * i.cant), 0);
-      const totalAdicionales = adicionalesList.reduce((acc, i) => acc + (i.pu * i.cant), 0);
-
-      // 2. Gasto Total y Gasto con Margen de Presupuesto
       const gastoTotal = totalEquipos + totalAdicionales;
-      const gastoConMargen = gastoTotal * (1 + (margenPresupuestoPct / 100));
+      const gastoConMargen = gastoTotal * (1 + margenPresupuestoPct / 100);
 
-      // 3. Potencia Base y Mano de Obra
       const potenciaW = panelQty * panelW;
       const potenciaKw = potenciaW / 1000;
-      const manoObraDop = potenciaW * indiceCosto;
+      const manoObraDop = potenciaW * indiceCosto;     // Índice de costos × Potencia (W)
       const manoObraUsd = manoObraDop / tasaCompra;
 
-      // 4. Costo Directo Total y Evaluación de Precios (Standard 0.67 vs Preferencial 0.69)
       const costoDirectoTotal = gastoConMargen + manoObraUsd;
       const precioStandard = costoDirectoTotal / 0.67;
       const precioPreferencial = costoDirectoTotal / 0.69;
-
       const totalEjecucion = selectedTipoPrecio === "standard" ? precioStandard : precioPreferencial;
       const totalDop = totalEjecucion * tasaVenta;
 
-      // 5. O&M y Margen Bruto Derivado
       const omUsd = totalEjecucion * (omPct / 100);
       const margenBrutoUsd = totalEjecucion - costoDirectoTotal;
       const margenBrutoPct = totalEjecucion > 0 ? (margenBrutoUsd / totalEjecucion) * 100 : 0;
 
-      // 6. Generación Energética, Ahorros y ROI (Ley 57-07)
-      // Fórmula auditada: Potencia (kW) * HSP * 30 días
       const kwhMes = potenciaKw * hsp * 30;
       const ahorroMesDop = kwhMes * tarifaKwh;
       const ahorroAnualDop = ahorroMesDop * 12;
@@ -1224,21 +1288,17 @@
       const roiConLey = ahorroAnualDop > 0 ? (inversionNetaUsd * tasaVenta) / ahorroAnualDop : 0;
       const costoPorWp = potenciaW > 0 ? totalEjecucion / potenciaW : 0;
 
-      // 7. Financiamiento (Fórmula PMT mensual estándar)
       const tasaMensual = (tasaAnual / 100) / 12;
-      const calcPmt = (principal) => {
-        if (tasaMensual === 0) return principal / plazoMeses;
-        const factor = Math.pow(1 + tasaMensual, plazoMeses);
-        return (principal * tasaMensual * factor) / (factor - 1);
+      const calcPmt = (p) => {
+        if (tasaMensual === 0) return p / plazoMeses;
+        const f = Math.pow(1 + tasaMensual, plazoMeses);
+        return (p * tasaMensual * f) / (f - 1);
       };
-
       const montoFinanciado100 = totalDop;
       const cuota100 = calcPmt(montoFinanciado100);
-
       const montoFinanciado70 = totalDop * 0.70;
       const cuota70 = calcPmt(montoFinanciado70);
 
-      // Guardar objeto de estado para envío a Supabase o copiado
       latestCalculationResult = {
         clientName, projectName, province, modalidad, panelW, panelQty,
         potenciaW, potenciaKw, hsp, indiceCosto, tasaVenta, tasaCompra,
@@ -1255,12 +1315,14 @@
         montoFinanciado100, cuota100, montoFinanciado70, cuota70
       };
 
+      document.getElementById("indiceInfo").textContent =
+        `Índice de ${province} (${modalidad === "hibrido" ? "híbrido" : "inyección"}). Se multiplica por la potencia (${potenciaW.toLocaleString()} W) dentro de la fórmula del precio. El detalle está en el Informe Interno.`;
+
       updateCommercialUI(latestCalculationResult);
       updateAccountingUI(latestCalculationResult);
       updateLiveSummaryBar(latestCalculationResult);
     }
 
-    // Actualizar Barra Superior Persistente con Datos Técnicos Clave
     function updateLiveSummaryBar(r) {
       document.getElementById("liveBarKwp").innerHTML = `${r.potenciaKw.toFixed(2)} kWp <span class="text-[11px] font-normal text-slate-300">(${r.panelQty}×${r.panelW}W)</span>`;
       document.getElementById("liveBarKwh").textContent = `${fmtInt(r.kwhMes)} kWh/mes`;
@@ -1270,85 +1332,61 @@
       document.getElementById("liveBarTotal").textContent = `${fmtUSD(r.totalEjecucion)} • RD$ ${fmtInt(r.cuota70)}/m`;
     }
 
-    // Actualizar Vista Comercial (Cliente)
     function updateCommercialUI(r) {
       document.getElementById("comClientDisplay").textContent = r.clientName.trim() || "Nuevo Cliente";
       document.getElementById("comProjectMeta").textContent = `${r.projectName} • ${r.province} • Modalidad ${r.modalidad === 'hibrido' ? 'Híbrida' : 'On-Grid'}`;
       document.getElementById("comTotalUsd").textContent = fmtUSD(r.totalEjecucion);
       document.getElementById("comTotalDop").textContent = `≈ ${fmtDOP(r.totalDop)} (Tasa ${r.tasaVenta.toFixed(2)})`;
-
       document.getElementById("comPotenciaKw").textContent = `${r.potenciaKw.toFixed(2)} kWp`;
       document.getElementById("comPanelCountText").textContent = `${r.panelQty} paneles de ${r.panelW}W`;
-
       document.getElementById("comKwhMes").textContent = `${fmtInt(r.kwhMes)} kWh`;
       document.getElementById("comHspText").textContent = `HSP ${r.province}: ${r.hsp.toFixed(2)}`;
-
       document.getElementById("comAhorroAnual").textContent = `RD$ ${fmtInt(r.ahorroAnualDop)}`;
       document.getElementById("comAhorroMes").textContent = `RD$ ${fmtInt(r.ahorroMesDop)} / mes`;
-
       document.getElementById("comRoiContado").textContent = `${r.roiContado.toFixed(2)} años`;
       document.getElementById("comRoiLey").textContent = `${r.roiConLey.toFixed(2)} años c/ Ley 57-07`;
-
       document.getElementById("comPlazoBadge").textContent = `${r.plazoMeses} meses @ ${r.tasaAnual}%`;
       document.getElementById("comCuota70").innerHTML = `${fmtDOP(r.cuota70)} <span class="text-xs font-normal text-slate-500">/ mes</span>`;
       document.getElementById("comMonto70").textContent = `Monto financiado: ${fmtDOP(r.montoFinanciado70)}`;
-
       document.getElementById("comCuota100").innerHTML = `${fmtDOP(r.cuota100)} <span class="text-xs font-normal text-slate-500">/ mes</span>`;
       document.getElementById("comMonto100").textContent = `Monto financiado: ${fmtDOP(r.montoFinanciado100)}`;
-
       document.getElementById("comCreditoFiscal").textContent = fmtUSD(r.creditoFiscalUsd);
       document.getElementById("comDeduccionAnual").textContent = `${fmtUSD(r.deduccionAnualUsd)} / año`;
       document.getElementById("comInversionNeta").textContent = fmtUSD(r.inversionNetaUsd);
       document.getElementById("comCostoWp").textContent = `$${r.costoPorWp.toFixed(2)}/Wp`;
     }
 
-    // Actualizar Vista Informe Interno (Hoja 1 - Contabilidad)
     function updateAccountingUI(r) {
       const today = new Date().toLocaleDateString("es-DO", { year: 'numeric', month: 'short', day: 'numeric' });
       const displayClient = r.clientName.trim() || "Nuevo Cliente";
       document.getElementById("accDateBadge").textContent = `Fecha: ${today}`;
       document.getElementById("accProjectTitle").textContent = `Informe de Costos: ${displayClient} — ${r.projectName}`;
-      document.getElementById("accMetaInfo").textContent = `Provincia: ${r.province} | Potencia: ${r.potenciaKw.toFixed(2)} kWp (${r.potenciaW.toLocaleString()} W) | Índice MO: ${r.indiceCosto.toFixed(2)} | Tasa Compra: ${r.tasaCompra.toFixed(2)} | Tasa Venta: ${r.tasaVenta.toFixed(2)}`;
-
-      // Actualizar tarjetas de resumen técnico dentro de la Hoja 1
+      document.getElementById("accMetaInfo").textContent = `Provincia: ${r.province} | Potencia: ${r.potenciaKw.toFixed(2)} kWp (${r.potenciaW.toLocaleString()} W) | Índice de costos: ${r.indiceCosto.toFixed(2)} | Tasa Compra: ${r.tasaCompra.toFixed(2)} | Tasa Venta: ${r.tasaVenta.toFixed(2)}`;
       document.getElementById("accKwpSummary").textContent = `${r.potenciaKw.toFixed(2)} kWp (${r.panelQty}×${r.panelW}W)`;
       document.getElementById("accEnergySummary").textContent = `${fmtInt(r.kwhMes)} kWh/m • RD$ ${fmtInt(r.ahorroAnualDop)}/a`;
       document.getElementById("accRoiSummary").textContent = `$${r.costoPorWp.toFixed(2)}/Wp • ${r.roiContado.toFixed(2)}a (${r.roiConLey.toFixed(2)}a)`;
       document.getElementById("accFinSummary").textContent = `RD$ ${fmtInt(r.cuota70)} / RD$ ${fmtInt(r.cuota100)}`;
 
-      // Llenar tabla Equipos y Materiales
-      const eqBody = document.getElementById("accEquiposBody");
-      eqBody.innerHTML = r.equiposList.map(i => `
+      const row = i => `
         <tr>
           <td class="py-2 px-3 text-slate-800">${escapeHtml(i.concepto)}</td>
           <td class="py-2 px-3 text-right text-slate-600">${fmtUSD(i.pu)}</td>
           <td class="py-2 px-3 text-center text-slate-600">${i.cant}</td>
           <td class="py-2 px-3 text-right font-medium text-slate-900">${fmtUSD(i.pu * i.cant)}</td>
-        </tr>
-      `).join("");
+        </tr>`;
+      document.getElementById("accEquiposBody").innerHTML = r.equiposList.map(row).join("");
       document.getElementById("accTotalEquipos").textContent = fmtUSD(r.totalEquipos);
-
-      // Llenar tabla Adicionales
-      const adBody = document.getElementById("accAdicionalesBody");
-      adBody.innerHTML = r.adicionalesList.map(i => `
-        <tr>
-          <td class="py-2 px-3 text-slate-800">${escapeHtml(i.concepto)}</td>
-          <td class="py-2 px-3 text-right text-slate-600">${fmtUSD(i.pu)}</td>
-          <td class="py-2 px-3 text-center text-slate-600">${i.cant}</td>
-          <td class="py-2 px-3 text-right font-medium text-slate-900">${fmtUSD(i.pu * i.cant)}</td>
-        </tr>
-      `).join("");
+      document.getElementById("accAdicionalesBody").innerHTML = r.adicionalesList.map(row).join("");
       document.getElementById("accTotalAdicionales").textContent = fmtUSD(r.totalAdicionales);
 
-      // Resumen Financiero y Mano de Obra
       document.getElementById("accGastoTotal").textContent = fmtUSD(r.gastoTotal);
       document.getElementById("accMargenLabel").textContent = `Gasto Total + Margen Presupuesto (${r.margenPresupuestoPct.toFixed(1)}%):`;
       document.getElementById("accGastoConMargen").textContent = fmtUSD(r.gastoConMargen);
+      document.getElementById("accMoLabel").textContent = `Mano de Obra (Índice ${r.indiceCosto.toFixed(2)} × ${r.potenciaW.toLocaleString()} W):`;
       document.getElementById("accMoDop").textContent = fmtDOP(r.manoObraDop);
       document.getElementById("accMoUsd").textContent = fmtUSD(r.manoObraUsd);
       document.getElementById("accCostoDirectoTotal").textContent = fmtUSD(r.costoDirectoTotal);
 
-      // Precios y Márgenes
       document.getElementById("accPrecioStandard").textContent = fmtUSD(r.precioStandard);
       document.getElementById("accPrecioPreferencial").textContent = fmtUSD(r.precioPreferencial);
       document.getElementById("accSelectedPriceLabel").textContent = `Total Ejecución (${r.tipoPrecio === 'standard' ? 'Standard' : 'Preferencial'}):`;
@@ -1358,162 +1396,205 @@
       document.getElementById("accMargenBruto").textContent = `${fmtUSD(r.margenBrutoUsd)} (${r.margenBrutoPct.toFixed(1)}%)`;
     }
 
-    // Copiar texto estructurado de la Hoja 1 para enviárselo a Contabilidad por WhatsApp / Correo / Excel
     function copiarInformeContabilidad() {
       if (!latestCalculationResult) return;
       const r = latestCalculationResult;
+      const line = `------------------------------------------------------------\n`;
+      let t = `INFORME INTERNO (HOJA 1 - CONTABILIDAD) | FREEDOM ENERGY GROUP\n`;
+      t += `Cliente: ${r.clientName} | Proyecto: ${r.projectName}\n`;
+      t += `Provincia: ${r.province} (HSP: ${r.hsp}) | Potencia: ${r.potenciaW.toLocaleString()} W (${r.potenciaKw.toFixed(2)} kWp)\n`;
+      t += `Índice de costos: ${r.indiceCosto} | Tasa Venta: ${r.tasaVenta} | Tasa Compra: ${r.tasaCompra}\n` + line;
+      t += `A. EQUIPOS Y MATERIALES:\n`;
+      r.equiposList.forEach(i => { t += `• ${i.concepto}: ${i.cant} x ${fmtUSD(i.pu)} = ${fmtUSD(i.pu * i.cant)}\n`; });
+      t += `TOTAL COSTO EQUIPOS Y MATERIALES: ${fmtUSD(r.totalEquipos)}\n\nB. ADICIONALES Y SERVICIOS:\n`;
+      r.adicionalesList.forEach(i => { t += `• ${i.concepto}: ${i.cant} x ${fmtUSD(i.pu)} = ${fmtUSD(i.pu * i.cant)}\n`; });
+      t += `TOTAL ADICIONALES: ${fmtUSD(r.totalAdicionales)}\n` + line;
+      t += `Gasto Total (Equipos + Adicionales): ${fmtUSD(r.gastoTotal)}\n`;
+      t += `Gasto Total + Margen Presupuesto (${r.margenPresupuestoPct}%): ${fmtUSD(r.gastoConMargen)}\n`;
+      t += `Mano de Obra (Índice ${r.indiceCosto} × ${r.potenciaW} W): ${fmtDOP(r.manoObraDop)} (${fmtUSD(r.manoObraUsd)})\n`;
+      t += `Costo Directo Total: ${fmtUSD(r.costoDirectoTotal)}\n` + line;
+      t += `Precio Standard (0.67): ${fmtUSD(r.precioStandard)}\n`;
+      t += `Precio Preferencial (0.69): ${fmtUSD(r.precioPreferencial)}\n`;
+      t += `TOTAL POR EJECUCIÓN (${r.tipoPrecio.toUpperCase()}): ${fmtUSD(r.totalEjecucion)} (${fmtDOP(r.totalDop)})\n`;
+      t += `O&M Incluido (${r.omPct}%): ${fmtUSD(r.omUsd)}\n`;
+      t += `MARGEN BRUTO DERIVADO: ${fmtUSD(r.margenBrutoUsd)} (${r.margenBrutoPct.toFixed(1)}%)\n` + line;
+      t += `Financiamiento ${r.plazoMeses} meses (Propuesta 70%): ${fmtDOP(r.cuota70)} / mes\n`;
+      t += `Financiamiento ${r.plazoMeses} meses (100%): ${fmtDOP(r.cuota100)} / mes\n`;
 
-      let texto = `INFORME INTERNO (HOJA 1 - CONTABILIDAD) | FREEDOM ENERGY GROUP\n`;
-      texto += `Cliente: ${r.clientName} | Proyecto: ${r.projectName}\n`;
-      texto += `Provincia: ${r.province} (HSP: ${r.hsp}) | Potencia: ${r.potenciaW.toLocaleString()} W (${r.potenciaKw.toFixed(2)} kWp)\n`;
-      texto += `Tasa Venta: ${r.tasaVenta} | Tasa Compra: ${r.tasaCompra}\n`;
-      texto += `------------------------------------------------------------\n`;
-      texto += `A. EQUIPOS Y MATERIALES:\n`;
-      r.equiposList.forEach(i => {
-        texto += `• ${i.concepto}: ${i.cant} x ${fmtUSD(i.pu)} = ${fmtUSD(i.pu * i.cant)}\n`;
-      });
-      texto += `TOTAL COSTO EQUIPOS Y MATERIALES: ${fmtUSD(r.totalEquipos)}\n\n`;
-
-      texto += `B. ADICIONALES Y SERVICIOS:\n`;
-      r.adicionalesList.forEach(i => {
-        texto += `• ${i.concepto}: ${i.cant} x ${fmtUSD(i.pu)} = ${fmtUSD(i.pu * i.cant)}\n`;
-      });
-      texto += `TOTAL ADICIONALES: ${fmtUSD(r.totalAdicionales)}\n`;
-      texto += `------------------------------------------------------------\n`;
-      texto += `Gasto Total (Equipos + Adicionales): ${fmtUSD(r.gastoTotal)}\n`;
-      texto += `Gasto Total + Margen Presupuesto (${r.margenPresupuestoPct}%): ${fmtUSD(r.gastoConMargen)}\n`;
-      texto += `Mano de Obra: ${fmtDOP(r.manoObraDop)} (${fmtUSD(r.manoObraUsd)})\n`;
-      texto += `Costo Directo Total: ${fmtUSD(r.costoDirectoTotal)}\n`;
-      texto += `------------------------------------------------------------\n`;
-      texto += `Precio Standard (0.67): ${fmtUSD(r.precioStandard)}\n`;
-      texto += `Precio Preferencial (0.69): ${fmtUSD(r.precioPreferencial)}\n`;
-      texto += `TOTAL POR EJECUCIÓN (${r.tipoPrecio.toUpperCase()}): ${fmtUSD(r.totalEjecucion)} (${fmtDOP(r.totalDop)})\n`;
-      texto += `O&M Incluido (${r.omPct}%): ${fmtUSD(r.omUsd)}\n`;
-      texto += `MARGEN BRUTO DERIVADO: ${fmtUSD(r.margenBrutoUsd)} (${r.margenBrutoPct.toFixed(1)}%)\n`;
-      texto += `------------------------------------------------------------\n`;
-      texto += `Financiamiento 60 meses (Propuesta 70%): ${fmtDOP(r.cuota70)} / mes\n`;
-      texto += `Financiamiento 60 meses (100%): ${fmtDOP(r.cuota100)} / mes\n`;
-
-      // Uso de textarea temporal y document.execCommand('copy') para compatibilidad total
-      const tempArea = document.createElement("textarea");
-      tempArea.value = texto;
-      document.body.appendChild(tempArea);
-      tempArea.select();
+      const ta = document.createElement("textarea");
+      ta.value = t;
+      document.body.appendChild(ta);
+      ta.select();
       document.execCommand("copy");
-      document.body.removeChild(tempArea);
-
+      document.body.removeChild(ta);
       showToast("Informe de Contabilidad (Hoja 1) copiado al portapapeles", "success");
     }
 
     // =========================================================================
-    // INTEGRACIÓN CON SUPABASE EDGE FUNCTION ('Calcular-Propuestas')
+    // PESTAÑA "PRECIOS Y REGLAS"
     // =========================================================================
-    function toggleConfigModal(show) {
-      const modal = document.getElementById("configModal");
-      if (show) modal.classList.remove("hidden");
-      else modal.classList.add("hidden");
+    const inCls = "w-full px-2 py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:outline-none focus:border-slate-400";
+    function numIn(path, val, step = "0.01", extra = "") {
+      return `<input type="number" step="${step}" value="${val}" oninput="setSetting('${path}', this.value, 'num')" class="${inCls} text-right ${extra}" />`;
+    }
+    function txtIn(path, val) {
+      return `<input type="text" value="${escapeHtml(val)}" oninput="setSetting('${path}', this.value, 'txt')" class="${inCls}" />`;
+    }
+    function selIn(path, val, opts) {
+      return `<select onchange="setSetting('${path}', this.value, 'txt')" class="${inCls}">` +
+        opts.map(([v, l]) => `<option value="${v}" ${v === val ? "selected" : ""}>${l}</option>`).join("") + `</select>`;
+    }
+    function card(title, sub, body, actions = "") {
+      return `<div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5">
+        <div class="flex items-center justify-between mb-3 gap-2">
+          <div><h3 class="text-xs font-semibold text-slate-900 uppercase tracking-wider">${title}</h3>
+          ${sub ? `<p class="text-[11px] text-slate-500 mt-0.5">${sub}</p>` : ""}</div>${actions}
+        </div><div class="overflow-x-auto">${body}</div></div>`;
+    }
+    const th = (t, cls = "") => `<th class="py-1.5 px-1 text-[10px] font-semibold text-slate-500 uppercase ${cls}">${t}</th>`;
+    const td = (c, cls = "") => `<td class="py-1 px-1 ${cls}">${c}</td>`;
+    const delBtn = (fn, i) => `<button type="button" onclick="${fn}(${i})" class="text-slate-400 hover:text-rose-600 font-bold px-1">&times;</button>`;
+    const addBtn = (fn, label) => `<button type="button" onclick="${fn}()" class="px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 whitespace-nowrap">${label}</button>`;
+
+    function renderSettings() {
+      const S = settings;
+      const R = S.rules;
+      const L = S.logistics;
+      let html = "";
+
+      // Panel y estructura
+      html += card("Panel solar", "El precio de cada panel se calcula por vatio, sea de la capacidad que sea.",
+        `<div class="grid grid-cols-2 gap-3 max-w-sm text-xs">
+          <label>Potencia (W)${numIn("panel.w", S.panel.w, "5")}</label>
+          <label>Precio por vatio (US$/W)${numIn("panel.pricePerW", S.panel.pricePerW, "0.001")}</label></div>
+         <p class="text-[11px] text-slate-500 mt-2">Precio del panel = vatios × US$/W. Ej.: 650 W × $${S.panel.pricePerW} = ${fmtUSD(650 * S.panel.pricePerW)}.</p>`);
+
+      html += card("Estructura: costo por panel (US$)", "Precio fijo por panel según el tipo de estructura.",
+        `<table class="w-full text-xs max-w-md"><thead><tr>${th("Tipo de estructura")}${th("US$ por panel", "w-28")}</tr></thead><tbody>` +
+        S.structures.map((s, i) => `<tr>${td(txtIn(`structures.${i}.name`, s.name))}${td(numIn(`structures.${i}.price`, s.price, "0.0001"))}</tr>`).join("") +
+        `</tbody></table>`);
+
+      // Inversores
+      html += card("Inversores", "El tipo (híbrido o inyección) y los kW deciden qué tabla de eléctricos se usa.",
+        `<table class="w-full text-xs"><thead><tr>${th("Grupo")}${th("Nombre")}${th("Tipo")}${th("kW", "w-16")}${th("Precio US$", "w-24")}${th("")}</tr></thead><tbody>` +
+        S.inverters.map((v, i) => `<tr>${td(txtIn(`inverters.${i}.group`, v.group))}${td(txtIn(`inverters.${i}.name`, v.name))}${td(selIn(`inverters.${i}.type`, v.type, [["hibrido", "Híbrido"], ["inyeccion", "Inyección"]]))}${td(numIn(`inverters.${i}.kw`, v.kw, "1"))}${td(numIn(`inverters.${i}.price`, v.price))}${td(delBtn("delInverter", i))}</tr>`).join("") +
+        `</tbody></table>`, addBtn("addInverter", "+ Inversor"));
+
+      // Baterías
+      html += card("Baterías", "",
+        `<table class="w-full text-xs"><thead><tr>${th("Grupo")}${th("Nombre")}${th("Precio US$", "w-24")}${th("")}</tr></thead><tbody>` +
+        S.batteries.map((b, i) => `<tr>${td(txtIn(`batteries.${i}.group`, b.group))}${td(txtIn(`batteries.${i}.name`, b.name))}${td(numIn(`batteries.${i}.price`, b.price))}${td(delBtn("delBattery", i))}</tr>`).join("") +
+        `</tbody></table>`, addBtn("addBattery", "+ Batería"));
+
+      // Eléctricos
+      html += card("Eléctricos híbridos (US$)", `Se toma la fila igual o mayor a los kW del inversor. Los primeros ${R.hibDescDesde - 1} equipos van a precio Completo y desde el equipo ${R.hibDescDesde} a precio de Integración. El bypass se agrega con 2 o más equipos.`,
+        `<table class="w-full text-xs max-w-xl"><thead><tr>${th("kW")}${th("Completo")}${th("Integración")}${th("Bypass 2+ equipos")}</tr></thead><tbody>` +
+        S.elecHibrido.map((r, i) => `<tr>${td(numIn(`elecHibrido.${i}.kw`, r.kw, "1"))}${td(numIn(`elecHibrido.${i}.completo`, r.completo))}${td(numIn(`elecHibrido.${i}.integracion`, r.integracion))}${td(numIn(`elecHibrido.${i}.bypass`, r.bypass))}</tr>`).join("") +
+        `</tbody></table>`);
+
+      html += card("Eléctricos de inyección (US$)", `Precio por inversor; cada inversor adicional lleva ${R.inyDescPct}% de descuento.`,
+        `<table class="w-full text-xs max-w-xs"><thead><tr>${th("kW")}${th("Precio")}</tr></thead><tbody>` +
+        S.elecInyeccion.map((r, i) => `<tr>${td(numIn(`elecInyeccion.${i}.kw`, r.kw, "1"))}${td(numIn(`elecInyeccion.${i}.price`, r.price))}</tr>`).join("") +
+        `</tbody></table>`);
+
+      const ruleRow = (label, path, val, step = "0.01", warn = false) =>
+        `<label class="flex items-center justify-between gap-3 py-1 ${warn ? "text-amber-800 font-semibold" : ""}"><span>${label}</span><span class="w-28">${numIn(path, val, step, warn ? "bg-amber-100 border-amber-400" : "")}</span></label>`;
+      html += card("Reglas eléctricas", "",
+        `<div class="text-xs max-w-lg divide-y divide-slate-100">` +
+        ruleRow("Híbridos: precio de Integración a partir del equipo #", "rules.hibDescDesde", R.hibDescDesde, "1") +
+        ruleRow("Inyección: % descuento por inversor adicional", "rules.inyDescPct", R.inyDescPct, "1") +
+        ruleRow("Panel Board si la potencia de inversores pasa de (kW)", "rules.pbKwUmbral", R.pbKwUmbral, "1") +
+        ruleRow("Panel Board a partir de (cantidad de inversores)", "rules.pbEquiposDesde", R.pbEquiposDesde, "1") +
+        ruleRow("Precio del Panel Board (US$)", "rules.pbPrecio", R.pbPrecio, "0.01", !(R.pbPrecio > 0)) +
+        ruleRow("Embarrado a partir de (cantidad de baterías)", "rules.embBatDesde", R.embBatDesde, "1") +
+        ruleRow("Precio del embarrado (US$)", "rules.embPrecio", R.embPrecio, "0.01", !(R.embPrecio > 0)) +
+        ruleRow("Cablería por cada batería de más vs. inversores (US$)", "rules.cableriaPorDif", R.cableriaPorDif) +
+        `</div>`);
+
+      html += card("Transporte, viáticos y sometimiento (US$)", "",
+        `<div class="text-xs max-w-lg divide-y divide-slate-100">` +
+        ruleRow("Transporte Santiago (local)", "logistics.transporte.local", L.transporte.local) +
+        ruleRow("Transporte distancia media (50-100 km)", "logistics.transporte.media", L.transporte.media) +
+        ruleRow("Transporte distancia mayor (>100 km)", "logistics.transporte.mayor", L.transporte.mayor) +
+        ruleRow("Recargo de transporte (%)", "logistics.transporteRecargoPct", L.transporteRecargoPct, "1") +
+        ruleRow("…cuando los paneles pasan de", "logistics.transporteUmbralPaneles", L.transporteUmbralPaneles, "1") +
+        ruleRow("Viático por día en Santiago", "logistics.viaticos.local", L.viaticos.local) +
+        ruleRow("Viático por día fuera de Santiago", "logistics.viaticos.fuera", L.viaticos.fuera) +
+        ruleRow("Sometimiento / Trámites", "logistics.sometimiento", L.sometimiento) +
+        `</div>`);
+
+      html += card("Provincias e índices de costos", "El índice de costos × potencia (W) da la mano de obra en RD$, que entra en la fórmula del precio.",
+        `<table class="w-full text-xs"><thead><tr>${th("Provincia")}${th("HSP", "w-16")}${th("Índice híbrido", "w-20")}${th("Índice inyección", "w-20")}${th("Zona", "w-28")}${th("")}</tr></thead><tbody>` +
+        S.provinces.map((p, i) => `<tr>${td(txtIn(`provinces.${i}.name`, p.name))}${td(numIn(`provinces.${i}.hsp`, p.hsp))}${td(numIn(`provinces.${i}.indexHibrido`, p.indexHibrido))}${td(numIn(`provinces.${i}.indexOnGrid`, p.indexOnGrid))}${td(selIn(`provinces.${i}.zone`, p.zone, [["local", "Local"], ["media", "Media"], ["mayor", "Mayor"]]))}${td(delBtn("delProvince", i))}</tr>`).join("") +
+        `</tbody></table>`, addBtn("addProvince", "+ Provincia"));
+
+      document.getElementById("settingsContainer").innerHTML = html;
     }
 
-    function saveSupabaseConfig() {
-      const url = document.getElementById("supabaseUrlInput").value.trim();
-      const key = document.getElementById("supabaseKeyInput").value.trim();
-
-      supabaseConfig.url = url;
-      supabaseConfig.anonKey = key;
-
-      localStorage.setItem("feg_supabase_url", url);
-      localStorage.setItem("feg_supabase_key", key);
-
-      updateConnectionBadge();
-      toggleConfigModal(false);
-      showToast(key ? "Llave de Supabase guardada correctamente" : "Configurado en modo simulación local", "success");
+    function setSetting(path, raw, kind) {
+      const keys = path.split(".");
+      let obj = settings;
+      for (let i = 0; i < keys.length - 1; i++) obj = obj[keys[i]];
+      obj[keys[keys.length - 1]] = kind === "num" ? (parseFloat(raw) || 0) : raw;
+      saveSettings();
+      refreshSelects();
+      if (path.startsWith("provinces")) applyProvinceIndex(true);
+      onConfigChange();
     }
 
-    function updateConnectionBadge() {
-      const badge = document.getElementById("connectionBadge");
-      const dot = document.getElementById("connectionDot");
-      const text = document.getElementById("connectionText");
+    function afterListChange() { saveSettings(); refreshSelects(); renderSettings(); applyProvinceIndex(true); onConfigChange(); }
+    function addInverter() { settings.inverters.push({ id: "inv_" + Date.now(), group: "Nuevos", name: "Nuevo inversor", type: "hibrido", kw: 5, price: 0 }); afterListChange(); }
+    function delInverter(i) { if (settings.inverters.length <= 1) return; settings.inverters.splice(i, 1); afterListChange(); }
+    function addBattery() { settings.batteries.push({ id: "bat_" + Date.now(), group: "Nuevas", name: "Nueva batería", price: 0 }); afterListChange(); }
+    function delBattery(i) { settings.batteries.splice(i, 1); afterListChange(); }
+    function addProvince() { settings.provinces.push({ name: "Nueva provincia", hsp: 4.11, indexHibrido: 4.15, indexOnGrid: 3.70, zone: "media" }); afterListChange(); }
+    function delProvince(i) { if (settings.provinces.length <= 1) return; settings.provinces.splice(i, 1); afterListChange(); }
 
-      if (supabaseConfig.anonKey && supabaseConfig.url) {
-        badge.className = "hidden md:flex items-center space-x-2 px-3 py-1.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200";
-        dot.className = "w-2 h-2 rounded-full bg-emerald-500";
-        text.textContent = "Conectado a Supabase";
-      } else {
-        badge.className = "hidden md:flex items-center space-x-2 px-3 py-1.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200";
-        dot.className = "w-2 h-2 rounded-full bg-amber-500";
-        text.textContent = "Modo Local (Sin Anon Key)";
-      }
+    function restoreExcelSettings() {
+      if (!confirm("¿Volver a los precios originales del Excel? Se perderán los cambios que hiciste en esta pestaña.")) return;
+      settings = JSON.parse(JSON.stringify(EXCEL_SETTINGS));
+      afterListChange();
+      showToast("Precios del Excel restaurados", "success");
     }
 
-    async function enviarASupabase() {
-      if (!latestCalculationResult) return;
-      const r = latestCalculationResult;
+    function exportSettings() {
+      const blob = new Blob([JSON.stringify(settings, null, 2)], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "precios-freedom.json";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
 
-      // Si el usuario aún no pega la Anon Key, mostramos confirmación clara de cálculo local y abrimos la opción
-      if (!supabaseConfig.anonKey) {
-        showToast("Cálculo actualizado localmente. Pega tu Anon Key en 'Conexión Supabase' para guardar en la nube.", "info");
-        return;
-      }
-
-      const btn = document.getElementById("btnSyncSupabase");
-      const originalText = btn.innerHTML;
-      btn.disabled = true;
-      btn.innerHTML = `<span>Enviando a Supabase...</span>`;
-
-      const payload = {
-        clientName: r.clientName,
-        projectName: r.projectName,
-        modalidad: r.modalidad,
-        province: r.province,
-        panelW: r.panelW,
-        panelesProyecto: r.panelQty,
-        margenPresupuesto: r.margenPresupuestoPct / 100,
-        tipoPrecio: r.tipoPrecio,
-        lineas: lineItems.map(item => ({
-          concepto: item.concepto,
-          pu: item.pu,
-          cant: item.cant,
-          grupo: item.grupo
-        })),
-        resumenCalculado: r
-      };
-
-      try {
-        const response = await fetch(supabaseConfig.url, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${supabaseConfig.anonKey}`,
-            "apikey": supabaseConfig.anonKey
-          },
-          body: JSON.stringify(payload)
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-          showToast("¡Propuesta calculada y guardada en Supabase con éxito!", "success");
-        } else {
-          showToast(`Respuesta de Supabase: ${data.error || response.statusText}`, "error");
+    function importSettings(input) {
+      const file = input.files && input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const data = JSON.parse(reader.result);
+          if (!data.inverters || !data.provinces) throw new Error("archivo no válido");
+          settings = Object.assign(JSON.parse(JSON.stringify(EXCEL_SETTINGS)), data);
+          afterListChange();
+          showToast("Precios importados", "success");
+        } catch (e) {
+          showToast("Ese archivo no es una lista de precios válida", "error");
         }
-      } catch (err) {
-        showToast("No se pudo conectar con Supabase. Verifica tu llave o conexión.", "error");
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = originalText;
-      }
+        input.value = "";
+      };
+      reader.readAsText(file);
     }
 
-    // Sistema de notificaciones Toast limpio (sin alert)
+    // =========================================================================
+    // NOTIFICACIONES
+    // =========================================================================
     let toastTimeout;
     function showToast(message, type = "info") {
       const box = document.getElementById("toastBox");
       const content = document.getElementById("toastContent");
       const icon = document.getElementById("toastIcon");
-      const msg = document.getElementById("toastMessage");
-
-      msg.textContent = message;
-
+      document.getElementById("toastMessage").textContent = message;
       if (type === "success") {
         content.className = "flex items-center space-x-2.5 px-4 py-3 rounded-xl shadow-lg border text-xs font-medium bg-emerald-50 border-emerald-200 text-emerald-900";
         icon.textContent = "✓";
@@ -1524,21 +1605,20 @@
         content.className = "flex items-center space-x-2.5 px-4 py-3 rounded-xl shadow-lg border text-xs font-medium bg-white border-slate-200 text-slate-800";
         icon.textContent = "•";
       }
-
       box.classList.remove("hidden");
       clearTimeout(toastTimeout);
-      toastTimeout = setTimeout(() => {
-        box.classList.add("hidden");
-      }, 4500);
+      toastTimeout = setTimeout(() => box.classList.add("hidden"), 4500);
     }
 
     // =========================================================================
-    // INICIALIZACIÓN
+    // INICIO
     // =========================================================================
     document.addEventListener("DOMContentLoaded", () => {
-      loadSupabaseConfig();
-      renderItemsTable();
-      recalculateAll();
+      loadSettings();
+      refreshSelects();
+      document.getElementById("clientName").value = "Patria Brea / Residencial";
+      document.getElementById("projectName").value = "Sistema Solar 13 kWp";
+      setFormDefaults(20);
     });
   </script>
 </body>
