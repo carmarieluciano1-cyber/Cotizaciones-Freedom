@@ -197,7 +197,7 @@
               </div>
             </div>
 
-            <div class="grid grid-cols-3 gap-3">
+            <div class="grid grid-cols-2 gap-3">
               <div>
                 <label class="block text-xs font-medium text-slate-600 mb-1">Panel (W)</label>
                 <input type="number" id="panelW" value="650" min="100" step="5" oninput="onConfigChange()"
@@ -206,11 +206,6 @@
               <div>
                 <label class="block text-xs font-medium text-slate-600 mb-1">Cant. Paneles</label>
                 <input type="number" id="panelQty" value="20" min="1" step="1" oninput="onConfigChange()"
-                  class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-slate-400" />
-              </div>
-              <div>
-                <label class="block text-xs font-medium text-slate-600 mb-1">Margen Presup. (%)</label>
-                <input type="number" id="margenPresupuesto" value="2.0" min="0" max="50" step="0.5" oninput="recalculateAll()"
                   class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-slate-400" />
               </div>
             </div>
@@ -227,60 +222,6 @@
             <!-- Avisos de reglas eléctricas (precio faltante, fuera de tabla, etc.) -->
             <div id="rulesWarnings" class="hidden p-3 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs space-y-1"></div>
 
-            <!-- Selector de Lista de Precio -->
-            <div class="pt-1">
-              <label class="block text-xs font-medium text-slate-600 mb-1.5">Lista de Precio Comercial</label>
-              <div class="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-xl">
-                <button type="button" id="btnPriceStandard" onclick="setTipoPrecio('standard')"
-                  class="py-1.5 px-3 rounded-lg text-xs font-semibold bg-white text-slate-900 shadow-sm transition-all">
-                  Standard (Divisor 0.67)
-                </button>
-                <button type="button" id="btnPricePreferencial" onclick="setTipoPrecio('preferencial')"
-                  class="py-1.5 px-3 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 transition-all">
-                  Preferencial (Divisor 0.69)
-                </button>
-              </div>
-            </div>
-
-            <!-- Tasas y Parámetros Financieros Colapsables -->
-            <details class="group pt-2 border-t border-slate-100">
-              <summary class="flex items-center justify-between text-xs font-medium text-slate-500 cursor-pointer hover:text-slate-800 select-none">
-                <span>Tasas de cambio y parámetros financieros</span>
-                <span class="group-open:rotate-180 transition-transform">▼</span>
-              </summary>
-              <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-3 pt-2">
-                <div>
-                  <label class="block text-[11px] text-slate-500 mb-1">Tasa Venta (RD$)</label>
-                  <input type="number" id="tasaVenta" value="60.50" step="0.05" oninput="recalculateAll()"
-                    class="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-md" />
-                </div>
-                <div>
-                  <label class="block text-[11px] text-slate-500 mb-1">Tasa Compra (RD$)</label>
-                  <input type="number" id="tasaCompra" value="56.75" step="0.05" oninput="recalculateAll()"
-                    class="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-md" />
-                </div>
-                <div>
-                  <label class="block text-[11px] text-slate-500 mb-1">Tarifa Eléctrica (RD$)</label>
-                  <input type="number" id="tarifaKwh" value="14.04" step="0.01" oninput="recalculateAll()"
-                    class="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-md" />
-                </div>
-                <div>
-                  <label class="block text-[11px] text-slate-500 mb-1">O&M Incluido (%)</label>
-                  <input type="number" id="omPct" value="1.0" step="0.1" oninput="recalculateAll()"
-                    class="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-md" />
-                </div>
-                <div>
-                  <label class="block text-[11px] text-slate-500 mb-1">Tasa Préstamo (%)</label>
-                  <input type="number" id="tasaAnual" value="14.0" step="0.5" oninput="recalculateAll()"
-                    class="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-md" />
-                </div>
-                <div>
-                  <label class="block text-[11px] text-slate-500 mb-1">Plazo (Meses)</label>
-                  <input type="number" id="plazoMeses" value="60" step="12" oninput="recalculateAll()"
-                    class="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-md" />
-                </div>
-              </div>
-            </details>
           </div>
         </div>
 
@@ -289,7 +230,7 @@
           <div class="flex items-center justify-between mb-3">
             <div>
               <h2 class="text-sm font-semibold text-slate-900 uppercase tracking-wider">2. Equipos, Logística y Viáticos</h2>
-              <p class="text-xs text-slate-500">Calculados por regla • Todos los valores son editables</p>
+              <p class="text-xs text-slate-500">Calculados por regla • Los precios se ven y editan en Precios y Reglas</p>
             </div>
             <div class="flex items-center space-x-1.5">
               <button type="button" onclick="reapplyLogisticsRules(true)" title="Recalcular equipos, eléctricos, estructura, transporte y viáticos con las reglas"
@@ -308,9 +249,7 @@
               <thead>
                 <tr class="border-b border-slate-200 text-[11px] font-semibold text-slate-500 uppercase">
                   <th class="py-2 pr-2">Concepto / Equipo</th>
-                  <th class="py-2 px-1 w-20 text-right">PU (US$)</th>
-                  <th class="py-2 px-1 w-14 text-center">Cant.</th>
-                  <th class="py-2 pl-2 w-24 text-right">Total</th>
+                  <th class="py-2 px-1 w-20 text-center">Cant.</th>
                   <th class="py-2 w-6"></th>
                 </tr>
               </thead>
@@ -664,6 +603,78 @@
                 </label>
                 <button type="button" onclick="restoreExcelSettings()" class="px-3 py-2 rounded-lg text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100">Restaurar precios del Excel</button>
               </div>
+            </div>
+          </div>
+
+          <!-- Precios de la cotización actual (editables solo aquí) -->
+          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5">
+            <div class="mb-3">
+              <h3 class="text-xs font-semibold text-slate-900 uppercase tracking-wider">Precios de esta cotización (US$)</h3>
+              <p class="text-[11px] text-slate-500 mt-0.5">Solo cambian la cotización abierta. Para cambiar un precio en todas las cotizaciones, edítalo en las tablas de más abajo.</p>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead>
+                  <tr class="border-b border-slate-200 text-[10px] font-semibold text-slate-500 uppercase">
+                    <th class="py-1.5 pr-2">Concepto</th><th class="py-1.5 px-1 text-right">Precio Unit.</th><th class="py-1.5 px-1 text-center">Cant.</th><th class="py-1.5 pl-2 text-right">Total</th>
+                  </tr>
+                </thead>
+                <tbody id="quotePricesBody" class="divide-y divide-slate-100"></tbody>
+                <tfoot class="border-t border-slate-200 font-semibold text-slate-900">
+                  <tr><td colspan="3" class="py-2 text-right">Gasto Total:</td><td id="quotePricesTotal" class="py-2 pl-2 text-right">$0.00</td></tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+
+          <!-- Lista de precio, margen, tasas y financiamiento (antes estaban en Parámetros) -->
+          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 space-y-4">
+            <div>
+              <h3 class="text-xs font-semibold text-slate-900 uppercase tracking-wider">Lista de precio, tasas y financiamiento</h3>
+              <p class="text-[11px] text-slate-500 mt-0.5">Se aplican a todas las cotizaciones y se quedan guardados en este navegador.</p>
+            </div>
+            <div class="max-w-md">
+              <label class="block text-xs font-medium text-slate-600 mb-1.5">Lista de Precio Comercial</label>
+              <div class="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-xl">
+                <button type="button" id="btnPriceStandard" onclick="setTipoPrecio('standard')"
+                  class="py-1.5 px-3 rounded-lg text-xs font-semibold bg-white text-slate-900 shadow-sm transition-all">
+                  Standard (Divisor 0.67)
+                </button>
+                <button type="button" id="btnPricePreferencial" onclick="setTipoPrecio('preferencial')"
+                  class="py-1.5 px-3 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 transition-all">
+                  Preferencial (Divisor 0.69)
+                </button>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div>
+                  <label class="block text-[11px] text-slate-500 mb-1">Margen Presupuesto (%)</label>
+                  <input type="number" id="margenPresupuesto" value="2.0" step="0.5" oninput="onParamChange()" class="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-md" />
+                </div>
+                <div>
+                  <label class="block text-[11px] text-slate-500 mb-1">Tasa Venta (RD$)</label>
+                  <input type="number" id="tasaVenta" value="60.50" step="0.05" oninput="onParamChange()" class="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-md" />
+                </div>
+                <div>
+                  <label class="block text-[11px] text-slate-500 mb-1">Tasa Compra (RD$)</label>
+                  <input type="number" id="tasaCompra" value="56.75" step="0.05" oninput="onParamChange()" class="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-md" />
+                </div>
+                <div>
+                  <label class="block text-[11px] text-slate-500 mb-1">Tarifa Eléctrica (RD$/kWh)</label>
+                  <input type="number" id="tarifaKwh" value="14.04" step="0.01" oninput="onParamChange()" class="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-md" />
+                </div>
+                <div>
+                  <label class="block text-[11px] text-slate-500 mb-1">O&amp;M Incluido (%)</label>
+                  <input type="number" id="omPct" value="1.0" step="0.1" oninput="onParamChange()" class="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-md" />
+                </div>
+                <div>
+                  <label class="block text-[11px] text-slate-500 mb-1">Tasa Préstamo (%)</label>
+                  <input type="number" id="tasaAnual" value="14.0" step="0.5" oninput="onParamChange()" class="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-md" />
+                </div>
+                <div>
+                  <label class="block text-[11px] text-slate-500 mb-1">Plazo (Meses)</label>
+                  <input type="number" id="plazoMeses" value="60" step="12" oninput="onParamChange()" class="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-md" />
+                </div>
             </div>
           </div>
           <div id="settingsContainer" class="space-y-5"></div>
@@ -1085,7 +1096,7 @@
 
     function renderWarnings() {
       const box = document.getElementById("rulesWarnings");
-      const pendientes = lineItems.filter(i => i.pending && !(i.pu > 0)).map(i => `${i.concepto} sin precio: complétalo en la tabla de abajo o en Precios y Reglas.`);
+      const pendientes = lineItems.filter(i => i.pending && !(i.pu > 0)).map(i => `${i.concepto} sin precio: ponle precio en Precios y Reglas → Precios de esta cotización.`);
       const msgs = currentWarnings.filter(w => !/sin precio/.test(w)).concat(pendientes);
       if (!msgs.length) { box.classList.add("hidden"); box.innerHTML = ""; return; }
       box.classList.remove("hidden");
@@ -1124,40 +1135,58 @@
         if (cell) cell.textContent = fmtUSD((lineItems[idx].pu || 0) * (lineItems[idx].cant || 0));
         if (lineItems[idx].pending) renderWarnings();
       }
+      if (field === "cant" || field === "concepto") renderQuotePrices();   // la otra tabla se actualiza
       recalculateAll();
     }
 
+    // Tabla de "Equipos, Logística y Viáticos": solo concepto y cantidad
     function renderItemsTable() {
       const tbody = document.getElementById("itemsTableBody");
-      tbody.innerHTML = lineItems.map((item, idx) => {
-        const warn = item.pending && !(item.pu > 0);
-        return `
-        <tr class="${warn ? "bg-amber-50" : "hover:bg-slate-50/80"} transition-colors">
+      tbody.innerHTML = lineItems.map((item, idx) => `
+        <tr class="hover:bg-slate-50/80 transition-colors">
           <td class="py-2.5 pr-2">
             <input type="text" value="${escapeHtml(item.concepto)}" oninput="updateLineField(${idx}, 'concepto', this.value)"
               class="w-full px-2 py-1 text-xs bg-transparent border border-transparent hover:border-slate-200 focus:border-slate-400 rounded focus:outline-none text-slate-800" />
           </td>
           <td class="py-2.5 px-1 w-20">
-            <input type="number" step="0.01" value="${item.pu}" oninput="updateLineField(${idx}, 'pu', parseFloat(this.value) || 0)"
-              class="w-full px-2 py-1 text-xs text-right ${warn ? "bg-amber-100 border-amber-400" : "bg-slate-50/50 border-slate-200"} border rounded focus:outline-none focus:border-slate-400" />
-          </td>
-          <td class="py-2.5 px-1 w-14">
             <input type="number" step="1" value="${item.cant}" oninput="updateLineField(${idx}, 'cant', parseFloat(this.value) || 0)"
               class="w-full px-1 py-1 text-xs text-center bg-slate-50/50 border border-slate-200 rounded focus:outline-none focus:border-slate-400" />
-          </td>
-          <td class="py-2.5 pl-2 w-24 text-right font-medium text-slate-900" id="lineTotal_${idx}">
-            ${fmtUSD((item.pu || 0) * (item.cant || 0))}
           </td>
           <td class="py-2.5 w-6 text-center">
             <button type="button" onclick="removeLineItem(${idx})" class="text-slate-400 hover:text-rose-600 font-bold">&times;</button>
           </td>
+        </tr>`).join("");
+      renderQuotePrices();
+    }
+
+    // Tabla de precios de ESTA cotización (pestaña Precios y Reglas)
+    function renderQuotePrices() {
+      const tbody = document.getElementById("quotePricesBody");
+      if (!tbody) return;
+      tbody.innerHTML = lineItems.map((item, idx) => {
+        const warn = item.pending && !(item.pu > 0);
+        return `
+        <tr class="${warn ? "bg-amber-50" : ""}">
+          <td class="py-2 pr-2 text-slate-800">${escapeHtml(item.concepto)}</td>
+          <td class="py-2 px-1 w-28">
+            <input type="number" step="0.01" value="${item.pu}" oninput="updateLineField(${idx}, 'pu', parseFloat(this.value) || 0)"
+              class="w-full px-2 py-1 text-xs text-right ${warn ? "bg-amber-100 border-amber-400" : "bg-slate-50 border-slate-200"} border rounded focus:outline-none focus:border-slate-400" />
+          </td>
+          <td class="py-2 px-1 w-14 text-center text-slate-600">${item.cant}</td>
+          <td class="py-2 pl-2 w-28 text-right font-medium text-slate-900" id="lineTotal_${idx}">${fmtUSD((item.pu || 0) * (item.cant || 0))}</td>
         </tr>`;
       }).join("");
+      updateQuotePricesTotal();
+    }
+    function updateQuotePricesTotal() {
+      const el = document.getElementById("quotePricesTotal");
+      if (el && latestCalculationResult) el.textContent = fmtUSD(latestCalculationResult.gastoTotal);
     }
 
     function addNewLineItem() {
-      lineItems.push({ id: Date.now(), role: "custom", concepto: "Nuevo Ítem / Material", pu: 50.00, cant: 1, grupo: "adicionales" });
+      lineItems.push({ id: Date.now(), role: "custom", concepto: "Nuevo Ítem / Material", pu: 0, cant: 1, grupo: "adicionales", pending: true });
       renderItemsTable();
+      renderWarnings();
       recalculateAll();
     }
 
@@ -1184,10 +1213,9 @@
       document.getElementById("quickBatteryQty").value = 2;
       document.getElementById("panelW").value = settings.panel.w;
       document.getElementById("panelQty").value = panelQty;
-      document.getElementById("margenPresupuesto").value = 2.0;
       lineItems = [];
       applyProvinceIndex(true);
-      setTipoPrecio("standard", true);
+      setTipoPrecio(selectedTipoPrecio, true);
       onConfigChange();
     }
 
@@ -1208,6 +1236,25 @@
     }
 
     // =========================================================================
+    // LISTA DE PRECIO, TASAS Y FINANCIAMIENTO (se guardan en el navegador)
+    // =========================================================================
+    const PARAMS_KEY = "feg_param_v1";
+    const PARAM_IDS = ["margenPresupuesto", "tasaVenta", "tasaCompra", "tarifaKwh", "omPct", "tasaAnual", "plazoMeses"];
+    const PARAM_DEFAULTS = { margenPresupuesto: 2.0, tasaVenta: 60.50, tasaCompra: 56.75, tarifaKwh: 14.04, omPct: 1.0, tasaAnual: 14.0, plazoMeses: 60, tipoPrecio: "standard" };
+    function saveParams() {
+      const data = { tipoPrecio: selectedTipoPrecio };
+      PARAM_IDS.forEach(id => data[id] = document.getElementById(id).value);
+      try { localStorage.setItem(PARAMS_KEY, JSON.stringify(data)); } catch (e) { }
+    }
+    function loadParams(useDefaults) {
+      let data = Object.assign({}, PARAM_DEFAULTS);
+      if (!useDefaults) { try { Object.assign(data, JSON.parse(localStorage.getItem(PARAMS_KEY) || "{}")); } catch (e) { } }
+      PARAM_IDS.forEach(id => document.getElementById(id).value = data[id]);
+      selectedTipoPrecio = data.tipoPrecio === "preferencial" ? "preferencial" : "standard";
+    }
+    function onParamChange() { saveParams(); recalculateAll(); }
+
+    // =========================================================================
     // PESTAÑAS Y LISTA DE PRECIO
     // =========================================================================
     function setTipoPrecio(tipo, silent) {
@@ -1216,7 +1263,7 @@
       const off = "py-1.5 px-3 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 transition-all";
       document.getElementById("btnPriceStandard").className = tipo === "standard" ? on : off;
       document.getElementById("btnPricePreferencial").className = tipo === "standard" ? off : on;
-      if (!silent) recalculateAll();
+      if (!silent) { saveParams(); recalculateAll(); }
     }
 
     function switchTab(tab) {
@@ -1321,6 +1368,7 @@
       updateCommercialUI(latestCalculationResult);
       updateAccountingUI(latestCalculationResult);
       updateLiveSummaryBar(latestCalculationResult);
+      updateQuotePricesTotal();
     }
 
     function updateLiveSummaryBar(r) {
@@ -1336,7 +1384,7 @@
       document.getElementById("comClientDisplay").textContent = r.clientName.trim() || "Nuevo Cliente";
       document.getElementById("comProjectMeta").textContent = `${r.projectName} • ${r.province} • Modalidad ${r.modalidad === 'hibrido' ? 'Híbrida' : 'On-Grid'}`;
       document.getElementById("comTotalUsd").textContent = fmtUSD(r.totalEjecucion);
-      document.getElementById("comTotalDop").textContent = `≈ ${fmtDOP(r.totalDop)} (Tasa ${r.tasaVenta.toFixed(2)})`;
+      document.getElementById("comTotalDop").textContent = `≈ ${fmtDOP(r.totalDop)}`;
       document.getElementById("comPotenciaKw").textContent = `${r.potenciaKw.toFixed(2)} kWp`;
       document.getElementById("comPanelCountText").textContent = `${r.panelQty} paneles de ${r.panelW}W`;
       document.getElementById("comKwhMes").textContent = `${fmtInt(r.kwhMes)} kWh`;
@@ -1553,6 +1601,9 @@
     function restoreExcelSettings() {
       if (!confirm("¿Volver a los precios originales del Excel? Se perderán los cambios que hiciste en esta pestaña.")) return;
       settings = JSON.parse(JSON.stringify(EXCEL_SETTINGS));
+      loadParams(true);
+      saveParams();
+      setTipoPrecio(selectedTipoPrecio, true);
       afterListChange();
       showToast("Precios del Excel restaurados", "success");
     }
@@ -1615,6 +1666,7 @@
     // =========================================================================
     document.addEventListener("DOMContentLoaded", () => {
       loadSettings();
+      loadParams();
       refreshSelects();
       document.getElementById("clientName").value = "Patria Brea / Residencial";
       document.getElementById("projectName").value = "Sistema Solar 13 kWp";
