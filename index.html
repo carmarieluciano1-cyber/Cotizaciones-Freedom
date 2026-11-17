@@ -51,6 +51,9 @@
       </div>
 
       <div class="flex items-center space-x-2.5">
+        <span id="cloudStatus" title="" class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-100 text-slate-500">
+          <span id="cloudDot" class="w-1.5 h-1.5 rounded-full bg-slate-400"></span><span id="cloudText">Solo en este equipo</span>
+        </span>
         <button type="button" id="btnBackHome" onclick="showHome()" style="display:none"
           class="inline-flex items-center px-3 py-2 rounded-lg text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors">
           ← Cotizaciones
@@ -796,6 +799,17 @@
   <!-- ========================================================================= -->
   <script>
     // =========================================================================
+    // NUBE (Supabase): para ver las cotizaciones y precios en todos los equipos.
+    // Pega aquí la "anon public key" (o "publishable key") de tu proyecto:
+    // Supabase → Project Settings → API Keys.
+    // Si la dejas vacía, todo se guarda solo en el navegador de cada equipo.
+    // =========================================================================
+    const NUBE = {
+      url: "https://ufkrlcjsixhvhjjwpcya.supabase.co",
+      key: "sb_publishable_ET5HSk8-p5YajQhWI1f8rw_E5lzyrPs"
+    };
+
+    // =========================================================================
     // FORMATEO
     // =========================================================================
     function fmtUSD(val) {
@@ -971,6 +985,7 @@
     }
     function saveSettings() {
       try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch (e) { }
+      if (!applyingCloud) markAjustesChanged();
     }
 
     // =========================================================================
@@ -1343,6 +1358,7 @@
       document.getElementById("liveBar").style.display = "none";
       document.getElementById("btnBackHome").style.display = "none";
       renderSavedQuotes();
+      setTimeout(cloudSync, 300);
       window.scrollTo({ top: 0 });
     }
     function showEditor() {
@@ -1396,9 +1412,24 @@
     function readQuotes() {
       try { return (JSON.parse(localStorage.getItem(QUOTES_KEY) || "[]") || []).map(migrateQuote).filter(Boolean); } catch (e) { return []; }
     }
-    function writeQuotes(list) {
+    function writeQuotesLocal(list) {
       try { localStorage.setItem(QUOTES_KEY, JSON.stringify(list)); return true; }
       catch (e) { showToast("No se pudo guardar en este navegador", "error"); return false; }
+    }
+    // Guarda en el navegador y manda a la nube lo que cambió o se borró
+    function writeQuotes(list) {
+      const before = readQuotes();
+      const beforeMap = new Map(before.map(q => [q.id, JSON.stringify(q)]));
+      const changed = list.filter(q => beforeMap.get(q.id) !== JSON.stringify(q));
+      const now = new Date().toISOString();
+      // Lo que ya existía y cambió lleva la hora de ahora; lo nuevo conserva su hora (o la de ahora)
+      changed.forEach(q => { if (beforeMap.has(q.id) || !q.updatedAt) q.updatedAt = now; });
+      const ids = new Set(list.map(q => q.id));
+      const removed = before.filter(q => !ids.has(q.id)).map(q => q.id);
+      if (!writeQuotesLocal(list)) return false;
+      changed.forEach(q => cloudPushProposal(q));
+      removed.forEach(id => cloudDeleteProposal(id));
+      return true;
     }
     function getCurrentProposal() { return currentQuoteId ? readQuotes().find(x => x.id === currentQuoteId) || null : null; }
 
@@ -1737,6 +1768,7 @@
       const data = { tipoPrecio: selectedTipoPrecio };
       PARAM_IDS.forEach(id => data[id] = document.getElementById(id).value);
       try { localStorage.setItem(PARAMS_KEY, JSON.stringify(data)); } catch (e) { }
+      if (!applyingCloud) markAjustesChanged();
     }
     function loadParams(useDefaults) {
       let data = Object.assign({}, PARAM_DEFAULTS);
@@ -2203,6 +2235,148 @@
     }
 
     // =========================================================================
+    // SINCRONIZACIÓN CON LA NUBE
+    // Tablas: "propuestas" (una fila por cliente) y "ajustes" (precios, reglas y tasas)
+    // =========================================================================
+    const cloudOn = () => !!(NUBE.url && NUBE.key);
+    const PENDING_PUSH_KEY = "feg_nube_pendientes";
+    const PENDING_DEL_KEY = "feg_nube_borrados";
+    const SYNCED_ONCE_KEY = "feg_nube_sincronizado";
+    const AJUSTES_TS_KEY = "feg_ajustes_ts";
+    let applyingCloud = false;
+    let ajustesTimer = null;
+    let syncing = false;
+
+    const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } };
+    const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { } };
+    const pendSet = (key) => new Set(lsGet(key, []));
+    function pendAdd(key, id) { const s = pendSet(key); s.add(id); lsSet(key, [...s]); }
+    function pendDel(key, id) { const s = pendSet(key); s.delete(id); lsSet(key, [...s]); }
+
+    function cloudHeaders(extra) {
+      const hd = Object.assign({ apikey: NUBE.key, "Content-Type": "application/json" }, extra || {});
+      if (NUBE.key.startsWith("eyJ")) hd.Authorization = "Bearer " + NUBE.key;   // llave anon clásica (JWT)
+      return hd;
+    }
+    async function cloudFetch(path, opts) {
+      const res = await fetch(NUBE.url.replace(/\/$/, "") + "/rest/v1/" + path, Object.assign({}, opts, { headers: cloudHeaders((opts || {}).headers) }));
+      if (!res.ok) throw new Error(res.status + " " + (await res.text()).slice(0, 200));
+      return res.status === 204 ? null : res.json().catch(() => null);
+    }
+
+    function setCloudStatus(state, detail) {
+      const box = document.getElementById("cloudStatus");
+      const dot = document.getElementById("cloudDot");
+      const txt = document.getElementById("cloudText");
+      const S = {
+        off:  ["bg-slate-100 text-slate-500", "bg-slate-400", "Solo en este equipo"],
+        sync: ["bg-sky-50 text-sky-700", "bg-sky-500", "Sincronizando…"],
+        ok:   ["bg-emerald-50 text-emerald-700", "bg-emerald-500", "Sincronizado"],
+        err:  ["bg-amber-50 text-amber-800", "bg-amber-500", "Sin conexión • guardado aquí"]
+      }[state];
+      box.className = "hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium " + S[0];
+      dot.className = "w-1.5 h-1.5 rounded-full " + S[1];
+      txt.textContent = S[2];
+      box.title = detail || "";
+    }
+
+    async function cloudPushProposal(q) {
+      if (!cloudOn()) return;
+      pendAdd(PENDING_PUSH_KEY, q.id);
+      try {
+        await cloudFetch("propuestas", { method: "POST", headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
+          body: JSON.stringify([{ id: q.id, data: q, updated_at: q.updatedAt || new Date().toISOString() }]) });
+        pendDel(PENDING_PUSH_KEY, q.id);
+        setCloudStatus("ok");
+      } catch (e) { setCloudStatus("err", String(e.message || e)); }
+    }
+    async function cloudDeleteProposal(id) {
+      if (!cloudOn()) return;
+      pendAdd(PENDING_DEL_KEY, id);
+      pendDel(PENDING_PUSH_KEY, id);
+      try {
+        await cloudFetch("propuestas?id=eq." + encodeURIComponent(id), { method: "DELETE", headers: { Prefer: "return=minimal" } });
+        pendDel(PENDING_DEL_KEY, id);
+        setCloudStatus("ok");
+      } catch (e) { setCloudStatus("err", String(e.message || e)); }
+    }
+
+    // Trae la nube y la combina con lo de este equipo (gana la versión más reciente)
+    async function syncQuotes() {
+      const remote = await cloudFetch("propuestas?select=id,data,updated_at");
+      const local = readQuotes();
+      const pPush = pendSet(PENDING_PUSH_KEY), pDel = pendSet(PENDING_DEL_KEY);
+      const firstTime = !lsGet(SYNCED_ONCE_KEY, false);
+      const localMap = new Map(local.map(q => [q.id, q]));
+      const result = [], toPush = [];
+      (remote || []).forEach(row => {
+        if (pDel.has(row.id)) return;
+        const r = migrateQuote(Object.assign({}, row.data, { id: row.id }));
+        const l = localMap.get(row.id);
+        if (l && (l.updatedAt || "") > (r.updatedAt || "")) { result.push(l); toPush.push(l); }
+        else result.push(r);
+        localMap.delete(row.id);
+      });
+      // Lo que solo está aquí: se sube si es nuevo o pendiente; si no, se borró en otro equipo
+      localMap.forEach(l => { if (firstTime || pPush.has(l.id)) { result.push(l); toPush.push(l); } });
+      writeQuotesLocal(result);
+      lsSet(SYNCED_ONCE_KEY, true);
+      for (const q of toPush) await cloudPushProposal(q);
+      for (const id of pDel) await cloudDeleteProposal(id);
+    }
+
+    function markAjustesChanged() {
+      lsSet(AJUSTES_TS_KEY, new Date().toISOString());
+      if (!cloudOn()) return;
+      clearTimeout(ajustesTimer);
+      ajustesTimer = setTimeout(pushAjustes, 1000);
+    }
+    async function pushAjustes() {
+      if (!cloudOn()) return;
+      const ts = lsGet(AJUSTES_TS_KEY, new Date().toISOString());
+      try {
+        await cloudFetch("ajustes", { method: "POST", headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
+          body: JSON.stringify([{ id: "principal", data: { settings, params: lsGet(PARAMS_KEY, {}), updatedAt: ts }, updated_at: ts }]) });
+        setCloudStatus("ok");
+      } catch (e) { setCloudStatus("err", String(e.message || e)); }
+    }
+    async function syncAjustes() {
+      const rows = await cloudFetch("ajustes?id=eq.principal&select=data,updated_at");
+      const row = rows && rows[0];
+      const localTs = lsGet(AJUSTES_TS_KEY, "");
+      if (row && row.data && (row.data.updatedAt || "") > localTs) {
+        applyingCloud = true;
+        try {
+          localStorage.setItem(SETTINGS_KEY, JSON.stringify(row.data.settings || {}));
+          if (row.data.params) localStorage.setItem(PARAMS_KEY, JSON.stringify(row.data.params));
+          lsSet(AJUSTES_TS_KEY, row.data.updatedAt);
+          loadSettings();
+          refreshSelects();
+          // Solo se ponen en pantalla si no estás editando una cotización
+          if (document.getElementById("editorView").style.display === "none") { loadParams(); setTipoPrecio(selectedTipoPrecio, true); }
+          if (!document.getElementById("viewPrecios").classList.contains("hidden")) renderSettings();
+        } finally { applyingCloud = false; }
+      } else if (localTs && (!row || localTs > (row.data && row.data.updatedAt || ""))) {
+        await pushAjustes();
+      }
+    }
+
+    async function cloudSync() {
+      if (!cloudOn()) { setCloudStatus("off"); return; }
+      if (syncing) return;
+      syncing = true;
+      setCloudStatus("sync");
+      try {
+        await syncAjustes();
+        await syncQuotes();
+        setCloudStatus("ok");
+        if (document.getElementById("homeView").style.display !== "none") renderSavedQuotes();
+      } catch (e) {
+        setCloudStatus("err", String(e.message || e));
+      } finally { syncing = false; }
+    }
+
+    // =========================================================================
     // INICIO
     // =========================================================================
     document.addEventListener("DOMContentLoaded", () => {
@@ -2211,6 +2385,9 @@
       refreshSelects();
       nuevaCotizacion(true);
       showHome();
+      cloudSync();
+      document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") cloudSync(); });
+      setInterval(() => { if (document.visibilityState === "visible") cloudSync(); }, 60000);
     });
   </script>
 </body>
