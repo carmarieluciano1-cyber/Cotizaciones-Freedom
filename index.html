@@ -16,6 +16,7 @@
     }
     /* Estilos limpios para impresión del informe de contabilidad o propuesta */
     @media print {
+      .bat-print, .bat-print * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       .no-print {
         display: none !important;
       }
@@ -496,6 +497,80 @@
               </div>
             </div>
           </div>
+
+          <!-- Respaldo con baterías (cálculo de la hoja "CALCULOS BT-CB" del Excel) -->
+          <div id="batteryCalcCard" class="bat-print bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 print-shadow-none" style="display:none">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="text-xs font-semibold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                <span class="w-1.5 h-1.5 rounded-full" style="background:#F97316"></span>Respaldo con Baterías
+              </h3>
+              <span id="batCalcModel" class="text-[11px] font-medium px-2 py-0.5 rounded" style="background:#FFF7ED;color:#C2410C">—</span>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2.5">
+              <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                <p class="text-[10px] font-medium text-slate-500">Capacidad total</p>
+                <p id="batCapTotal" class="text-sm font-bold text-slate-900 mt-0.5">0 kWh</p>
+                <p id="batCapDetalle" class="text-[10px] text-slate-400"></p>
+              </div>
+              <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                <p class="text-[10px] font-medium text-slate-500">Prof. de descarga</p>
+                <p class="flex items-center gap-1 mt-0.5"><input type="number" id="batDod" value="90" min="1" max="100" step="1" oninput="onBatteryCalcChange()" class="w-12 px-1 py-0.5 text-xs font-semibold text-center text-slate-800 bg-white border border-slate-200 rounded-md focus:outline-none focus:border-orange-300" /><span class="text-xs font-semibold text-slate-700">%</span></p>
+              </div>
+              <div class="p-2.5 rounded-xl border" style="background:#FFF7ED;border-color:#FED7AA">
+                <p class="text-[10px] font-medium" style="color:#C2410C">Descarga máxima</p>
+                <p id="batDescMax" class="text-sm font-bold mt-0.5" style="color:#9A3412">0 kWh</p>
+                <p class="text-[10px]" style="color:#EA580C">Energía disponible</p>
+              </div>
+            </div>
+
+            <div class="mt-4">
+              <p class="text-[11px] font-medium text-slate-600 mb-2">Duración según el consumo</p>
+              <div class="space-y-2">
+                <div class="flex items-center gap-2.5">
+                  <label class="flex items-center gap-1 shrink-0">
+                    <input type="number" id="batCons0" value="2" min="0" step="0.5" oninput="onBatteryCalcChange()" class="w-12 px-1 py-0.5 text-xs font-semibold text-center text-slate-800 bg-white border border-slate-200 rounded-md focus:outline-none focus:border-orange-300" />
+                    <span class="text-[11px] text-slate-500">kW</span>
+                  </label>
+                  <div class="flex-1 h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                    <div id="batBar0" class="h-full rounded-full" style="width:0%;background:#FB923C;transition:width .5s ease"></div>
+                  </div>
+                  <span id="batCalcHoras0" class="w-20 text-right text-xs font-semibold text-slate-800"></span>
+                </div>
+                <div class="flex items-center gap-2.5">
+                  <label class="flex items-center gap-1 shrink-0">
+                    <input type="number" id="batCons1" value="4" min="0" step="0.5" oninput="onBatteryCalcChange()" class="w-12 px-1 py-0.5 text-xs font-semibold text-center text-slate-800 bg-white border border-slate-200 rounded-md focus:outline-none focus:border-orange-300" />
+                    <span class="text-[11px] text-slate-500">kW</span>
+                  </label>
+                  <div class="flex-1 h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                    <div id="batBar1" class="h-full rounded-full" style="width:0%;background:#FB923C;transition:width .5s ease"></div>
+                  </div>
+                  <span id="batCalcHoras1" class="w-20 text-right text-xs font-semibold text-slate-800"></span>
+                </div>
+                <div class="flex items-center gap-2.5">
+                  <label class="flex items-center gap-1 shrink-0">
+                    <input type="number" id="batCons2" value="6" min="0" step="0.5" oninput="onBatteryCalcChange()" class="w-12 px-1 py-0.5 text-xs font-semibold text-center text-slate-800 bg-white border border-slate-200 rounded-md focus:outline-none focus:border-orange-300" />
+                    <span class="text-[11px] text-slate-500">kW</span>
+                  </label>
+                  <div class="flex-1 h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                    <div id="batBar2" class="h-full rounded-full" style="width:0%;background:#FB923C;transition:width .5s ease"></div>
+                  </div>
+                  <span id="batCalcHoras2" class="w-20 text-right text-xs font-semibold text-slate-800"></span>
+                </div>
+                <div class="flex items-center gap-2.5">
+                  <label class="flex items-center gap-1 shrink-0">
+                    <input type="number" id="batCons3" value="8" min="0" step="0.5" oninput="onBatteryCalcChange()" class="w-12 px-1 py-0.5 text-xs font-semibold text-center text-slate-800 bg-white border border-slate-200 rounded-md focus:outline-none focus:border-orange-300" />
+                    <span class="text-[11px] text-slate-500">kW</span>
+                  </label>
+                  <div class="flex-1 h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                    <div id="batBar3" class="h-full rounded-full" style="width:0%;background:#FB923C;transition:width .5s ease"></div>
+                  </div>
+                  <span id="batCalcHoras3" class="w-20 text-right text-xs font-semibold text-slate-800"></span>
+                </div>
+              </div>
+              <p class="text-[10px] text-slate-400 mt-3">Duración = capacidad × profundidad de descarga ÷ consumo.</p>
+            </div>
+          </div>
         </div>
 
         <!-- ===================================================================== -->
@@ -869,23 +944,23 @@
 
       // Baterías (Excel: "Precios de Baterias"). Soluna ya incluye el 5% de descuento del Excel.
       batteries: [
-        { id: "bat_sol_r5",  group: "Soluna", name: "Soluna tipo Rack 5K",   price: 1045 },
-        { id: "bat_sol_p5",  group: "Soluna", name: "Soluna de Pared 5K",    price: 1233.10 },
-        { id: "bat_sol16",   group: "Soluna", name: "Soluna 16K",            price: 2755 },
-        { id: "bat_sol32",   group: "Soluna", name: "Soluna 32K",            price: 4465 },
-        { id: "bat_ion_p5",  group: "ION", name: "ION de 5K tipo Pared",     price: 1003 },
-        { id: "bat_ion_r5",  group: "ION", name: "ION de 5K tipo Rack",      price: 1003 },
-        { id: "bat_ion10",   group: "ION", name: "ION de 10K",               price: 2006 },
-        { id: "bat_ion15",   group: "ION", name: "ION de 15K",               price: 2714 },
-        { id: "bat_must5",   group: "MUST", name: "MUST 5K",                 price: 944 },
-        { id: "bat_must10",  group: "MUST", name: "MUST 10K",                price: 1974 },
-        { id: "bat_must15",  group: "MUST", name: "MUST 15K",                price: 2450 },
-        { id: "bat_am5",     group: "American Lithium", name: "American 5K 100A",  price: 827 },
-        { id: "bat_am15",    group: "American Lithium", name: "American 15K 300A", price: 2295 },
-        { id: "bat_py5",     group: "PYTES", name: "PYTES 5K",               price: 1085.60 },
-        { id: "bat_py10",    group: "PYTES", name: "PYTES 10K",              price: 2129.90 },
-        { id: "bat_py12",    group: "PYTES", name: "PYTES 12K",              price: 2342.30 },
-        { id: "bat_py16",    group: "PYTES", name: "PYTES 16K",              price: 2708.10 }
+        { id: "bat_sol_r5",  group: "Soluna", name: "Soluna tipo Rack 5K",   kwh: 5, price: 1045 },
+        { id: "bat_sol_p5",  group: "Soluna", name: "Soluna de Pared 5K",    kwh: 5, price: 1233.10 },
+        { id: "bat_sol16",   group: "Soluna", name: "Soluna 16K",            kwh: 16, price: 2755 },
+        { id: "bat_sol32",   group: "Soluna", name: "Soluna 32K",            kwh: 32, price: 4465 },
+        { id: "bat_ion_p5",  group: "ION", name: "ION de 5K tipo Pared",     kwh: 5, price: 1003 },
+        { id: "bat_ion_r5",  group: "ION", name: "ION de 5K tipo Rack",      kwh: 5, price: 1003 },
+        { id: "bat_ion10",   group: "ION", name: "ION de 10K",               kwh: 10, price: 2006 },
+        { id: "bat_ion15",   group: "ION", name: "ION de 15K",               kwh: 15, price: 2714 },
+        { id: "bat_must5",   group: "MUST", name: "MUST 5K",                 kwh: 5, price: 944 },
+        { id: "bat_must10",  group: "MUST", name: "MUST 10K",                kwh: 10, price: 1974 },
+        { id: "bat_must15",  group: "MUST", name: "MUST 15K",                kwh: 15, price: 2450 },
+        { id: "bat_am5",     group: "American Lithium", name: "American 5K 100A",  kwh: 5, price: 827 },
+        { id: "bat_am15",    group: "American Lithium", name: "American 15K 300A", kwh: 15, price: 2295 },
+        { id: "bat_py5",     group: "PYTES", name: "PYTES 5K",               kwh: 5, price: 1085.60 },
+        { id: "bat_py10",    group: "PYTES", name: "PYTES 10K",              kwh: 10, price: 2129.90 },
+        { id: "bat_py12",    group: "PYTES", name: "PYTES 12K",              kwh: 12, price: 2342.30 },
+        { id: "bat_py16",    group: "PYTES", name: "PYTES 16K",              kwh: 16, price: 2708.10 }
       ],
 
       // Estructura: costo fijo POR PANEL según el tipo
@@ -991,6 +1066,8 @@
           settings.logistics = Object.assign(JSON.parse(JSON.stringify(EXCEL_SETTINGS.logistics)), saved.logistics || {});
         }
         settings.provinces.forEach(p => { if (p.indexIntegracion === undefined || p.indexIntegracion === null) p.indexIntegracion = calcIndexIntegracion(p.indexHibrido); });
+        // Capacidad (kWh) de cada batería: si falta, se toma del nombre (ej. "PYTES 16K" = 16 kWh)
+        settings.batteries.forEach(b => { if (b.kwh === undefined || b.kwh === null) { const m = String(b.name).match(/(\d+(?:\.\d+)?)\s*K/i); b.kwh = m ? Number(m[1]) : 0; } });
       } catch (e) { /* sin almacenamiento: se usan los precios del Excel */ }
     }
     function saveSettings() {
@@ -1394,6 +1471,7 @@
       document.getElementById("clientName").value = "";
       document.getElementById("projectName").value = "";
       setConsensuadoValue("");
+      setBatteryCalc();
       setFormDefaults(10);
       loadingQuote = false;
       updateQuoteHeader();
@@ -1476,7 +1554,8 @@
         cuota70: r.cuota70 || 0,
         roiContado: r.roiContado || 0,
         roiConLey: r.roiConLey || 0,
-        sinGeneracion: !!r.sinGeneracion
+        sinGeneracion: !!r.sinGeneracion,
+        bateriaCalc: getBatteryCalc()
       };
     }
 
@@ -1548,6 +1627,7 @@
       }
       document.getElementById("indiceCosto").value = q.indiceCosto;
       lastIndexKey = document.getElementById("provinceSelect").value + "|" + document.getElementById("modalidadSelect").value;
+      setBatteryCalc(q.bateriaCalc);
       lineItems = JSON.parse(JSON.stringify(q.lineItems || []));
       currentWarnings = [];
       document.getElementById("panelOver100Alert").classList.toggle("hidden", !((parseInt(q.panelQty, 10) || 0) > 100));
@@ -1603,6 +1683,7 @@
         loadingQuote = true;
         loadParams();
         setConsensuadoValue("");
+      setBatteryCalc();
         document.getElementById("projectName").value = "";
         setFormDefaults(10);
         document.getElementById("provinceSelect").value = prov;
@@ -1975,7 +2056,55 @@
       document.getElementById("liveBarTotal").textContent = `${fmtUSD(r.totalEjecucion)} • RD$ ${fmtInt(r.cuota70)}/m`;
     }
 
+    // Respaldo con baterías: Descarga máx. = capacidad × DoD ; Horas = descarga máx. ÷ consumo
+    const BAT_DEFAULTS = { dod: 90, consumos: [2, 4, 6, 8] };
+    function fmtHoras(hrs) {
+      if (!isFinite(hrs) || hrs <= 0) return "—";
+      const hh = Math.floor(hrs), mm = Math.round((hrs - hh) * 60);
+      return mm === 60 ? `${hh + 1} h` : mm ? `${hh} h ${mm} min` : `${hh} h`;
+    }
+    function renderBatteryCalc() {
+      const card = document.getElementById("batteryCalcCard");
+      const batId = document.getElementById("quickBatterySelect").value;
+      const bat = batId === "none" ? null : getBattery(batId);
+      const qty = bat ? (parseInt(document.getElementById("quickBatteryQty").value, 10) || 0) : 0;
+      if (!bat || qty <= 0) { card.style.display = "none"; return; }
+      card.style.display = "";
+      const n = (x) => x.toLocaleString("es-DO", { maximumFractionDigits: 2 });
+      const cap = (Number(bat.kwh) || 0) * qty;
+      const dodPct = Math.min(100, Math.max(0, parseFloat(document.getElementById("batDod").value) || 0));
+      const desc = cap * dodPct / 100;
+      document.getElementById("batCalcModel").textContent = `${qty} × ${bat.name} (${bat.kwh} kWh c/u)`;
+      document.getElementById("batCapTotal").textContent = `${n(cap)} kWh`;
+      document.getElementById("batCapDetalle").textContent = `${qty} batería${qty === 1 ? "" : "s"}`;
+      document.getElementById("batDescMax").textContent = `${n(desc)} kWh`;
+
+      const horas = [0, 1, 2, 3].map(k => {
+        const c = parseFloat(document.getElementById("batCons" + k).value) || 0;
+        return c > 0 ? desc / c : 0;
+      });
+      const maxH = Math.max(...horas, 0.0001);
+      horas.forEach((hrs, k) => {
+        const bar = document.getElementById("batBar" + k);
+        const pct = hrs > 0 ? Math.max(4, (hrs / maxH) * 100) : 0;
+        // Colores de la empresa: naranja (la de mayor duración en naranja oscuro)
+        bar.style.width = pct + "%";
+        bar.style.background = hrs === maxH ? "#F97316" : "#FB923C";
+        document.getElementById("batCalcHoras" + k).textContent = hrs > 0 ? fmtHoras(hrs) : "—";
+      });
+    }
+    function onBatteryCalcChange() { renderBatteryCalc(); scheduleAutosave(); }
+    function getBatteryCalc() {
+      return { dod: document.getElementById("batDod").value, consumos: [0, 1, 2, 3].map(k => document.getElementById("batCons" + k).value) };
+    }
+    function setBatteryCalc(d) {
+      d = d || BAT_DEFAULTS;
+      document.getElementById("batDod").value = d.dod ?? BAT_DEFAULTS.dod;
+      [0, 1, 2, 3].forEach(k => document.getElementById("batCons" + k).value = (d.consumos || BAT_DEFAULTS.consumos)[k] ?? BAT_DEFAULTS.consumos[k]);
+    }
+
     function updateCommercialUI(r) {
+      renderBatteryCalc();
       document.getElementById("comClientDisplay").textContent = r.clientName.trim() || "Nuevo Cliente";
       document.getElementById("comProjectMeta").textContent = `${r.projectName} • ${r.province} • ${({ hibrido: "Híbrido", ongrid: "Inyección", integracion: "Integración de almacenamiento" }[r.modalidad] || r.modalidad)}`;
       document.getElementById("comTotalUsd").textContent = fmtUSD(r.totalEjecucion);
@@ -2130,8 +2259,8 @@
 
       // Baterías
       html += card("Baterías", "",
-        `<table class="w-full text-xs"><thead><tr>${th("Grupo")}${th("Nombre")}${th("Precio US$", "w-24")}${th("")}</tr></thead><tbody>` +
-        S.batteries.map((b, i) => `<tr>${td(txtIn(`batteries.${i}.group`, b.group))}${td(txtIn(`batteries.${i}.name`, b.name))}${td(numIn(`batteries.${i}.price`, b.price))}${td(delBtn("delBattery", i))}</tr>`).join("") +
+        `<table class="w-full text-xs"><thead><tr>${th("Grupo")}${th("Nombre")}${th("kWh", "w-16")}${th("Precio US$", "w-24")}${th("")}</tr></thead><tbody>` +
+        S.batteries.map((b, i) => `<tr>${td(txtIn(`batteries.${i}.group`, b.group))}${td(txtIn(`batteries.${i}.name`, b.name))}${td(numIn(`batteries.${i}.kwh`, b.kwh, "0.01"))}${td(numIn(`batteries.${i}.price`, b.price))}${td(delBtn("delBattery", i))}</tr>`).join("") +
         `</tbody></table>`, addBtn("addBattery", "+ Batería"));
 
       // Eléctricos
@@ -2207,7 +2336,7 @@
     function afterListChange() { saveSettings(); refreshSelects(); renderSettings(); applyProvinceIndex(true); onConfigChange(); }
     function addInverter() { settings.inverters.push({ id: "inv_" + Date.now(), group: "Nuevos", name: "Nuevo inversor", type: "hibrido", kw: 5, price: 0 }); afterListChange(); }
     function delInverter(i) { if (settings.inverters.length <= 1) return; settings.inverters.splice(i, 1); afterListChange(); }
-    function addBattery() { settings.batteries.push({ id: "bat_" + Date.now(), group: "Nuevas", name: "Nueva batería", price: 0 }); afterListChange(); }
+    function addBattery() { settings.batteries.push({ id: "bat_" + Date.now(), group: "Nuevas", name: "Nueva batería", kwh: 5, price: 0 }); afterListChange(); }
     function delBattery(i) { settings.batteries.splice(i, 1); afterListChange(); }
     function addProvince() { settings.provinces.push({ name: "Nueva provincia", hsp: 4.11, indexHibrido: 4.15, indexOnGrid: 3.70, indexIntegracion: calcIndexIntegracion(4.15), zone: "media" }); afterListChange(); }
     function delProvince(i) { if (settings.provinces.length <= 1) return; settings.provinces.splice(i, 1); afterListChange(); }
