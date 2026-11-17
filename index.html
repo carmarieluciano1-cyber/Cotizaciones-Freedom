@@ -1682,9 +1682,10 @@
       if (!all.length) { box.innerHTML = `<p class="py-3 text-[11px] text-slate-400">Todavía no hay cotizaciones guardadas.</p>`; return; }
       if (!list.length) { box.innerHTML = `<p class="py-3 text-[11px] text-slate-400">Ninguna coincide con la búsqueda.</p>`; return; }
       box.innerHTML = list.map(q => {
-        const totals = q.options.map(o => Number(o.total) || 0);
-        const min = Math.min(...totals), max = Math.max(...totals);
-        const rango = q.options.length > 1 && min !== max ? `${fmtUSD(min)} – ${fmtUSD(max)}` : fmtUSD(max);
+        // Tipo de proyecto de las opciones (sin precios en esta pantalla)
+        const TIPO = { hibrido: "Híbrido", ongrid: "Inyección", integracion: "Integración de almacenamiento" };
+        const tipos = [...new Set(q.options.map(o => TIPO[o.modalidad] || "Híbrido"))];
+        const tiposHtml = tipos.map(t => `<span class="px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-[11px] font-medium text-emerald-800 whitespace-nowrap">${t}</span>`).join("");
         const first = q.options[0] || {};
         return `
         <div class="py-3 flex items-center gap-3">
@@ -1693,7 +1694,7 @@
               <span class="ml-1 px-1.5 py-0.5 rounded bg-slate-100 text-[10px] font-medium text-slate-600">${q.options.length} ${q.options.length === 1 ? "opción" : "opciones"}</span></p>
             <p class="text-[11px] text-slate-500 truncate">${q.options.length > 1 ? escapeHtml(q.options.map(o => o.name).join(" • ")) : `${escapeHtml(first.projectName || "")}${first.projectName ? " • " : ""}${Number(first.potenciaKw || 0).toFixed(2)} kWp`} • ${fmtFecha(q.updatedAt)}</p>
           </button>
-          <span class="text-xs font-semibold text-slate-900 whitespace-nowrap">${rango}</span>
+          <div class="flex flex-wrap justify-end gap-1">${tiposHtml}</div>
           <button type="button" onclick="eliminarCotizacion('${q.id}')" title="Eliminar" class="text-slate-300 hover:text-rose-600 font-bold px-1">&times;</button>
         </div>`;
       }).join("");
