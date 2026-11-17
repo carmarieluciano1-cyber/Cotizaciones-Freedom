@@ -109,7 +109,35 @@
 
       <!-- COLUMNA IZQUIERDA: FORMULARIO DE COTIZACIÓN (5 columnas en desktop) -->
       <section class="lg:col-span-5 space-y-5 no-print">
-        
+
+        <!-- Tarjeta 0: Cotización actual y cotizaciones guardadas -->
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <h2 id="quoteTitle" class="text-base font-bold text-slate-900 truncate">Nueva Cotización</h2>
+              <p id="quoteStatus" class="text-[11px] text-slate-500 mt-0.5">Se guarda sola en cuanto escribas el nombre del cliente.</p>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <button type="button" onclick="guardarCotizacion(true)" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200">Guardar</button>
+              <button type="button" onclick="duplicarCotizacion()" title="Crear una copia de esta cotización" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200">Duplicar</button>
+            </div>
+          </div>
+
+          <details id="savedQuotesBox" class="group mt-4 pt-3 border-t border-slate-100" open>
+            <summary class="flex items-center justify-between text-xs font-semibold text-slate-700 cursor-pointer select-none">
+              <span>Cotizaciones guardadas (<span id="savedCount">0</span>)</span>
+              <span class="group-open:rotate-180 transition-transform text-slate-400">▼</span>
+            </summary>
+            <input type="text" id="savedSearch" placeholder="Buscar por cliente o proyecto…" oninput="renderSavedQuotes()"
+              class="w-full mt-3 px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-slate-400" />
+            <div id="savedQuotesList" class="mt-2 max-h-64 overflow-y-auto divide-y divide-slate-100"></div>
+            <div class="mt-3 flex gap-3 text-[11px]">
+              <button type="button" onclick="exportQuotes()" class="text-slate-500 underline hover:text-slate-900">Exportar respaldo</button>
+              <label class="text-slate-500 underline hover:text-slate-900 cursor-pointer">Importar respaldo<input type="file" accept=".json,application/json" class="hidden" onchange="importQuotes(this)" /></label>
+            </div>
+          </details>
+        </div>
+
         <!-- Tarjeta 1: Datos Generales del Proyecto -->
         <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5">
           <div class="flex items-center justify-between mb-4">
@@ -139,11 +167,12 @@
                 </select>
               </div>
               <div>
-                <label class="block text-xs font-medium text-slate-600 mb-1">Modalidad del Sistema</label>
-                <select id="modalidadSelect" onchange="applyProvinceIndex(); recalculateAll()"
+                <label class="block text-xs font-medium text-slate-600 mb-1">Tipo de Proyecto</label>
+                <select id="modalidadSelect" onchange="onConfigChange()"
                   class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400">
-                  <option value="hibrido" selected>Híbrido (Con Baterías)</option>
-                  <option value="ongrid">On-Grid (Interconexión)</option>
+                  <option value="hibrido" selected>Híbrido</option>
+                  <option value="ongrid">Inyección</option>
+                  <option value="integracion">Integración de almacenamiento</option>
                 </select>
               </div>
             </div>
@@ -264,10 +293,6 @@
             <button type="button" onclick="nuevaCotizacion()" title="Limpiar formulario para iniciar una cotización nueva"
               class="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-slate-900 hover:bg-slate-800 shadow-sm transition-colors">
               + Nueva Cotización
-            </button>
-            <button type="button" onclick="resetDefaultData()" title="Restaurar ejemplo de muestra"
-              class="px-3 py-2.5 rounded-xl text-xs font-medium text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors">
-              Ejemplo
             </button>
           </div>
         </div>
@@ -841,6 +866,10 @@
         { name: "Barahona",           indexHibrido: 6.00, hsp: 4.50, indexOnGrid: 4.30, zone: "mayor" }
       ]
     };
+    // Índice de integración (columna "ÍNDICE intrgra" del Excel) = índice híbrido ÷ 1.8
+    const INTEGRACION_DIVISOR = 1.8;
+    const calcIndexIntegracion = (hib) => Math.round((Number(hib) / INTEGRACION_DIVISOR) * 10000) / 10000;
+    EXCEL_SETTINGS.provinces.forEach(p => { p.indexIntegracion = calcIndexIntegracion(p.indexHibrido); });
 
     const SETTINGS_KEY = "feg_precios_v2";
     let settings = JSON.parse(JSON.stringify(EXCEL_SETTINGS));
@@ -856,6 +885,7 @@
           settings.rules = Object.assign({}, EXCEL_SETTINGS.rules, saved.rules || {});
           settings.logistics = Object.assign(JSON.parse(JSON.stringify(EXCEL_SETTINGS.logistics)), saved.logistics || {});
         }
+        settings.provinces.forEach(p => { if (p.indexIntegracion === undefined || p.indexIntegracion === null) p.indexIntegracion = calcIndexIntegracion(p.indexHibrido); });
       } catch (e) { /* sin almacenamiento: se usan los precios del Excel */ }
     }
     function saveSettings() {
@@ -915,7 +945,7 @@
     // =========================================================================
     // REGLAS
     // =========================================================================
-    // Índice de costos: se toma de la provincia y la modalidad (híbrido / inyección).
+    // Índice de costos: se toma de la provincia y el tipo de proyecto (híbrido / inyección / integración).
     // Solo se reescribe cuando cambia la provincia o la modalidad, así se respeta si lo editas a mano.
     let lastIndexKey = "";
     function applyProvinceIndex(force) {
@@ -925,7 +955,7 @@
       if (!force && key === lastIndexKey) return;
       lastIndexKey = key;
       const prov = getProvince(province);
-      const idx = Number(modalidad === "hibrido" ? prov.indexHibrido : prov.indexOnGrid);
+      const idx = Number(modalidad === "hibrido" ? prov.indexHibrido : modalidad === "integracion" ? prov.indexIntegracion : prov.indexOnGrid);
       document.getElementById("indiceCosto").value = idx;
     }
 
@@ -957,7 +987,7 @@
       return { tier: sorted.find(t => t.kw >= kw) || sorted[sorted.length - 1], fuera: !sorted.some(t => t.kw >= kw) };
     }
 
-    function computeElectrical(combo, batQty) {
+    function computeElectrical(combo, batQty, modalidad) {
       const R = settings.rules;
       const lines = [];
       const warnings = [];
@@ -983,7 +1013,8 @@
       hib.forEach((inv, k) => {
         const { tier, fuera } = findTier(settings.elecHibrido, inv.kw);
         if (fuera) warnFuera(inv, tier, "híbridos");
-        if (k < R.hibDescDesde - 1) add("elec_base", `Eléctricos Híbrido ${tier.kw}kW (Completo)`, Number(tier.completo));
+        if (modalidad === "integracion") add("elec_integ", `Eléctricos Integración ${tier.kw}kW`, Number(tier.integracion));
+        else if (k < R.hibDescDesde - 1) add("elec_base", `Eléctricos Híbrido ${tier.kw}kW (Completo)`, Number(tier.completo));
         else add("elec_integ", `Eléctricos Híbrido ${tier.kw}kW (Integración, desde equipo ${R.hibDescDesde})`, Number(tier.integracion));
         if (Number(tier.bypass) > maxBypass) { maxBypass = Number(tier.bypass); bypassKw = tier.kw; }
       });
@@ -1068,7 +1099,7 @@
       const stDef = settings.structures[stIdx] || settings.structures[0];
       const st = { price: Number(stDef.price) || 0 };
       const log = computeLogisticsByRules(province, panelQty);
-      const elec = computeElectrical(combo, batQty);
+      const elec = computeElectrical(combo, batQty, document.getElementById("modalidadSelect").value);
 
       const customs = lineItems.filter(i => i.role === "custom");
       let id = 1;
@@ -1114,7 +1145,9 @@
       const combo = getInverterCombo();
       if (combo.length) {
         const anyHib = combo.some(c => c.inv.type === "hibrido");
-        document.getElementById("modalidadSelect").value = anyHib ? "hibrido" : "ongrid";
+        const modSel = document.getElementById("modalidadSelect");
+        if (!anyHib) modSel.value = "ongrid";
+        else if (modSel.value === "ongrid") modSel.value = "hibrido";
         if (!anyHib) document.getElementById("quickBatterySelect").value = "none";
       }
       onConfigChange();
@@ -1219,20 +1252,211 @@
       onConfigChange();
     }
 
-    function nuevaCotizacion() {
+    function nuevaCotizacion(silent) {
+      currentQuoteId = null;
+      loadingQuote = true;
+      loadParams();
       document.getElementById("clientName").value = "";
       document.getElementById("projectName").value = "";
       setFormDefaults(10);
+      loadingQuote = false;
+      updateQuoteHeader();
+      renderSavedQuotes();
       switchTab("comercial");
-      document.getElementById("clientName").focus();
-      showToast("Formulario listo para una nueva cotización desde cero", "success");
+      if (!silent) {
+        document.getElementById("clientName").focus();
+        showToast("Nueva cotización lista", "success");
+      }
     }
 
-    function resetDefaultData() {
-      document.getElementById("clientName").value = "Patria Brea / Residencial";
-      document.getElementById("projectName").value = "Sistema Solar 13 kWp";
-      setFormDefaults(20);
-      showToast("Valores de muestra restaurados", "info");
+    // =========================================================================
+    // COTIZACIONES GUARDADAS (en este navegador)
+    // =========================================================================
+    const QUOTES_KEY = "feg_cotizaciones_v1";
+    let currentQuoteId = null;
+    let loadingQuote = false;
+    let autosaveTimer = null;
+
+    function readQuotes() {
+      try { return JSON.parse(localStorage.getItem(QUOTES_KEY) || "[]"); } catch (e) { return []; }
+    }
+    function writeQuotes(list) {
+      try { localStorage.setItem(QUOTES_KEY, JSON.stringify(list)); return true; }
+      catch (e) { showToast("No se pudo guardar en este navegador", "error"); return false; }
+    }
+
+    function snapshotQuote() {
+      const r = latestCalculationResult || {};
+      const params = { tipoPrecio: selectedTipoPrecio };
+      PARAM_IDS.forEach(id => params[id] = document.getElementById(id).value);
+      return {
+        clientName: document.getElementById("clientName").value,
+        projectName: document.getElementById("projectName").value,
+        province: document.getElementById("provinceSelect").value,
+        modalidad: document.getElementById("modalidadSelect").value,
+        indiceCosto: document.getElementById("indiceCosto").value,
+        structure: document.getElementById("quickStructureSelect").value,
+        inverterRows: JSON.parse(JSON.stringify(inverterRows)),
+        batteryId: document.getElementById("quickBatterySelect").value,
+        batteryQty: document.getElementById("quickBatteryQty").value,
+        panelW: document.getElementById("panelW").value,
+        panelQty: document.getElementById("panelQty").value,
+        lineItems: JSON.parse(JSON.stringify(lineItems)),
+        params,
+        total: r.totalEjecucion || 0,
+        potenciaKw: r.potenciaKw || 0
+      };
+    }
+
+    function guardarCotizacion(manual) {
+      const snap = snapshotQuote();
+      if (!snap.clientName.trim() && !snap.projectName.trim()) {
+        if (manual) showToast("Escribe el nombre del cliente o del proyecto para guardar", "error");
+        return;
+      }
+      const list = readQuotes();
+      const now = new Date().toISOString();
+      let q = currentQuoteId ? list.find(x => x.id === currentQuoteId) : null;
+      if (q) {
+        Object.assign(q, snap, { updatedAt: now });
+      } else {
+        q = Object.assign({ id: "q_" + Date.now(), createdAt: now, updatedAt: now }, snap);
+        list.unshift(q);
+        currentQuoteId = q.id;
+      }
+      if (writeQuotes(list)) {
+        updateQuoteHeader();
+        renderSavedQuotes();
+        if (manual) showToast("Cotización guardada", "success");
+      }
+    }
+
+    // Guardado automático: un momento después del último cambio
+    function scheduleAutosave() {
+      if (loadingQuote) return;
+      clearTimeout(autosaveTimer);
+      autosaveTimer = setTimeout(() => guardarCotizacion(false), 800);
+    }
+
+    function abrirCotizacion(id) {
+      const q = readQuotes().find(x => x.id === id);
+      if (!q) return;
+      clearTimeout(autosaveTimer);
+      loadingQuote = true;
+      currentQuoteId = q.id;
+      document.getElementById("clientName").value = q.clientName || "";
+      document.getElementById("projectName").value = q.projectName || "";
+      if (settings.provinces.some(p => p.name === q.province)) document.getElementById("provinceSelect").value = q.province;
+      document.getElementById("modalidadSelect").value = q.modalidad || "hibrido";
+      document.getElementById("quickStructureSelect").value = q.structure || "0";
+      inverterRows = (q.inverterRows || []).filter(r => getInverter(r.invId));
+      if (!inverterRows.length) inverterRows = [{ invId: defaultInverterId(), qty: 1 }];
+      renderInverterRows();
+      document.getElementById("quickBatterySelect").value = (q.batteryId === "none" || getBattery(q.batteryId)) ? q.batteryId : "none";
+      document.getElementById("quickBatteryQty").value = q.batteryQty;
+      document.getElementById("panelW").value = q.panelW;
+      document.getElementById("panelQty").value = q.panelQty;
+      // Las tasas, margen y lista de precio se abren como estaban en esa cotización
+      if (q.params) {
+        PARAM_IDS.forEach(id => { if (q.params[id] !== undefined) document.getElementById(id).value = q.params[id]; });
+        setTipoPrecio(q.params.tipoPrecio === "preferencial" ? "preferencial" : "standard", true);
+      }
+      document.getElementById("indiceCosto").value = q.indiceCosto;
+      lastIndexKey = document.getElementById("provinceSelect").value + "|" + document.getElementById("modalidadSelect").value;
+      lineItems = JSON.parse(JSON.stringify(q.lineItems || []));
+      currentWarnings = [];
+      document.getElementById("panelOver100Alert").classList.toggle("hidden", !((parseInt(q.panelQty, 10) || 0) > 100));
+      renderItemsTable();
+      renderWarnings();
+      recalculateAll();
+      loadingQuote = false;
+      updateQuoteHeader();
+      renderSavedQuotes();
+      switchTab("comercial");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      showToast(`Abierta: ${q.clientName || q.projectName}`, "info");
+    }
+
+    function duplicarCotizacion() {
+      if (!currentQuoteId) { showToast("Primero guarda esta cotización", "error"); return; }
+      currentQuoteId = null;
+      const pn = document.getElementById("projectName");
+      pn.value = (pn.value || "Proyecto") + " (copia)";
+      guardarCotizacion(false);
+      showToast("Copia creada: ahora estás editando la copia", "success");
+    }
+
+    function eliminarCotizacion(id) {
+      const list = readQuotes();
+      const q = list.find(x => x.id === id);
+      if (!q || !confirm(`¿Eliminar la cotización de "${q.clientName || q.projectName}"? No se puede deshacer.`)) return;
+      writeQuotes(list.filter(x => x.id !== id));
+      if (currentQuoteId === id) nuevaCotizacion(true);
+      renderSavedQuotes();
+    }
+
+    function fmtFecha(iso) {
+      try { return new Date(iso).toLocaleString("es-DO", { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" }); }
+      catch (e) { return ""; }
+    }
+
+    function updateQuoteHeader() {
+      const t = document.getElementById("quoteTitle");
+      const s = document.getElementById("quoteStatus");
+      const q = currentQuoteId ? readQuotes().find(x => x.id === currentQuoteId) : null;
+      if (q) {
+        t.textContent = q.clientName || q.projectName || "Cotización";
+        s.textContent = `Guardada automáticamente • ${fmtFecha(q.updatedAt)}`;
+      } else {
+        t.textContent = "Nueva Cotización";
+        s.textContent = "Se guarda sola en cuanto escribas el nombre del cliente.";
+      }
+    }
+
+    function renderSavedQuotes() {
+      const all = readQuotes().sort((a, b) => (b.updatedAt || "").localeCompare(a.updatedAt || ""));
+      document.getElementById("savedCount").textContent = all.length;
+      const term = (document.getElementById("savedSearch").value || "").toLowerCase().trim();
+      const list = term ? all.filter(q => `${q.clientName} ${q.projectName}`.toLowerCase().includes(term)) : all;
+      const box = document.getElementById("savedQuotesList");
+      if (!all.length) { box.innerHTML = `<p class="py-3 text-[11px] text-slate-400">Todavía no hay cotizaciones guardadas.</p>`; return; }
+      if (!list.length) { box.innerHTML = `<p class="py-3 text-[11px] text-slate-400">Ninguna coincide con la búsqueda.</p>`; return; }
+      box.innerHTML = list.map(q => `
+        <div class="py-2 flex items-center gap-2 ${q.id === currentQuoteId ? "bg-slate-50 -mx-2 px-2 rounded-lg" : ""}">
+          <button type="button" onclick="abrirCotizacion('${q.id}')" class="flex-1 min-w-0 text-left">
+            <p class="text-xs font-semibold text-slate-800 truncate">${escapeHtml(q.clientName || "(sin cliente)")}${q.id === currentQuoteId ? ' <span class="text-[10px] font-medium text-emerald-700">• abierta</span>' : ""}</p>
+            <p class="text-[11px] text-slate-500 truncate">${escapeHtml(q.projectName || "")}${q.projectName ? " • " : ""}${Number(q.potenciaKw || 0).toFixed(2)} kWp • ${fmtFecha(q.updatedAt)}</p>
+          </button>
+          <span class="text-xs font-semibold text-slate-900 whitespace-nowrap">${fmtUSD(q.total)}</span>
+          <button type="button" onclick="eliminarCotizacion('${q.id}')" title="Eliminar" class="text-slate-300 hover:text-rose-600 font-bold px-1">&times;</button>
+        </div>`).join("");
+    }
+
+    function exportQuotes() {
+      const blob = new Blob([JSON.stringify(readQuotes(), null, 2)], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `cotizaciones-freedom-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a); a.click(); a.remove();
+    }
+    function importQuotes(input) {
+      const file = input.files && input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const incoming = JSON.parse(reader.result);
+          if (!Array.isArray(incoming)) throw new Error();
+          const list = readQuotes();
+          let n = 0;
+          incoming.forEach(q => { if (q && q.id && !list.some(x => x.id === q.id)) { list.push(q); n++; } });
+          writeQuotes(list);
+          renderSavedQuotes();
+          showToast(`${n} cotización(es) importada(s)`, "success");
+        } catch (e) { showToast("Ese archivo no es un respaldo de cotizaciones", "error"); }
+        input.value = "";
+      };
+      reader.readAsText(file);
     }
 
     // =========================================================================
@@ -1363,12 +1587,13 @@
       };
 
       document.getElementById("indiceInfo").textContent =
-        `Índice de ${province} (${modalidad === "hibrido" ? "híbrido" : "inyección"}). Se multiplica por la potencia (${potenciaW.toLocaleString()} W) dentro de la fórmula del precio. El detalle está en el Informe Interno.`;
+        `Índice de ${province} (${({ hibrido: "híbrido", ongrid: "inyección", integracion: "integración" })[modalidad]}). Se multiplica por la potencia (${potenciaW.toLocaleString()} W) dentro de la fórmula del precio. El detalle está en el Informe Interno.`;
 
       updateCommercialUI(latestCalculationResult);
       updateAccountingUI(latestCalculationResult);
       updateLiveSummaryBar(latestCalculationResult);
       updateQuotePricesTotal();
+      scheduleAutosave();
     }
 
     function updateLiveSummaryBar(r) {
@@ -1382,7 +1607,7 @@
 
     function updateCommercialUI(r) {
       document.getElementById("comClientDisplay").textContent = r.clientName.trim() || "Nuevo Cliente";
-      document.getElementById("comProjectMeta").textContent = `${r.projectName} • ${r.province} • Modalidad ${r.modalidad === 'hibrido' ? 'Híbrida' : 'On-Grid'}`;
+      document.getElementById("comProjectMeta").textContent = `${r.projectName} • ${r.province} • ${({ hibrido: "Híbrido", ongrid: "Inyección", integracion: "Integración de almacenamiento" }[r.modalidad] || r.modalidad)}`;
       document.getElementById("comTotalUsd").textContent = fmtUSD(r.totalEjecucion);
       document.getElementById("comTotalDop").textContent = `≈ ${fmtDOP(r.totalDop)}`;
       document.getElementById("comPotenciaKw").textContent = `${r.potenciaKw.toFixed(2)} kWp`;
@@ -1571,9 +1796,9 @@
         ruleRow("Sometimiento / Trámites", "logistics.sometimiento", L.sometimiento) +
         `</div>`);
 
-      html += card("Provincias e índices de costos", "El índice de costos × potencia (W) da la mano de obra en RD$, que entra en la fórmula del precio.",
-        `<table class="w-full text-xs"><thead><tr>${th("Provincia")}${th("HSP", "w-16")}${th("Índice híbrido", "w-20")}${th("Índice inyección", "w-20")}${th("Zona", "w-28")}${th("")}</tr></thead><tbody>` +
-        S.provinces.map((p, i) => `<tr>${td(txtIn(`provinces.${i}.name`, p.name))}${td(numIn(`provinces.${i}.hsp`, p.hsp))}${td(numIn(`provinces.${i}.indexHibrido`, p.indexHibrido))}${td(numIn(`provinces.${i}.indexOnGrid`, p.indexOnGrid))}${td(selIn(`provinces.${i}.zone`, p.zone, [["local", "Local"], ["media", "Media"], ["mayor", "Mayor"]]))}${td(delBtn("delProvince", i))}</tr>`).join("") +
+      html += card("Provincias e índices de costos", "El índice de costos × potencia (W) da la mano de obra en RD$, que entra en la fórmula del precio. Índice integración = índice híbrido ÷ 1.8 (como en el Excel); si cambias el híbrido se recalcula solo.",
+        `<table class="w-full text-xs"><thead><tr>${th("Provincia")}${th("HSP", "w-16")}${th("Índice híbrido", "w-20")}${th("Índice inyección", "w-20")}${th("Índice integración", "w-20")}${th("Zona", "w-28")}${th("")}</tr></thead><tbody>` +
+        S.provinces.map((p, i) => `<tr>${td(txtIn(`provinces.${i}.name`, p.name))}${td(numIn(`provinces.${i}.hsp`, p.hsp))}${td(numIn(`provinces.${i}.indexHibrido`, p.indexHibrido))}${td(numIn(`provinces.${i}.indexOnGrid`, p.indexOnGrid))}${td(numIn(`provinces.${i}.indexIntegracion`, p.indexIntegracion, "0.0001"))}${td(selIn(`provinces.${i}.zone`, p.zone, [["local", "Local"], ["media", "Media"], ["mayor", "Mayor"]]))}${td(delBtn("delProvince", i))}</tr>`).join("") +
         `</tbody></table>`, addBtn("addProvince", "+ Provincia"));
 
       document.getElementById("settingsContainer").innerHTML = html;
@@ -1586,6 +1811,13 @@
       obj[keys[keys.length - 1]] = kind === "num" ? (parseFloat(raw) || 0) : raw;
       saveSettings();
       refreshSelects();
+      if (/^provinces\.\d+\.indexHibrido$/.test(path)) {
+        const i = parseInt(path.split(".")[1], 10);
+        settings.provinces[i].indexIntegracion = calcIndexIntegracion(settings.provinces[i].indexHibrido);
+        saveSettings();
+        const cell = document.querySelector(`input[oninput*="provinces.${i}.indexIntegracion"]`);
+        if (cell) cell.value = settings.provinces[i].indexIntegracion;
+      }
       if (path.startsWith("provinces")) applyProvinceIndex(true);
       onConfigChange();
     }
@@ -1595,7 +1827,7 @@
     function delInverter(i) { if (settings.inverters.length <= 1) return; settings.inverters.splice(i, 1); afterListChange(); }
     function addBattery() { settings.batteries.push({ id: "bat_" + Date.now(), group: "Nuevas", name: "Nueva batería", price: 0 }); afterListChange(); }
     function delBattery(i) { settings.batteries.splice(i, 1); afterListChange(); }
-    function addProvince() { settings.provinces.push({ name: "Nueva provincia", hsp: 4.11, indexHibrido: 4.15, indexOnGrid: 3.70, zone: "media" }); afterListChange(); }
+    function addProvince() { settings.provinces.push({ name: "Nueva provincia", hsp: 4.11, indexHibrido: 4.15, indexOnGrid: 3.70, indexIntegracion: calcIndexIntegracion(4.15), zone: "media" }); afterListChange(); }
     function delProvince(i) { if (settings.provinces.length <= 1) return; settings.provinces.splice(i, 1); afterListChange(); }
 
     function restoreExcelSettings() {
@@ -1668,9 +1900,7 @@
       loadSettings();
       loadParams();
       refreshSelects();
-      document.getElementById("clientName").value = "Patria Brea / Residencial";
-      document.getElementById("projectName").value = "Sistema Solar 13 kWp";
-      setFormDefaults(20);
+      nuevaCotizacion(true);
     });
   </script>
 </body>
