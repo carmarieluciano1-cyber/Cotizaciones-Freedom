@@ -157,8 +157,19 @@
             <div class="flex items-center gap-2 shrink-0">
               <button type="button" onclick="showHome()" title="Volver a la lista de cotizaciones" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200">← Lista</button>
               <button type="button" onclick="guardarCotizacion(true)" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200">Guardar</button>
-              <button type="button" onclick="duplicarCotizacion()" title="Crear una copia de esta cotización" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200">Duplicar</button>
             </div>
+          </div>
+
+          <!-- Opciones de la propuesta (varias cotizaciones para el mismo cliente) -->
+          <div class="mt-4 pt-3 border-t border-slate-100">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-slate-700">Opciones de esta propuesta</span>
+              <div class="flex items-center gap-3">
+                <button type="button" onclick="addOption('dup')" title="Copia la opción actual para hacer una variante" class="text-[11px] font-semibold text-slate-700 hover:text-slate-900">+ Duplicar opción</button>
+                <button type="button" onclick="addOption('blank')" title="Opción nueva desde cero para el mismo cliente" class="text-[11px] font-semibold text-slate-700 hover:text-slate-900">+ Opción en blanco</button>
+              </div>
+            </div>
+            <div id="optionsBar" class="flex flex-wrap gap-2"></div>
           </div>
 
         </div>
@@ -388,6 +399,30 @@
                 <p id="comRoiContado" class="text-lg font-bold text-slate-900 mt-1">4.75 años</p>
                 <p id="comRoiLey" class="text-[11px] text-emerald-700 font-medium mt-0.5">2.85 años c/ Ley 57-07</p>
               </div>
+            </div>
+          </div>
+
+          <!-- Comparativa de opciones (solo si la propuesta tiene más de una) -->
+          <div id="optionsComparison" class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 print-shadow-none" style="display:none">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="text-xs font-semibold text-slate-900 uppercase tracking-wider">Comparativa de Opciones</h3>
+              <span class="text-[11px] text-slate-500 no-print">Toca una opción para verla</span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs text-left">
+                <thead class="border-b border-slate-200 text-[10px] font-semibold text-slate-500 uppercase">
+                  <tr>
+                    <th class="py-2 pr-2">Opción</th>
+                    <th class="py-2 px-2 text-right">Potencia</th>
+                    <th class="py-2 px-2 text-right">Generación/mes</th>
+                    <th class="py-2 px-2 text-right">Ahorro anual</th>
+                    <th class="py-2 px-2 text-right">Inversión</th>
+                    <th class="py-2 px-2 text-right">Cuota (70%)</th>
+                    <th class="py-2 pl-2 text-right">Retorno</th>
+                  </tr>
+                </thead>
+                <tbody id="optionsComparisonBody" class="divide-y divide-slate-100"></tbody>
+              </table>
             </div>
           </div>
 
@@ -1302,10 +1337,7 @@
     // NAVEGACIÓN: INICIO (lista) ↔ EDITOR (pestañas)
     // =========================================================================
     function showHome() {
-      if (currentQuoteId || document.getElementById("clientName").value.trim() || document.getElementById("projectName").value.trim()) {
-        clearTimeout(autosaveTimer);
-        guardarCotizacion(false);
-      }
+      flushSave();
       document.getElementById("homeView").style.display = "";
       document.getElementById("editorView").style.display = "none";
       document.getElementById("liveBar").style.display = "none";
@@ -1323,6 +1355,7 @@
 
     function nuevaCotizacion(silent) {
       currentQuoteId = null;
+      currentOptionId = null;
       loadingQuote = true;
       loadParams();
       document.getElementById("clientName").value = "";
@@ -1331,6 +1364,8 @@
       setFormDefaults(10);
       loadingQuote = false;
       updateQuoteHeader();
+      renderOptionsBar();
+      renderComparison();
       renderSavedQuotes();
       switchTab("comercial");
       if (!silent) {
@@ -1343,18 +1378,29 @@
     // =========================================================================
     // COTIZACIONES GUARDADAS (en este navegador)
     // =========================================================================
+    // Cada registro guardado es una PROPUESTA de un cliente, con una o varias OPCIONES (cotizaciones).
+    // { id, clientName, createdAt, updatedAt, activeOptionId, options: [ { id, name, ...datos de la cotización } ] }
     const QUOTES_KEY = "feg_cotizaciones_v1";
-    let currentQuoteId = null;
+    let currentQuoteId = null;    // propuesta abierta
+    let currentOptionId = null;   // opción abierta dentro de la propuesta
     let loadingQuote = false;
     let autosaveTimer = null;
 
+    // Convierte cotizaciones guardadas con la versión anterior (sin opciones)
+    function migrateQuote(q) {
+      if (!q || q.options) return q;
+      const { id, clientName, createdAt, updatedAt, ...rest } = q;
+      const optId = "o_" + id;
+      return { id, clientName, createdAt, updatedAt, activeOptionId: optId, options: [Object.assign({ id: optId, name: "Opción 1" }, rest)] };
+    }
     function readQuotes() {
-      try { return JSON.parse(localStorage.getItem(QUOTES_KEY) || "[]"); } catch (e) { return []; }
+      try { return (JSON.parse(localStorage.getItem(QUOTES_KEY) || "[]") || []).map(migrateQuote).filter(Boolean); } catch (e) { return []; }
     }
     function writeQuotes(list) {
       try { localStorage.setItem(QUOTES_KEY, JSON.stringify(list)); return true; }
       catch (e) { showToast("No se pudo guardar en este navegador", "error"); return false; }
     }
+    function getCurrentProposal() { return currentQuoteId ? readQuotes().find(x => x.id === currentQuoteId) || null : null; }
 
     function snapshotQuote() {
       const r = latestCalculationResult || {};
@@ -1374,32 +1420,50 @@
         panelQty: document.getElementById("panelQty").value,
         lineItems: JSON.parse(JSON.stringify(lineItems)),
         params,
+        // Resumen para la lista y la comparativa
         total: r.totalEjecucion || 0,
-        potenciaKw: r.potenciaKw || 0
+        potenciaKw: r.potenciaKw || 0,
+        kwhMes: r.kwhMes || 0,
+        ahorroAnualDop: r.ahorroAnualDop || 0,
+        cuota70: r.cuota70 || 0,
+        roiContado: r.roiContado || 0,
+        roiConLey: r.roiConLey || 0
       };
     }
 
     function guardarCotizacion(manual) {
       const snap = snapshotQuote();
       if (!snap.clientName.trim() && !snap.projectName.trim()) {
-        if (manual) showToast("Escribe el nombre del cliente o del proyecto para guardar", "error");
-        return;
+        if (manual) showToast("Escribe el nombre del cliente para guardar", "error");
+        return false;
       }
       const list = readQuotes();
       const now = new Date().toISOString();
-      let q = currentQuoteId ? list.find(x => x.id === currentQuoteId) : null;
-      if (q) {
-        Object.assign(q, snap, { updatedAt: now });
-      } else {
-        q = Object.assign({ id: "q_" + Date.now(), createdAt: now, updatedAt: now }, snap);
-        list.unshift(q);
-        currentQuoteId = q.id;
+      let prop = currentQuoteId ? list.find(x => x.id === currentQuoteId) : null;
+      if (!prop) {
+        prop = { id: "q_" + Date.now(), createdAt: now, options: [] };
+        list.unshift(prop);
+        currentQuoteId = prop.id;
       }
+      const { clientName, ...optData } = snap;
+      prop.clientName = clientName;
+      prop.updatedAt = now;
+      let opt = currentOptionId ? prop.options.find(o => o.id === currentOptionId) : null;
+      if (!opt) {
+        opt = { id: "o_" + Date.now() + Math.floor(Math.random() * 1000), name: `Opción ${prop.options.length + 1}` };
+        prop.options.push(opt);
+        currentOptionId = opt.id;
+      }
+      Object.assign(opt, optData, { updatedAt: now });
+      prop.activeOptionId = opt.id;
       if (writeQuotes(list)) {
         updateQuoteHeader();
-        renderSavedQuotes();
-        if (manual) showToast("Cotización guardada", "success");
+        renderOptionsBar();
+        renderComparison();
+        if (manual) showToast("Propuesta guardada", "success");
+        return true;
       }
+      return false;
     }
 
     // Guardado automático: un momento después del último cambio
@@ -1408,14 +1472,13 @@
       clearTimeout(autosaveTimer);
       autosaveTimer = setTimeout(() => guardarCotizacion(false), 800);
     }
-
-    function abrirCotizacion(id) {
-      const q = readQuotes().find(x => x.id === id);
-      if (!q) return;
+    function flushSave() {
       clearTimeout(autosaveTimer);
-      loadingQuote = true;
-      currentQuoteId = q.id;
-      document.getElementById("clientName").value = q.clientName || "";
+      if (currentQuoteId || document.getElementById("clientName").value.trim() || document.getElementById("projectName").value.trim()) guardarCotizacion(false);
+    }
+
+    // Pone en pantalla los datos de una opción
+    function applyOption(q) {
       document.getElementById("projectName").value = q.projectName || "";
       if (settings.provinces.some(p => p.name === q.province)) document.getElementById("provinceSelect").value = q.province;
       document.getElementById("modalidadSelect").value = q.modalidad || "hibrido";
@@ -1427,7 +1490,7 @@
       document.getElementById("quickBatteryQty").value = q.batteryQty;
       document.getElementById("panelW").value = q.panelW;
       document.getElementById("panelQty").value = q.panelQty;
-      // Las tasas, margen y lista de precio se abren como estaban en esa cotización
+      // Las tasas, margen y lista de precio se abren como estaban en esa opción
       if (q.params) {
         PARAM_IDS.forEach(id => { if (q.params[id] !== undefined) document.getElementById(id).value = q.params[id]; });
         setConsensuadoValue(q.params.precioConsensuado);
@@ -1442,27 +1505,151 @@
       renderItemsTable();
       renderWarnings();
       recalculateAll();
-      loadingQuote = false;
-      updateQuoteHeader();
-      renderSavedQuotes();
-      switchTab("comercial");
-      showEditor();
-      showToast(`Abierta: ${q.clientName || q.projectName}`, "info");
     }
 
-    function duplicarCotizacion() {
-      if (!currentQuoteId) { showToast("Primero guarda esta cotización", "error"); return; }
-      currentQuoteId = null;
-      const pn = document.getElementById("projectName");
-      pn.value = (pn.value || "Proyecto") + " (copia)";
+    function abrirCotizacion(id) {
+      const prop = readQuotes().find(x => x.id === id);
+      if (!prop || !prop.options.length) return;
+      clearTimeout(autosaveTimer);
+      loadingQuote = true;
+      currentQuoteId = prop.id;
+      const opt = prop.options.find(o => o.id === prop.activeOptionId) || prop.options[0];
+      currentOptionId = opt.id;
+      document.getElementById("clientName").value = prop.clientName || "";
+      applyOption(opt);
+      loadingQuote = false;
+      updateQuoteHeader();
+      renderOptionsBar();
+      renderComparison();
+      switchTab("comercial");
+      showEditor();
+      showToast(`Abierta: ${prop.clientName || opt.projectName}`, "info");
+    }
+
+    function switchOption(optId) {
+      if (optId === currentOptionId) return;
+      flushSave();
+      const prop = getCurrentProposal();
+      const opt = prop && prop.options.find(o => o.id === optId);
+      if (!opt) return;
+      loadingQuote = true;
+      currentOptionId = opt.id;
+      applyOption(opt);
+      loadingQuote = false;
+      guardarCotizacion(false);   // recuerda cuál opción quedó abierta
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    // mode: "dup" = copia de la opción actual • "blank" = opción nueva desde cero (mismo cliente)
+    function addOption(mode) {
+      if (!document.getElementById("clientName").value.trim()) {
+        showToast("Escribe primero el nombre del cliente", "error");
+        document.getElementById("clientName").focus();
+        return;
+      }
+      flushSave();
+      if (!currentQuoteId) return;
+      if (mode === "blank") {
+        const prov = document.getElementById("provinceSelect").value;
+        loadingQuote = true;
+        loadParams();
+        setConsensuadoValue("");
+        document.getElementById("projectName").value = "";
+        setFormDefaults(10);
+        document.getElementById("provinceSelect").value = prov;
+        onConfigChange();
+        loadingQuote = false;
+      }
+      currentOptionId = null;   // la próxima vez que se guarda, se crea como opción nueva
       guardarCotizacion(false);
-      showToast("Copia creada: ahora estás editando la copia", "success");
+      showToast(mode === "dup" ? "Opción duplicada: ahora editas la copia" : "Opción nueva en blanco", "success");
+    }
+
+    function renameOption(optId) {
+      const list = readQuotes();
+      const prop = list.find(x => x.id === currentQuoteId);
+      const opt = prop && prop.options.find(o => o.id === optId);
+      if (!opt) return;
+      const name = prompt("Nombre de la opción:", opt.name);
+      if (name === null || !name.trim()) return;
+      opt.name = name.trim();
+      writeQuotes(list);
+      renderOptionsBar();
+      renderComparison();
+    }
+
+    function deleteOption(optId) {
+      const list = readQuotes();
+      const prop = list.find(x => x.id === currentQuoteId);
+      if (!prop) return;
+      if (prop.options.length <= 1) { showToast("La propuesta debe tener al menos una opción", "error"); return; }
+      const opt = prop.options.find(o => o.id === optId);
+      if (!opt || !confirm(`¿Eliminar "${opt.name}"? No se puede deshacer.`)) return;
+      clearTimeout(autosaveTimer);
+      prop.options = prop.options.filter(o => o.id !== optId);
+      if (optId === currentOptionId) prop.activeOptionId = prop.options[0].id;
+      writeQuotes(list);
+      if (optId === currentOptionId) {
+        loadingQuote = true;
+        currentOptionId = prop.options[0].id;
+        applyOption(prop.options[0]);
+        loadingQuote = false;
+      }
+      renderOptionsBar();
+      renderComparison();
+      updateQuoteHeader();
+    }
+
+    function renderOptionsBar() {
+      const bar = document.getElementById("optionsBar");
+      const prop = getCurrentProposal();
+      const opts = prop ? prop.options : [];
+      if (!opts.length) {
+        bar.innerHTML = `<span class="text-[11px] text-slate-400">Opción 1 (se guarda al escribir el cliente)</span>`;
+        return;
+      }
+      bar.innerHTML = opts.map(o => {
+        const active = o.id === currentOptionId;
+        const total = active && latestCalculationResult ? latestCalculationResult.totalEjecucion : o.total;
+        return `
+        <div class="inline-flex items-center rounded-lg border ${active ? "bg-slate-900 border-slate-900 text-white" : "bg-white border-slate-200 text-slate-700 hover:border-slate-400"}">
+          <button type="button" onclick="switchOption('${o.id}')" class="pl-3 pr-2 py-1.5 text-left">
+            <span class="block text-xs font-semibold leading-tight">${escapeHtml(o.name)}</span>
+            <span class="block text-[10px] ${active ? "text-slate-300" : "text-slate-500"}">${fmtUSD(total)}</span>
+          </button>
+          ${active ? `<button type="button" onclick="renameOption('${o.id}')" title="Cambiar nombre" class="px-1.5 text-[11px] text-slate-300 hover:text-white">✎</button>` : ""}
+          ${opts.length > 1 ? `<button type="button" onclick="deleteOption('${o.id}')" title="Eliminar opción" class="pr-2 pl-1 font-bold ${active ? "text-slate-400 hover:text-rose-300" : "text-slate-300 hover:text-rose-600"}">&times;</button>` : ""}
+        </div>`;
+      }).join("");
+    }
+
+    // Comparativa de opciones en la Propuesta Comercial
+    function renderComparison() {
+      const box = document.getElementById("optionsComparison");
+      const prop = getCurrentProposal();
+      if (!prop || prop.options.length < 2) { box.style.display = "none"; return; }
+      box.style.display = "";
+      const r = latestCalculationResult;
+      document.getElementById("optionsComparisonBody").innerHTML = prop.options.map(o => {
+        const active = o.id === currentOptionId;
+        const d = active && r ? { potenciaKw: r.potenciaKw, kwhMes: r.kwhMes, ahorroAnualDop: r.ahorroAnualDop, total: r.totalEjecucion, cuota70: r.cuota70, roiContado: r.roiContado, roiConLey: r.roiConLey } : o;
+        return `
+        <tr onclick="switchOption('${o.id}')" class="cursor-pointer ${active ? "bg-emerald-50/70 font-semibold" : "hover:bg-slate-50"}">
+          <td class="py-2 pr-2 text-slate-900">${escapeHtml(o.name)}${active ? ' <span class="text-[10px] text-emerald-700 no-print">• viendo</span>' : ""}</td>
+          <td class="py-2 px-2 text-right">${Number(d.potenciaKw || 0).toFixed(2)} kWp</td>
+          <td class="py-2 px-2 text-right">${fmtInt(d.kwhMes || 0)} kWh</td>
+          <td class="py-2 px-2 text-right">RD$ ${fmtInt(d.ahorroAnualDop || 0)}</td>
+          <td class="py-2 px-2 text-right">${fmtUSD(d.total || 0)}</td>
+          <td class="py-2 px-2 text-right">RD$ ${fmtInt(d.cuota70 || 0)}</td>
+          <td class="py-2 pl-2 text-right">${Number(d.roiContado || 0).toFixed(2)} a <span class="text-emerald-700">(${Number(d.roiConLey || 0).toFixed(2)} c/ Ley)</span></td>
+        </tr>`;
+      }).join("");
     }
 
     function eliminarCotizacion(id) {
       const list = readQuotes();
       const q = list.find(x => x.id === id);
-      if (!q || !confirm(`¿Eliminar la cotización de "${q.clientName || q.projectName}"? No se puede deshacer.`)) return;
+      if (!q || !confirm(`¿Eliminar la propuesta de "${q.clientName || "(sin cliente)"}" con sus ${q.options.length} opción(es)? No se puede deshacer.`)) return;
       writeQuotes(list.filter(x => x.id !== id));
       if (currentQuoteId === id) nuevaCotizacion(true);
       renderSavedQuotes();
@@ -1476,10 +1663,10 @@
     function updateQuoteHeader() {
       const t = document.getElementById("quoteTitle");
       const s = document.getElementById("quoteStatus");
-      const q = currentQuoteId ? readQuotes().find(x => x.id === currentQuoteId) : null;
+      const q = getCurrentProposal();
       if (q) {
-        t.textContent = q.clientName || q.projectName || "Cotización";
-        s.textContent = `Guardada automáticamente • ${fmtFecha(q.updatedAt)}`;
+        t.textContent = q.clientName || "Propuesta";
+        s.textContent = `${q.options.length} opción(es) • Guardada automáticamente • ${fmtFecha(q.updatedAt)}`;
       } else {
         t.textContent = "Nueva Cotización";
         s.textContent = "Se guarda sola en cuanto escribas el nombre del cliente.";
@@ -1490,19 +1677,26 @@
       const all = readQuotes().sort((a, b) => (b.updatedAt || "").localeCompare(a.updatedAt || ""));
       document.getElementById("savedCount").textContent = all.length;
       const term = (document.getElementById("savedSearch").value || "").toLowerCase().trim();
-      const list = term ? all.filter(q => `${q.clientName} ${q.projectName}`.toLowerCase().includes(term)) : all;
+      const list = term ? all.filter(q => `${q.clientName} ${q.options.map(o => `${o.name} ${o.projectName}`).join(" ")}`.toLowerCase().includes(term)) : all;
       const box = document.getElementById("savedQuotesList");
       if (!all.length) { box.innerHTML = `<p class="py-3 text-[11px] text-slate-400">Todavía no hay cotizaciones guardadas.</p>`; return; }
       if (!list.length) { box.innerHTML = `<p class="py-3 text-[11px] text-slate-400">Ninguna coincide con la búsqueda.</p>`; return; }
-      box.innerHTML = list.map(q => `
+      box.innerHTML = list.map(q => {
+        const totals = q.options.map(o => Number(o.total) || 0);
+        const min = Math.min(...totals), max = Math.max(...totals);
+        const rango = q.options.length > 1 && min !== max ? `${fmtUSD(min)} – ${fmtUSD(max)}` : fmtUSD(max);
+        const first = q.options[0] || {};
+        return `
         <div class="py-3 flex items-center gap-3">
           <button type="button" onclick="abrirCotizacion('${q.id}')" class="flex-1 min-w-0 text-left">
-            <p class="text-xs font-semibold text-slate-800 truncate">${escapeHtml(q.clientName || "(sin cliente)")}</p>
-            <p class="text-[11px] text-slate-500 truncate">${escapeHtml(q.projectName || "")}${q.projectName ? " • " : ""}${Number(q.potenciaKw || 0).toFixed(2)} kWp • ${fmtFecha(q.updatedAt)}</p>
+            <p class="text-xs font-semibold text-slate-800 truncate">${escapeHtml(q.clientName || "(sin cliente)")}
+              <span class="ml-1 px-1.5 py-0.5 rounded bg-slate-100 text-[10px] font-medium text-slate-600">${q.options.length} ${q.options.length === 1 ? "opción" : "opciones"}</span></p>
+            <p class="text-[11px] text-slate-500 truncate">${q.options.length > 1 ? escapeHtml(q.options.map(o => o.name).join(" • ")) : `${escapeHtml(first.projectName || "")}${first.projectName ? " • " : ""}${Number(first.potenciaKw || 0).toFixed(2)} kWp`} • ${fmtFecha(q.updatedAt)}</p>
           </button>
-          <span class="text-xs font-semibold text-slate-900 whitespace-nowrap">${fmtUSD(q.total)}</span>
+          <span class="text-xs font-semibold text-slate-900 whitespace-nowrap">${rango}</span>
           <button type="button" onclick="eliminarCotizacion('${q.id}')" title="Eliminar" class="text-slate-300 hover:text-rose-600 font-bold px-1">&times;</button>
-        </div>`).join("");
+        </div>`;
+      }).join("");
     }
 
     function exportQuotes() {
@@ -1522,10 +1716,10 @@
           if (!Array.isArray(incoming)) throw new Error();
           const list = readQuotes();
           let n = 0;
-          incoming.forEach(q => { if (q && q.id && !list.some(x => x.id === q.id)) { list.push(q); n++; } });
+          incoming.map(migrateQuote).forEach(q => { if (q && q.id && q.options && !list.some(x => x.id === q.id)) { list.push(q); n++; } });
           writeQuotes(list);
           renderSavedQuotes();
-          showToast(`${n} cotización(es) importada(s)`, "success");
+          showToast(`${n} propuesta(s) importada(s)`, "success");
         } catch (e) { showToast("Ese archivo no es un respaldo de cotizaciones", "error"); }
         input.value = "";
       };
@@ -1704,6 +1898,7 @@
       updateAccountingUI(latestCalculationResult);
       updateLiveSummaryBar(latestCalculationResult);
       updateQuotePricesTotal();
+      if (currentQuoteId) { renderOptionsBar(); renderComparison(); }
       scheduleAutosave();
     }
 
