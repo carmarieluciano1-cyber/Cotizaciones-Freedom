@@ -15,6 +15,13 @@
       color: #0f172a;
     }
     /* Estilos limpios para impresión del informe de contabilidad o propuesta */
+    /* Barra de resumen deslizable en el teléfono (sin barra de desplazamiento visible) */
+    .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    /* Teléfono/tablet: se ve una sección a la vez según la pestaña */
+    @media (max-width: 1023px) {
+      #editorView:not([data-mtab="datos"]) .m-datos { display: none !important; }
+    }
     @media print {
       .bat-print, .bat-print * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       .no-print {
@@ -40,31 +47,31 @@
 
   <!-- Barra Superior Minimalista -->
   <header class="bg-white border-b border-slate-200 sticky top-0 z-30 no-print">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-      <div class="flex items-center space-x-3">
-        <div class="w-9 h-9 rounded-lg bg-slate-900 flex items-center justify-center text-white font-bold text-sm tracking-tight">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
+        <div class="w-8 h-8 sm:w-9 sm:h-9 shrink-0 rounded-lg bg-slate-900 flex items-center justify-center text-white font-bold text-xs sm:text-sm tracking-tight">
           FEG
         </div>
-        <div>
-          <h1 class="text-base font-semibold text-slate-900 leading-tight">Freedom Energy Group</h1>
-          <p class="text-xs text-slate-500">Sistema de Cotización & Control Contable</p>
+        <div class="min-w-0">
+          <h1 class="text-sm sm:text-base font-semibold text-slate-900 leading-tight truncate">Freedom Energy Group</h1>
+          <p class="hidden sm:block text-xs text-slate-500">Sistema de Cotización & Control Contable</p>
         </div>
       </div>
 
-      <div class="flex items-center space-x-2.5">
+      <div class="flex items-center gap-2 shrink-0">
         <span id="cloudStatus" title="" class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-100 text-slate-500">
           <span id="cloudDot" class="w-1.5 h-1.5 rounded-full bg-slate-400"></span><span id="cloudText">Solo en este equipo</span>
         </span>
         <button type="button" id="btnBackHome" onclick="showHome()" style="display:none"
-          class="inline-flex items-center px-3 py-2 rounded-lg text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors">
-          ← Cotizaciones
+          class="inline-flex items-center px-3 py-2 rounded-lg text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors whitespace-nowrap">
+          ← <span class="hidden sm:inline ml-1">Cotizaciones</span><span class="sm:hidden ml-1">Lista</span>
         </button>
         <button type="button" onclick="nuevaCotizacion()"
-          class="inline-flex items-center px-3.5 py-2 rounded-lg text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 shadow-sm transition-colors">
-          <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          class="inline-flex items-center px-3 sm:px-3.5 py-2 rounded-lg text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 shadow-sm transition-colors whitespace-nowrap">
+          <svg class="w-4 h-4 sm:mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
           </svg>
-          Nueva Cotización
+          <span class="hidden sm:inline">Nueva Cotización</span><span class="sm:hidden ml-1">Nueva</span>
         </button>
 
       </div>
@@ -74,7 +81,7 @@
   <!-- Barra Persistente de Resumen Técnico y Financiero en Vivo -->
   <div id="liveBar" class="bg-slate-900 text-white border-b border-slate-800 no-print">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5">
-      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-xs">
+      <div class="flex gap-6 overflow-x-auto no-scrollbar whitespace-nowrap lg:grid lg:grid-cols-6 lg:gap-3 lg:whitespace-normal text-xs [&>div]:shrink-0">
         <div class="flex flex-col">
           <span class="text-[10px] uppercase tracking-wider text-slate-400">Potencia Instalada</span>
           <span id="liveBarKwp" class="font-bold text-sm text-white">13.00 kWp <span class="text-[11px] font-normal text-slate-300">(20×650W)</span></span>
@@ -149,17 +156,17 @@
     <div id="editorView" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start" style="display:none">
 
       <!-- COLUMNA IZQUIERDA: FORMULARIO DE COTIZACIÓN (5 columnas en desktop) -->
-      <section class="lg:col-span-5 space-y-5 no-print">
+      <section class="contents lg:block lg:col-span-5 lg:space-y-5 no-print">
 
         <!-- Tarjeta 0: Cotización actual y cotizaciones guardadas -->
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5">
+        <div class="order-1 lg:order-none bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 sm:p-5">
           <div class="flex items-start justify-between gap-3">
             <div class="min-w-0">
               <h2 id="quoteTitle" class="text-base font-bold text-slate-900 truncate">Nueva Cotización</h2>
               <p id="quoteStatus" class="text-[11px] text-slate-500 mt-0.5">Se guarda sola en cuanto escribas el nombre del cliente.</p>
             </div>
             <div class="flex items-center gap-2 shrink-0">
-              <button type="button" onclick="showHome()" title="Volver a la lista de cotizaciones" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200">← Lista</button>
+              <button type="button" onclick="showHome()" title="Volver a la lista de cotizaciones" class="hidden lg:inline-block px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200">← Lista</button>
               <button type="button" onclick="guardarCotizacion(true)" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200">Guardar</button>
             </div>
           </div>
@@ -179,7 +186,7 @@
         </div>
 
         <!-- Tarjeta 1: Datos Generales del Proyecto -->
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5">
+        <div class="m-datos order-3 lg:order-none bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 sm:p-5">
           <div class="flex items-center justify-between mb-4">
             <h2 class="text-sm font-semibold text-slate-900 uppercase tracking-wider">1. Parámetros del Proyecto</h2>
             <span class="text-xs text-slate-400">Datos base</span>
@@ -251,14 +258,14 @@
                 <div id="inverterRows" class="space-y-2"></div>
               </div>
 
-              <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-end">
-                <div class="sm:col-span-9">
+              <div class="grid grid-cols-12 gap-2.5 items-end">
+                <div class="col-span-8 sm:col-span-9">
                   <label class="block text-[11px] font-medium text-slate-600 mb-1">Batería</label>
                   <select id="quickBatterySelect" onchange="onConfigChange()"
                     class="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-slate-400">
                   </select>
                 </div>
-                <div class="sm:col-span-3">
+                <div class="col-span-4 sm:col-span-3">
                   <label class="block text-[11px] font-medium text-slate-600 mb-1">Cant. Bat.</label>
                   <input type="number" id="quickBatteryQty" value="2" min="0" step="1" oninput="onConfigChange()"
                     class="w-full px-2 py-1.5 text-xs text-center bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-slate-400" />
@@ -295,8 +302,8 @@
         </div>
 
         <!-- Tarjeta 2: Tabla Editable de Equipos, Materiales y Adicionales -->
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5">
-          <div class="flex items-center justify-between mb-3">
+        <div class="m-datos order-4 lg:order-none bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 sm:p-5">
+          <div class="flex items-start sm:items-center justify-between gap-2 mb-3">
             <div>
               <h2 class="text-sm font-semibold text-slate-900 uppercase tracking-wider">2. Equipos, Logística y Viáticos</h2>
               <p class="text-xs text-slate-500">Calculados por regla • Los precios se ven y editan en Precios y Reglas</p>
@@ -304,7 +311,7 @@
             <div class="flex items-center space-x-1.5">
               <button type="button" onclick="reapplyLogisticsRules(true)" title="Recalcular equipos, eléctricos, estructura, transporte y viáticos con las reglas"
                 class="inline-flex items-center px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors">
-                ↻ Reglas Auto
+                ↻ <span class="hidden sm:inline ml-1">Reglas Auto</span>
               </button>
               <button type="button" onclick="addNewLineItem()"
                 class="inline-flex items-center px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors">
@@ -339,22 +346,26 @@
       </section>
 
       <!-- COLUMNA DERECHA: PESTAÑAS DE RESULTADOS (7 columnas en desktop) -->
-      <section class="lg:col-span-7 space-y-5">
+      <section class="order-2 lg:order-none lg:col-span-7 space-y-5 min-w-0">
 
-        <!-- Selector de Pestañas -->
-        <div class="bg-white p-1.5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between no-print">
-          <div class="flex space-x-1 w-full">
+        <!-- Selector de Pestañas (en el teléfono queda fijo arriba e incluye "Datos") -->
+        <div class="sticky top-14 z-20 lg:static bg-white p-1.5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between no-print">
+          <div class="flex gap-1 w-full">
+            <button type="button" id="tabBtnDatos" onclick="switchTab('datos')"
+              class="lg:hidden flex-1 py-2 px-2 rounded-xl text-xs font-medium text-slate-600 transition-all flex items-center justify-center">
+              <span>Datos</span>
+            </button>
             <button type="button" id="tabBtnComercial" onclick="switchTab('comercial')"
               class="flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold bg-slate-900 text-white shadow-sm transition-all flex items-center justify-center space-x-2">
-              <span>Propuesta Comercial (Cliente)</span>
+              <span class="lg:hidden">Propuesta</span><span class="hidden lg:inline">Propuesta Comercial (Cliente)</span>
             </button>
             <button type="button" id="tabBtnContabilidad" onclick="switchTab('contabilidad')"
               class="flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-all flex items-center justify-center space-x-2">
-              <span>Informe Interno (Hoja 1 - Contabilidad)</span>
+              <span class="lg:hidden">Interno</span><span class="hidden lg:inline">Informe Interno (Hoja 1 - Contabilidad)</span>
             </button>
             <button type="button" id="tabBtnPrecios" onclick="switchTab('precios')"
               class="flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-all flex items-center justify-center space-x-2">
-              <span>Precios y Reglas</span>
+              <span class="lg:hidden">Precios</span><span class="hidden lg:inline">Precios y Reglas</span>
             </button>
           </div>
         </div>
@@ -412,7 +423,8 @@
               <h3 class="text-xs font-semibold text-slate-900 uppercase tracking-wider">Comparativa de Opciones</h3>
               <span class="text-[11px] text-slate-500 no-print">Toca una opción para verla</span>
             </div>
-            <div class="overflow-x-auto">
+            <div id="optionsComparisonCards" class="sm:hidden space-y-2"></div>
+            <div class="hidden sm:block overflow-x-auto">
               <table class="w-full text-xs text-left">
                 <thead class="border-b border-slate-200 text-[10px] font-semibold text-slate-500 uppercase">
                   <tr>
@@ -805,15 +817,15 @@
               <div class="grid grid-cols-3 gap-2 p-1 bg-slate-100 rounded-xl">
                 <button type="button" id="btnPriceStandard" onclick="setTipoPrecio('standard')"
                   class="py-1.5 px-3 rounded-lg text-xs font-semibold bg-white text-slate-900 shadow-sm transition-all">
-                  Standard (Divisor 0.67)
+                  <span class="block">Standard</span><span class="block text-[10px] opacity-70">÷ 0.67</span>
                 </button>
                 <button type="button" id="btnPricePreferencial" onclick="setTipoPrecio('preferencial')"
                   class="py-1.5 px-3 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 transition-all">
-                  Preferencial (Divisor 0.69)
+                  <span class="block">Preferencial</span><span class="block text-[10px] opacity-70">÷ 0.69</span>
                 </button>
                 <button type="button" id="btnPriceConsensuado" onclick="setTipoPrecio('consensuado')"
                   class="py-1.5 px-3 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 transition-all">
-                  Consensuado
+                  <span class="block">Consensuado</span><span class="block text-[10px] opacity-70">tú lo pones</span>
                 </button>
               </div>
               <!-- Precio consensuado: lo escribe el usuario, solo para esta cotización -->
@@ -1481,6 +1493,7 @@
       switchTab("comercial");
       if (!silent) {
         showEditor();
+        if (isMobile()) switchTab("datos");
         document.getElementById("clientName").focus();
         showToast("Nueva cotización lista", "success");
       }
@@ -1775,6 +1788,29 @@
           <td class="py-2 pl-2 text-right">${sg ? "—" : `${Number(d.roiContado || 0).toFixed(2)} a <span class="text-emerald-700">(${Number(d.roiConLey || 0).toFixed(2)} c/ Ley)</span>`}</td>
         </tr>`;
       }).join("");
+
+      // Versión en tarjetas para el teléfono
+      document.getElementById("optionsComparisonCards").innerHTML = prop.options.map(o => {
+        const active = o.id === currentOptionId;
+        const d = active && r ? { potenciaKw: r.potenciaKw, kwhMes: r.kwhMes, ahorroAnualDop: r.ahorroAnualDop, total: r.totalEjecucion, cuota70: r.cuota70, roiContado: r.roiContado, sinGeneracion: r.sinGeneracion } : o;
+        const sg = !!d.sinGeneracion;
+        const cell = (label, val) => `<div><p class="text-[10px] text-slate-500">${label}</p><p class="text-xs font-semibold text-slate-900">${val}</p></div>`;
+        return `
+        <button type="button" onclick="switchOption('${o.id}')" class="w-full text-left p-3 rounded-xl border ${active ? "border-emerald-300 bg-emerald-50/60" : "border-slate-200 bg-white"}">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-bold text-slate-900">${escapeHtml(o.name)}</span>
+            <span class="text-sm font-bold text-slate-900">${fmtUSD(d.total || 0)}</span>
+          </div>
+          <div class="grid grid-cols-3 gap-2">
+            ${cell("Potencia", `${Number(d.potenciaKw || 0).toFixed(2)} kWp`)}
+            ${cell("Cuota 70%", `RD$ ${fmtInt(d.cuota70 || 0)}`)}
+            ${cell("Retorno", sg ? "—" : `${Number(d.roiContado || 0).toFixed(1)} años`)}
+            ${sg ? "" : cell("Generación", `${fmtInt(d.kwhMes || 0)} kWh/mes`)}
+            ${sg ? "" : cell("Ahorro anual", `RD$ ${fmtInt(d.ahorroAnualDop || 0)}`)}
+          </div>
+          ${active ? '<p class="mt-2 text-[10px] font-medium text-emerald-700">• Viendo esta opción</p>' : ""}
+        </button>`;
+      }).join("");
     }
 
     function eliminarCotizacion(id) {
@@ -1819,13 +1855,15 @@
         const tiposHtml = tipos.map(t => `<span class="px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-[11px] font-medium text-emerald-800 whitespace-nowrap">${t}</span>`).join("");
         const first = q.options[0] || {};
         return `
-        <div class="py-3 flex items-center gap-3">
+        <div class="py-3 flex items-start sm:items-center gap-3">
+          <div class="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3">
           <button type="button" onclick="abrirCotizacion('${q.id}')" class="flex-1 min-w-0 text-left">
-            <p class="text-xs font-semibold text-slate-800 truncate">${escapeHtml(q.clientName || "(sin cliente)")}
+            <p class="text-sm sm:text-xs font-semibold text-slate-800 truncate">${escapeHtml(q.clientName || "(sin cliente)")}
               <span class="ml-1 px-1.5 py-0.5 rounded bg-slate-100 text-[10px] font-medium text-slate-600">${q.options.length} ${q.options.length === 1 ? "opción" : "opciones"}</span></p>
             <p class="text-[11px] text-slate-500 truncate">${q.options.length > 1 ? escapeHtml(q.options.map(o => o.name).join(" • ")) : `${escapeHtml(first.projectName || "")}${first.projectName ? " • " : ""}${Number(first.potenciaKw || 0).toFixed(2)} kWp`} • ${fmtFecha(q.updatedAt)}</p>
           </button>
-          <div class="flex flex-wrap justify-end gap-1">${tiposHtml}</div>
+          <div class="flex flex-wrap sm:justify-end gap-1">${tiposHtml}</div>
+          </div>
           <button type="button" onclick="eliminarCotizacion('${q.id}')" title="Eliminar" class="text-slate-300 hover:text-rose-600 font-bold px-1">&times;</button>
         </div>`;
       }).join("");
@@ -1918,16 +1956,26 @@
       document.getElementById("precioConsensuadoDop").value = has ? Math.round(Number(usd) * tasa * 100) / 100 : "";
     }
 
+    const isMobile = () => window.matchMedia("(max-width: 1023px)").matches;
+    let currentTab = "comercial";
     function switchTab(tab) {
-      const on = "flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold bg-slate-900 text-white shadow-sm transition-all flex items-center justify-center space-x-2";
-      const off = "flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-all flex items-center justify-center space-x-2";
+      if (tab === "datos" && !isMobile()) tab = "comercial";   // en computadora los datos siempre se ven a la izquierda
+      currentTab = tab;
+      const base = "flex-1 py-2 px-2 lg:py-2.5 lg:px-4 rounded-xl text-xs lg:text-sm transition-all flex items-center justify-center";
+      const on = base + " font-semibold bg-slate-900 text-white shadow-sm";
+      const off = base + " font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50";
+      document.getElementById("editorView").dataset.mtab = tab;
+      document.getElementById("tabBtnDatos").className = "lg:hidden " + (tab === "datos" ? on : off);
       [["comercial", "viewComercial", "tabBtnComercial"], ["contabilidad", "viewContabilidad", "tabBtnContabilidad"], ["precios", "viewPrecios", "tabBtnPrecios"]]
         .forEach(([k, view, btn]) => {
           document.getElementById(view).classList.toggle("hidden", k !== tab);
           document.getElementById(btn).className = k === tab ? on : off;
         });
       if (tab === "precios") renderSettings();
+      if (isMobile() && document.getElementById("editorView").style.display !== "none") window.scrollTo({ top: 0 });
     }
+    // Si se agranda la ventana estando en "Datos", pasar a la propuesta
+    window.addEventListener("resize", () => { if (currentTab === "datos" && !isMobile()) switchTab("comercial"); });
 
     // =========================================================================
     // MOTOR DE CÁLCULO (mismas fórmulas del Excel)
