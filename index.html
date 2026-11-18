@@ -81,30 +81,30 @@
   <!-- Barra Persistente de Resumen Técnico y Financiero en Vivo -->
   <div id="liveBar" class="bg-slate-900 text-white border-b border-slate-800 no-print">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5">
-      <div class="flex gap-6 overflow-x-auto no-scrollbar whitespace-nowrap lg:grid lg:grid-cols-6 lg:gap-3 lg:whitespace-normal text-xs [&>div]:shrink-0">
+      <div class="flex gap-6 overflow-x-auto no-scrollbar whitespace-nowrap lg:justify-between lg:gap-4 text-xs [&>div]:shrink-0">
         <div class="flex flex-col">
           <span class="text-[10px] uppercase tracking-wider text-slate-400">Potencia Instalada</span>
-          <span id="liveBarKwp" class="font-bold text-sm text-white">13.00 kWp <span class="text-[11px] font-normal text-slate-300">(20×650W)</span></span>
+          <span id="liveBarKwp" class="whitespace-nowrap font-bold text-sm text-white">13.00 kWp <span class="text-[11px] font-normal text-slate-300">(20×650W)</span></span>
         </div>
         <div class="flex flex-col">
           <span class="text-[10px] uppercase tracking-wider text-slate-400">Generación Estimada</span>
-          <span id="liveBarKwh" class="font-bold text-sm text-white">1,603 kWh/mes</span>
+          <span id="liveBarKwh" class="whitespace-nowrap font-bold text-sm text-white">1,603 kWh/mes</span>
         </div>
         <div class="flex flex-col">
           <span class="text-[10px] uppercase tracking-wider text-slate-400">Ahorro Mensual / Anual</span>
-          <span id="liveBarAhorro" class="font-bold text-sm text-emerald-400">RD$ 22,505 / RD$ 270,057</span>
+          <span id="liveBarAhorro" class="whitespace-nowrap font-bold text-sm text-emerald-400">RD$ 22,505 / RD$ 270,057</span>
         </div>
         <div class="flex flex-col">
           <span class="text-[10px] uppercase tracking-wider text-slate-400">Costo por Wp & ROI</span>
-          <span id="liveBarRoi" class="font-bold text-sm text-white">$1.61/Wp • 4.75 años</span>
+          <span id="liveBarRoi" class="whitespace-nowrap font-bold text-sm text-white">$1.61/Wp • 4.75 años</span>
         </div>
         <div class="flex flex-col">
           <span class="text-[10px] uppercase tracking-wider text-slate-400">Ley 57-07 (40%)</span>
-          <span id="liveBarLey" class="font-bold text-sm text-emerald-300">$8,362.13 crédito</span>
+          <span id="liveBarLey" class="whitespace-nowrap font-bold text-sm text-emerald-300">$8,362.13 crédito</span>
         </div>
         <div class="flex flex-col">
           <span class="text-[10px] uppercase tracking-wider text-slate-400">Inversión & Cuota (70%)</span>
-          <span id="liveBarTotal" class="font-bold text-sm text-white">$20,905.33 • RD$ 20,924/m</span>
+          <span id="liveBarTotal" class="whitespace-nowrap font-bold text-sm text-white">$20,905.33 • RD$ 20,924/m</span>
         </div>
       </div>
     </div>
@@ -156,7 +156,7 @@
     <div id="editorView" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start" style="display:none">
 
       <!-- COLUMNA IZQUIERDA: FORMULARIO DE COTIZACIÓN (5 columnas en desktop) -->
-      <section class="contents lg:block lg:col-span-5 lg:space-y-5 no-print">
+      <section class="contents lg:block lg:col-span-5 lg:space-y-5 lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto lg:pr-1 no-scrollbar no-print">
 
         <!-- Tarjeta 0: Cotización actual y cotizaciones guardadas -->
         <div class="order-1 lg:order-none bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 sm:p-5">
@@ -290,8 +290,8 @@
             <div id="panelOver100Alert" class="hidden p-3 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs flex items-start space-x-2">
               <span class="font-bold text-amber-600 text-sm">⚠</span>
               <div>
-                <p class="font-semibold">Proyecto mayor a 100 paneles detectado</p>
-                <p class="text-[11px] text-amber-800 mt-0.5">Regla de Viáticos: Fuera del rango estándar (1–100 paneles). <strong>Favor consultar contigo o con Albaro</strong> para validar días y tarifa de viáticos.</p>
+                <p class="font-semibold">Proyecto fuera de la tabla de viáticos</p>
+                <p class="text-[11px] text-amber-800 mt-0.5">Tiene más paneles que el último rango de la tabla. <strong>Favor consultar con Albaro</strong> para validar días y tarifa de viáticos.</p>
               </div>
             </div>
 
@@ -335,13 +335,6 @@
             </table>
           </div>
 
-          <!-- Botones de acción -->
-          <div class="mt-5 pt-4 border-t border-slate-100 flex flex-col sm:flex-row gap-2.5">
-            <button type="button" onclick="nuevaCotizacion()" title="Limpiar formulario para iniciar una cotización nueva"
-              class="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-slate-900 hover:bg-slate-800 shadow-sm transition-colors">
-              + Nueva Cotización
-            </button>
-          </div>
         </div>
       </section>
 
@@ -357,15 +350,15 @@
             </button>
             <button type="button" id="tabBtnComercial" onclick="switchTab('comercial')"
               class="flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold bg-slate-900 text-white shadow-sm transition-all flex items-center justify-center space-x-2">
-              <span class="lg:hidden">Propuesta</span><span class="hidden lg:inline">Propuesta Comercial (Cliente)</span>
+              <span class="lg:hidden">Propuesta</span><span class="hidden lg:inline whitespace-nowrap">Propuesta al Cliente</span>
             </button>
             <button type="button" id="tabBtnContabilidad" onclick="switchTab('contabilidad')"
               class="flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-all flex items-center justify-center space-x-2">
-              <span class="lg:hidden">Interno</span><span class="hidden lg:inline">Informe Interno (Hoja 1 - Contabilidad)</span>
+              <span class="lg:hidden">Interno</span><span class="hidden lg:inline whitespace-nowrap">Informe Interno</span>
             </button>
             <button type="button" id="tabBtnPrecios" onclick="switchTab('precios')"
               class="flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-all flex items-center justify-center space-x-2">
-              <span class="lg:hidden">Precios</span><span class="hidden lg:inline">Precios y Reglas</span>
+              <span class="lg:hidden">Precios</span><span class="hidden lg:inline whitespace-nowrap">Precios y Reglas</span>
             </button>
           </div>
         </div>
@@ -402,6 +395,7 @@
               <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-100">
                 <p class="text-[11px] font-medium text-slate-500">Generación Mensual</p>
                 <p id="comKwhMes" class="text-lg font-bold text-slate-900 mt-1">1,603 kWh</p>
+                <p id="comKwhDia" class="text-xs font-semibold text-slate-700 mt-0.5">≈ 53 kWh / día</p>
                 <p id="comHspText" class="text-[11px] text-slate-500 mt-0.5">HSP Santiago: 4.11</p>
               </div>
               <div class="p-3.5 rounded-xl bg-emerald-50/60 border border-emerald-100">
@@ -430,7 +424,7 @@
                   <tr>
                     <th class="py-2 pr-2">Opción</th>
                     <th class="py-2 px-2 text-right">Potencia</th>
-                    <th class="py-2 px-2 text-right">Generación/mes</th>
+                    <th class="py-2 px-2 text-right">Generación</th>
                     <th class="py-2 px-2 text-right">Ahorro anual</th>
                     <th class="py-2 px-2 text-right">Inversión</th>
                     <th class="py-2 px-2 text-right">Cuota (70%)</th>
@@ -448,7 +442,7 @@
             <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 print-shadow-none">
               <div class="flex items-center justify-between mb-3">
                 <h3 class="text-xs font-semibold text-slate-900 uppercase tracking-wider">Opciones de Financiamiento</h3>
-                <span id="comPlazoBadge" class="text-[11px] font-medium px-2 py-0.5 rounded bg-slate-100 text-slate-600">60 meses @ 14%</span>
+                <span id="comPlazoBadge" class="whitespace-nowrap text-[11px] font-medium px-2 py-0.5 rounded bg-slate-100 text-slate-600">60 meses @ 14%</span>
               </div>
               <div class="space-y-3">
                 <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/50">
@@ -497,10 +491,6 @@
               <div class="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 no-print">
                 <span class="text-xs text-slate-500">Costo por Wp: <strong id="comCostoWp" class="text-slate-800">$1.61/Wp</strong></span>
                 <div class="flex items-center space-x-2">
-                  <button type="button" onclick="nuevaCotizacion()"
-                    class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors">
-                    + Nueva Cotización
-                  </button>
                   <button type="button" onclick="window.print()"
                     class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 transition-colors">
                     Imprimir / PDF
@@ -1019,13 +1009,13 @@
         transporteRecargoPct: 60,
         viaticos: { local: 35, fuera: 75 },
         // Días de viáticos según la cantidad de paneles ("hasta" = paneles como máximo)
+        viaticosVer: 2,
         viaticosDias: [
-          { hasta: 0,   dias: 1 },   // sin paneles (solo inversores/baterías)
-          { hasta: 5,   dias: 2 },
-          { hasta: 11,  dias: 3 },
-          { hasta: 29,  dias: 4 },
-          { hasta: 49,  dias: 5 },
-          { hasta: 100, dias: 7 }
+          { hasta: 5,   dias: 1 },   // 0 a 5 paneles (incluye proyectos sin paneles)
+          { hasta: 15,  dias: 3 },   // 6 a 15
+          { hasta: 50,  dias: 4 },   // 16 a 50
+          { hasta: 100, dias: 5 },   // 51 a 100
+          { hasta: 120, dias: 7 }    // 101 a 120  (más de 120: consultar)
         ],
         sometimiento: 100
       },
@@ -1076,6 +1066,12 @@
           delete settings.panel.price;
           settings.rules = Object.assign({}, EXCEL_SETTINGS.rules, saved.rules || {});
           settings.logistics = Object.assign(JSON.parse(JSON.stringify(EXCEL_SETTINGS.logistics)), saved.logistics || {});
+          // Nueva escala de viáticos (nov 2026): reemplaza la anterior una sola vez
+          if (((saved.logistics || {}).viaticosVer || 1) < EXCEL_SETTINGS.logistics.viaticosVer) {
+            settings.logistics.viaticosDias = JSON.parse(JSON.stringify(EXCEL_SETTINGS.logistics.viaticosDias));
+            settings.logistics.viaticosVer = EXCEL_SETTINGS.logistics.viaticosVer;
+            setTimeout(saveSettings, 0);
+          }
         }
         settings.provinces.forEach(p => { if (p.indexIntegracion === undefined || p.indexIntegracion === null) p.indexIntegracion = calcIndexIntegracion(p.indexHibrido); });
         // Capacidad (kWh) de cada batería: si falta, se toma del nombre (ej. "PYTES 16K" = 16 kWh)
@@ -1170,10 +1166,11 @@
       const escala = [...(L.viaticosDias || [])].sort((a, b) => a.hasta - b.hasta);
       const fila = escala.find(f => panelQty <= Number(f.hasta)) || escala[escala.length - 1] || { dias: 4 };
       const viaticosDays = Number(fila.dias) || 1;
-      const over100 = panelQty > 100;
+      const limite = escala.length ? Number(escala[escala.length - 1].hasta) : 100;
+      const over100 = panelQty > limite;   // fuera de la tabla de viáticos
       const lugar = zone === "local" ? "Santiago" : "Fuera de Santiago";
       const viaticosLabel = over100
-        ? `Viáticos (Consultar c/ Albaro >100p)`
+        ? `Viáticos (Consultar c/ Albaro >${limite}p)`
         : `Viáticos (${viaticosDays} ${viaticosDays === 1 ? "día" : "días"} - ${lugar}${panelQty === 0 ? ", sin paneles" : ""})`;
       return { transportCost, transportLabel, viaticosRate, viaticosDays, viaticosLabel, over100 };
     }
@@ -1379,15 +1376,15 @@
       const tbody = document.getElementById("itemsTableBody");
       tbody.innerHTML = lineItems.map((item, idx) => `
         <tr class="hover:bg-slate-50/80 transition-colors">
-          <td class="py-2.5 pr-2">
+          <td class="py-1.5 pr-2">
             <input type="text" value="${escapeHtml(item.concepto)}" oninput="updateLineField(${idx}, 'concepto', this.value)"
               class="w-full px-2 py-1 text-xs bg-transparent border border-transparent hover:border-slate-200 focus:border-slate-400 rounded focus:outline-none text-slate-800" />
           </td>
-          <td class="py-2.5 px-1 w-20">
+          <td class="py-1.5 px-1 w-20">
             <input type="number" step="1" value="${item.cant}" oninput="updateLineField(${idx}, 'cant', parseFloat(this.value) || 0)"
               class="w-full px-1 py-1 text-xs text-center bg-slate-50/50 border border-slate-200 rounded focus:outline-none focus:border-slate-400" />
           </td>
-          <td class="py-2.5 w-6 text-center">
+          <td class="py-1.5 w-6 text-center">
             <button type="button" onclick="removeLineItem(${idx})" class="text-slate-400 hover:text-rose-600 font-bold">&times;</button>
           </td>
         </tr>`).join("");
@@ -1643,7 +1640,7 @@
       setBatteryCalc(q.bateriaCalc);
       lineItems = JSON.parse(JSON.stringify(q.lineItems || []));
       currentWarnings = [];
-      document.getElementById("panelOver100Alert").classList.toggle("hidden", !((parseInt(q.panelQty, 10) || 0) > 100));
+      document.getElementById("panelOver100Alert").classList.toggle("hidden", !computeLogisticsByRules(document.getElementById("provinceSelect").value, parseInt(q.panelQty, 10) || 0).over100);
       renderItemsTable();
       renderWarnings();
       recalculateAll();
@@ -1780,12 +1777,12 @@
         return `
         <tr onclick="switchOption('${o.id}')" class="cursor-pointer ${active ? "bg-emerald-50/70 font-semibold" : "hover:bg-slate-50"}">
           <td class="py-2 pr-2 text-slate-900">${escapeHtml(o.name)}${active ? ' <span class="text-[10px] text-emerald-700 no-print">• viendo</span>' : ""}</td>
-          <td class="py-2 px-2 text-right">${Number(d.potenciaKw || 0).toFixed(2)} kWp</td>
-          <td class="py-2 px-2 text-right">${sg ? "—" : `${fmtInt(d.kwhMes || 0)} kWh`}</td>
-          <td class="py-2 px-2 text-right">${sg ? "—" : `RD$ ${fmtInt(d.ahorroAnualDop || 0)}`}</td>
-          <td class="py-2 px-2 text-right">${fmtUSD(d.total || 0)}</td>
-          <td class="py-2 px-2 text-right">RD$ ${fmtInt(d.cuota70 || 0)}</td>
-          <td class="py-2 pl-2 text-right">${sg ? "—" : `${Number(d.roiContado || 0).toFixed(2)} a <span class="text-emerald-700">(${Number(d.roiConLey || 0).toFixed(2)} c/ Ley)</span>`}</td>
+          <td class="py-2 px-2 text-right whitespace-nowrap">${Number(d.potenciaKw || 0).toFixed(2)} kWp</td>
+          <td class="py-2 px-2 text-right whitespace-nowrap">${sg ? "—" : `${fmtInt(d.kwhMes || 0)} kWh<span class="block text-[10px] font-normal text-slate-500">${fmtInt((d.kwhMes || 0) / 30)} kWh/día</span>`}</td>
+          <td class="py-2 px-2 text-right whitespace-nowrap">${sg ? "—" : `RD$ ${fmtInt(d.ahorroAnualDop || 0)}`}</td>
+          <td class="py-2 px-2 text-right whitespace-nowrap">${fmtUSD(d.total || 0)}</td>
+          <td class="py-2 px-2 text-right whitespace-nowrap">RD$ ${fmtInt(d.cuota70 || 0)}</td>
+          <td class="py-2 pl-2 text-right whitespace-nowrap">${sg ? "—" : `${Number(d.roiContado || 0).toFixed(2)} años<span class="block text-[10px] text-emerald-700">${Number(d.roiConLey || 0).toFixed(2)} c/ Ley</span>`}</td>
         </tr>`;
       }).join("");
 
@@ -1805,7 +1802,7 @@
             ${cell("Potencia", `${Number(d.potenciaKw || 0).toFixed(2)} kWp`)}
             ${cell("Cuota 70%", `RD$ ${fmtInt(d.cuota70 || 0)}`)}
             ${cell("Retorno", sg ? "—" : `${Number(d.roiContado || 0).toFixed(1)} años`)}
-            ${sg ? "" : cell("Generación", `${fmtInt(d.kwhMes || 0)} kWh/mes`)}
+            ${sg ? "" : cell("Generación", `${fmtInt(d.kwhMes || 0)} kWh/mes · ${fmtInt((d.kwhMes || 0) / 30)}/día`)}
             ${sg ? "" : cell("Ahorro anual", `RD$ ${fmtInt(d.ahorroAnualDop || 0)}`)}
           </div>
           ${active ? '<p class="mt-2 text-[10px] font-medium text-emerald-700">• Viendo esta opción</p>' : ""}
@@ -2097,8 +2094,8 @@
       setShown("liveBarKwh", !r.sinGeneracion);
       setShown("liveBarAhorro", !r.sinGeneracion);
       document.getElementById("liveBarRoi").previousElementSibling.textContent = r.sinGeneracion ? "Costo por Wp" : "Costo por Wp & ROI";
-      document.getElementById("liveBarKwh").textContent = `${fmtInt(r.kwhMes)} kWh/mes`;
-      document.getElementById("liveBarAhorro").textContent = `RD$ ${fmtInt(r.ahorroMesDop)}/m • RD$ ${fmtInt(r.ahorroAnualDop)}/a`;
+      document.getElementById("liveBarKwh").innerHTML = `${fmtInt(r.kwhMes)} kWh/mes <span class="text-[11px] font-normal text-slate-300">• ${(r.kwhMes / 30).toLocaleString("es-DO", { maximumFractionDigits: 1 })} kWh/día</span>`;
+      document.getElementById("liveBarAhorro").innerHTML = `RD$ ${fmtInt(r.ahorroMesDop)}/mes <span class="text-[11px] font-normal text-emerald-200">• ${fmtInt(r.ahorroAnualDop)}/año</span>`;
       document.getElementById("liveBarRoi").textContent = r.sinGeneracion ? `$${r.costoPorWp.toFixed(2)}/Wp` : `$${r.costoPorWp.toFixed(2)}/Wp • ${r.roiContado.toFixed(2)} años`;
       document.getElementById("liveBarLey").textContent = `${fmtUSD(r.creditoFiscalUsd)} crédito`;
       document.getElementById("liveBarTotal").textContent = `${fmtUSD(r.totalEjecucion)} • RD$ ${fmtInt(r.cuota70)}/m`;
@@ -2164,6 +2161,7 @@
       setShown("comRoiContado", !r.sinGeneracion);
       document.getElementById("comKwhMes").textContent = `${fmtInt(r.kwhMes)} kWh`;
       document.getElementById("comHspText").textContent = `HSP ${r.province}: ${r.hsp.toFixed(2)}`;
+      document.getElementById("comKwhDia").textContent = `≈ ${(r.kwhMes / 30).toLocaleString("es-DO", { maximumFractionDigits: 1 })} kWh / día`;
       document.getElementById("comAhorroAnual").textContent = `RD$ ${fmtInt(r.ahorroAnualDop)}`;
       document.getElementById("comAhorroMes").textContent = `RD$ ${fmtInt(r.ahorroMesDop)} / mes`;
       document.getElementById("comRoiContado").textContent = `${r.roiContado.toFixed(2)} años`;
@@ -2186,7 +2184,7 @@
       document.getElementById("accProjectTitle").textContent = `Informe de Costos: ${displayClient} — ${r.projectName}`;
       document.getElementById("accMetaInfo").textContent = `Provincia: ${r.province} | Potencia: ${r.potenciaKw.toFixed(2)} kWp (${r.potenciaW.toLocaleString()} W) | Índice de costos: ${r.indiceCosto.toFixed(2)} | Tasa Compra: ${r.tasaCompra.toFixed(2)} | Tasa Venta: ${r.tasaVenta.toFixed(2)}`;
       document.getElementById("accKwpSummary").textContent = `${r.potenciaKw.toFixed(2)} kWp (${r.panelQty}×${r.panelW}W)`;
-      document.getElementById("accEnergySummary").textContent = `${fmtInt(r.kwhMes)} kWh/m • RD$ ${fmtInt(r.ahorroAnualDop)}/a`;
+      document.getElementById("accEnergySummary").textContent = `${fmtInt(r.kwhMes)} kWh/mes (${(r.kwhMes / 30).toLocaleString("es-DO", { maximumFractionDigits: 1 })}/día) • RD$ ${fmtInt(r.ahorroAnualDop)}/año`;
       document.getElementById("accRoiSummary").textContent = `$${r.costoPorWp.toFixed(2)}/Wp • ${r.roiContado.toFixed(2)}a (${r.roiConLey.toFixed(2)}a)`;
       document.getElementById("accFinSummary").textContent = `RD$ ${fmtInt(r.cuota70)} / RD$ ${fmtInt(r.cuota100)}`;
 
@@ -2347,13 +2345,28 @@
         ruleRow("Viático por día en Santiago", "logistics.viaticos.local", L.viaticos.local) +
         ruleRow("Viático por día fuera de Santiago", "logistics.viaticos.fuera", L.viaticos.fuera) +
         ruleRow("Sometimiento / Trámites (no aplica en Integración)", "logistics.sometimiento", L.sometimiento) +
-        `</div>` +
-        `<div class="mt-4 max-w-sm">
-          <p class="text-[11px] font-semibold text-slate-700 mb-1">Días de viáticos según cantidad de paneles</p>
-          <table class="w-full text-xs"><thead><tr>${th("Hasta (paneles)")}${th("Días")}</tr></thead><tbody>` +
-          (L.viaticosDias || []).map((f, i) => `<tr>${td(numIn(`logistics.viaticosDias.${i}.hasta`, f.hasta, "1"))}${td(numIn(`logistics.viaticosDias.${i}.dias`, f.dias, "1"))}</tr>`).join("") +
-        `</tbody></table>
-          <p class="text-[11px] text-slate-500 mt-1">"Hasta 0" = sin paneles. El precio por día depende de la distancia (Santiago o fuera).</p></div>`);
+        `</div>`);
+
+      // Viáticos: tabla fácil de editar (rangos de paneles → días)
+      const vd = [...(L.viaticosDias || [])].sort((a, b) => a.hasta - b.hasta);
+      settings.logistics.viaticosDias = vd;
+      const small = "w-16 px-2 py-1 text-sm font-semibold text-center bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-orange-300";
+      html += card("Días de viáticos según los paneles", `El precio por día es ${fmtUSD(L.viaticos.local)} en Santiago y ${fmtUSD(L.viaticos.fuera)} fuera (se cambia arriba). Proyectos sin paneles entran en el primer rango.`,
+        `<div class="max-w-md space-y-2">` +
+        vd.map((f, i) => {
+          const desde = i === 0 ? 0 : Number(vd[i - 1].hasta) + 1;
+          return `<div class="flex items-center gap-2 p-2 rounded-xl bg-slate-50 border border-slate-100 text-xs text-slate-600">
+            <span class="w-14 text-right">De <strong class="text-slate-900">${desde}</strong></span>
+            <span>a</span>
+            <input type="number" min="0" step="1" value="${f.hasta}" onchange="setViaticoRow(${i}, 'hasta', this.value)" class="${small}" />
+            <span>paneles →</span>
+            <input type="number" min="0" step="1" value="${f.dias}" onchange="setViaticoRow(${i}, 'dias', this.value)" class="${small}" />
+            <span>${Number(f.dias) === 1 ? "día" : "días"}</span>
+            <button type="button" onclick="delViaticoRow(${i})" title="Quitar rango" class="ml-auto text-slate-300 hover:text-rose-600 font-bold px-1">&times;</button>
+          </div>`;
+        }).join("") +
+        `<p class="text-[11px] text-slate-500 pt-1">Más de <strong>${vd.length ? vd[vd.length - 1].hasta : 0}</strong> paneles: sale el aviso de consultar con Albaro.</p></div>`,
+        addBtn("addViaticoRow", "+ Rango"));
 
       html += card("Provincias e índices de costos", "El índice de costos × potencia (W) da la mano de obra en RD$, que entra en la fórmula del precio. Índice integración = índice híbrido ÷ 1.8 (como en el Excel); si cambias el híbrido se recalcula solo.",
         `<table class="w-full text-xs"><thead><tr>${th("Provincia")}${th("HSP", "w-16")}${th("Índice híbrido", "w-20")}${th("Índice inyección", "w-20")}${th("Índice integración", "w-20")}${th("Zona", "w-28")}${th("")}</tr></thead><tbody>` +
@@ -2379,6 +2392,24 @@
       }
       if (path.startsWith("provinces")) applyProvinceIndex(true);
       onConfigChange();
+    }
+
+    // Viáticos: editar, agregar y quitar rangos
+    function setViaticoRow(i, field, val) {
+      settings.logistics.viaticosDias[i][field] = Math.max(0, parseInt(val, 10) || 0);
+      settings.logistics.viaticosDias.sort((a, b) => a.hasta - b.hasta);
+      afterListChange();
+    }
+    function addViaticoRow() {
+      const vd = settings.logistics.viaticosDias;
+      const last = vd[vd.length - 1] || { hasta: 0, dias: 1 };
+      vd.push({ hasta: Number(last.hasta) + 20, dias: Number(last.dias) + 1 });
+      afterListChange();
+    }
+    function delViaticoRow(i) {
+      if (settings.logistics.viaticosDias.length <= 1) return;
+      settings.logistics.viaticosDias.splice(i, 1);
+      afterListChange();
     }
 
     function afterListChange() { saveSettings(); refreshSelects(); renderSettings(); applyProvinceIndex(true); onConfigChange(); }
