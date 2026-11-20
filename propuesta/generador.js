@@ -15,9 +15,9 @@
   // siempre: "paneles" (si hay paneles) | "todos" | "" (según equipos)
   // ---------------------------------------------------------------------
   // Paneles: sale UNA sola ficha, la de la marca del panel y cuyo rango de vatios incluye los del panel.
-  const FICHAS_VER = 2;
+  const FICHAS_VER = 3;
   const FICHAS_DEF = [
-    { id: "jinko-66hl4m", nombre: "Panel JINKO Tiger Neo 66HL4M 625-650W", cat: 1, paginas: 2, completa: true, siempre: "panel", marca: "JINKO Solar", wMin: 625, wMax: 650, equipos: [] },
+    { id: "jinko-66hl4m", nombre: "Panel JINKO Tiger Neo 66HL4M 625-650W", cat: 1, paginas: 2, completa: true, siempre: "panel", marca: "JINKO Solar", wMin: 640, wMax: 650, equipos: [] },
     { id: "jinko-66ql6", nombre: "Panel JINKO JKM635-670N-66QL6", cat: 1, paginas: 2, completa: false, siempre: "panel", marca: "JINKO Solar", wMin: 635, wMax: 670, equipos: [] },
     { id: "jinko-78hl4", nombre: "Panel JINKO JKM615-635N-78HL4", cat: 1, paginas: 2, completa: false, siempre: "panel", marca: "JINKO Solar", wMin: 615, wMax: 635, equipos: [] },
     { id: "jinko-72hl4", nombre: "Panel JINKO JKM550-570N-72HL4", cat: 1, paginas: 2, completa: false, siempre: "panel", marca: "JINKO Solar", wMin: 550, wMax: 570, equipos: [] },
@@ -60,8 +60,11 @@
   // ---------------------------------------------------------------------
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  const n2 = (v) => (Number(v) || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const nt = (v) => { const x = Math.round((Number(v) || 0) * 100) / 100; return x.toLocaleString("en-US", { maximumFractionDigits: 2 }); };
+  // Redondeo como en Excel: 5.715 → 5.72 (evita el error de decimales de la computadora)
+  const red = (v, d) => { const x = Number(Number(v || 0).toPrecision(12)); const f = Math.pow(10, d); return Math.sign(x) * Math.round(Math.abs(x) * f + 1e-9) / f; };
+  const fx = (v, d) => red(v, d).toFixed(d);
+  const n2 = (v) => red(v, 2).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const nt = (v) => red(v, 2).toLocaleString("en-US", { maximumFractionDigits: 2 });
   const usd = (v) => "US$" + n2(v);
   const rd = (v) => "RD$" + n2(v);
   const hoyTexto = () => { const d = new Date(); return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`; };
@@ -229,9 +232,9 @@
     const kwp = Number(o.potenciaKw) || 0;
     const panelQty = parseInt(o.panelQty, 10) || 0;
     let titulo;
-    if (o.modalidad === "ongrid") titulo = `INYECCIÓN A RED DE ${kwp.toFixed(2)} kWp`;
+    if (o.modalidad === "ongrid") titulo = `INYECCIÓN A RED DE ${fx(kwp, 2)} kWp`;
     else if (o.modalidad === "integracion") titulo = `INTEGRACIÓN DE ALMACENAMIENTO DE ${nt(kwh)} kWh`;
-    else titulo = kwh > 0 ? `GENERACIÓN HÍBRIDA DE ${kwp.toFixed(2)} kWp` : "GENERACIÓN HÍBRIDA SIN ALMACENAMIENTO";
+    else titulo = kwh > 0 ? `GENERACIÓN HÍBRIDA DE ${fx(kwp, 2)} kWp` : "GENERACIÓN HÍBRIDA SIN ALMACENAMIENTO";
     return {
       titulo,
       paneles: lineaPaneles(panelQty, o.panelW, o.panelMarca),
@@ -240,7 +243,7 @@
       prod: o.sinGeneracion || !(o.kwhMes > 0) ? "" : `Producción de\n${n2(o.kwhMes)} kWh/Mes`,
       alm: kwh > 0 ? `Almacenamiento\n${nt(kwh)}kWh` : "",
       inv: usd(o.total),
-      roi: o.sinGeneracion || !(o.roiConLey > 0) ? "—" : (Number(o.roiConLey) || 0).toFixed(1),
+      roi: o.sinGeneracion || !(o.roiConLey > 0) ? "—" : fx(o.roiConLey, 1),
       ley: usd((Number(o.total) || 0) * 0.40)
     };
   }
@@ -271,15 +274,15 @@
       cliente: (prop.clientName || "").trim(),
       ubicacion: (datos.ubicacion || "").trim() || r.province || "",
       fecha: datos.fecha || hoyTexto(),
-      kwp: (r.potenciaKw || 0).toFixed(2) + "kWp",
+      kwp: fx(r.potenciaKw, 2) + "kWp",
       almCover: almKwh > 0 ? `/ ${nt(almKwh)}kWh` : "",
       almKwh: almKwh > 0 ? `${nt(almKwh)}kWh` : "",
       almKwhSp: almKwh > 0 ? `${nt(almKwh)} kWh` : "",
       prodMes: `${n2(r.kwhMes)} KWh/mes`,
       prodDia: `${n2((r.kwhMes || 0) / 30)} kwh/día`,
-      consumo: consumo > 0 ? `${n2(consumo)} KWh` : "",
-      roiLey: `${(r.roiConLey || 0).toFixed(1)} años`,
-      costoWp: "US$" + (r.costoPorWp || 0).toFixed(2),
+      consumo: consumo > 0 ? `${nt(consumo)} KWh` : "",
+      roiLey: `${fx(r.roiConLey, 1)} años`,
+      costoWp: "US$" + fx(r.costoPorWp, 2),
       inversion: usd(r.totalEjecucion),
       ahorroAnual: rd(r.ahorroAnualDop),
       ahorroMes: rd(r.ahorroMesDop),
@@ -412,10 +415,11 @@
     return `<div class="pp-t${editado ? " pp-ed" : ""}${auto ? " pp-auto" : ""}" data-pag="${esc(pagId)}" data-b="${b.id}" data-y="${b.y}" contenteditable="plaintext-only" spellcheck="false" style="${st}">${esc(texto)}</div>`;
   }
 
-  function bloquesPagina(tplKey, pagId, ctx, filtro) {
+  function bloquesPagina(tplKey, pagId, ctx, filtro, cambios) {
     const pg = TPL.paginas[tplKey];
     const ed = ctx.doc.edits[pagId] || {};
-    return pg.blocks.filter(b => !filtro || filtro(b)).map(b => {
+    return pg.blocks.filter(b => !filtro || filtro(b)).map(b0 => {
+      const b = cambios && cambios[b0.id] ? Object.assign({}, b0, cambios[b0.id]) : b0;
       const auto = !!b.f;
       const def = auto ? textoAuto(b, ctx.v) : b.text;
       const editado = Object.prototype.hasOwnProperty.call(ed, b.id);
@@ -423,6 +427,7 @@
     }).join("");
   }
 
+  const sinLey = (ctx) => { const l = (ctx.paginas || []).find(x => x.rol === "ley"); return !!l && !l.on; };
   const rect = (r, extra) => `left:${r[0]}pt;top:${r[1]}pt;width:${r[2] - r[0]}pt;height:${r[3] - r[1]}pt;${extra || ""}`;
 
   async function htmlPagina(p, ctx) {
@@ -445,7 +450,17 @@
     if (p.rol === "factura") {
       const a = await getArchivo(ctx.datos.facturaId);
       extra += `<div style="position:absolute;${rect(z.tapar, `background:${z.color || "#fba81c"}`)}"></div>`;
-      if (a && a.paginas && a.paginas[0]) extra += `<img src="${a.paginas[0]}" alt="" style="position:absolute;${rect(z.foto, "object-fit:contain")}">`;
+      if (a && a.paginas && a.paginas[0]) {
+        // Pila de facturas: la del cliente al frente y otra hoja detrás, como en la plantilla
+        const src = a.paginas[0];
+        const dim = await new Promise(res => { const i = new Image(); i.onload = () => res([i.naturalWidth, i.naturalHeight]); i.onerror = () => res([850, 1100]); i.src = src; });
+        const maxW = 440, maxH = 566, cx = 282, cy = 432;
+        const sc = Math.min(maxW / dim[0], maxH / dim[1]);
+        const w = dim[0] * sc, h = dim[1] * sc, l = cx - w / 2, t = cy - h / 2;
+        const hoja = (tr, br) => `<div style="position:absolute;left:${l}pt;top:${t}pt;width:${w}pt;height:${h}pt;transform:${tr};background:#fff;box-shadow:0 1.5pt 6pt rgba(0,0,0,.35)"><img src="${src}" alt="" style="width:100%;height:100%;display:block;object-fit:fill;${br}"></div>`;
+        extra += hoja("translate(34pt,-11pt) rotate(1.8deg)", "filter:brightness(.97)");
+        extra += hoja("rotate(-0.5deg)", "");
+      }
     }
     if (p.rol === "galeria" && p.fotos) {
       const srcs = await Promise.all(p.fotos.map(async id => {
@@ -466,7 +481,13 @@
       filtro = (b) => b.y < y0;
     }
     if (tplKey === "d1") extra += filasDescripcion(ctx, p.id);
-    return `<div class="pp-page" data-id="${esc(p.id)}"><img class="pp-bg" src="${BASE}bg/${pg.bg}" alt="">${extra}${bloquesPagina(tplKey, p.id, ctx, filtro)}</div>`;
+    // Sin la página de la Ley 57-07: se quita el ROI y lo que menciona la ley; "Para alcanzar tu libertad energética" sube
+    let cambios = null;
+    if (p.rol === "recupera" && sinLey(ctx) && (tplKey === "c5" || tplKey === "i5")) {
+      filtro = (b) => !["p5b3", "p5b4", "p5b5"].includes(b.id);
+      cambios = { p5b6: { x: 278.1, y: 349.8, size: 14.13 }, p5b7: { x: 278.1, y: 372.7, size: 23.54 } };
+    }
+    return `<div class="pp-page" data-id="${esc(p.id)}"><img class="pp-bg" src="${BASE}bg/${pg.bg}" alt="">${extra}${bloquesPagina(tplKey, p.id, ctx, filtro, cambios)}</div>`;
   }
 
   // Filas de la descripción: ícono + barra naranja + texto, una debajo de otra

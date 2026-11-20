@@ -936,6 +936,8 @@
       if (isNaN(val)) return "RD$ 0.00";
       return "RD$ " + Number(val).toLocaleString("es-DO", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
+    // kWp con 2 decimales redondeado como Excel (9 × 635 W = 5.715 → 5.72)
+    function fmtKwp(v) { const x = Number(Number(v || 0).toPrecision(12)); return (Math.round(x * 100 + 1e-9) / 100).toFixed(2); }
     function fmtInt(val) {
       if (isNaN(val)) return "0";
       return Math.round(Number(val)).toLocaleString("es-DO");
@@ -1873,7 +1875,7 @@
         return `
         <tr onclick="switchOption('${o.id}')" class="cursor-pointer ${active ? "bg-emerald-50/70 font-semibold" : "hover:bg-slate-50"}">
           <td class="py-2 pr-2 text-slate-900">${escapeHtml(o.name)}${active ? ' <span class="text-[10px] text-emerald-700 no-print">• viendo</span>' : ""}</td>
-          <td class="py-2 px-2 text-right whitespace-nowrap">${Number(d.potenciaKw || 0).toFixed(2)} kWp</td>
+          <td class="py-2 px-2 text-right whitespace-nowrap">${fmtKwp(d.potenciaKw)} kWp</td>
           <td class="py-2 px-2 text-right whitespace-nowrap">${sg ? "—" : `${fmtInt(d.kwhMes || 0)} kWh<span class="block text-[10px] font-normal text-slate-500">${fmtInt((d.kwhMes || 0) / 30)} kWh/día</span>`}</td>
           <td class="py-2 px-2 text-right whitespace-nowrap">${sg ? "—" : `RD$ ${fmtInt(d.ahorroAnualDop || 0)}`}</td>
           <td class="py-2 px-2 text-right whitespace-nowrap">${fmtUSD(d.total || 0)}</td>
@@ -1895,7 +1897,7 @@
             <span class="text-sm font-bold text-slate-900">${fmtUSD(d.total || 0)}</span>
           </div>
           <div class="grid grid-cols-3 gap-2">
-            ${cell("Potencia", `${Number(d.potenciaKw || 0).toFixed(2)} kWp`)}
+            ${cell("Potencia", `${fmtKwp(d.potenciaKw)} kWp`)}
             ${cell("Cuota 70%", `RD$ ${fmtInt(d.cuota70 || 0)}`)}
             ${cell("Retorno", sg ? "—" : `${Number(d.roiContado || 0).toFixed(1)} años`)}
             ${sg ? "" : cell("Generación", `${fmtInt(d.kwhMes || 0)} kWh/mes · ${fmtInt((d.kwhMes || 0) / 30)}/día`)}
@@ -1953,7 +1955,7 @@
           <button type="button" onclick="abrirCotizacion('${q.id}')" class="flex-1 min-w-0 text-left">
             <p class="text-sm sm:text-xs font-semibold text-slate-800 truncate">${escapeHtml(q.clientName || "(sin cliente)")}
               <span class="ml-1 px-1.5 py-0.5 rounded bg-slate-100 text-[10px] font-medium text-slate-600">${q.options.length} ${q.options.length === 1 ? "opción" : "opciones"}</span></p>
-            <p class="text-[11px] text-slate-500 truncate">${q.options.length > 1 ? escapeHtml(q.options.map(o => o.name).join(" • ")) : `${escapeHtml(first.projectName || "")}${first.projectName ? " • " : ""}${Number(first.potenciaKw || 0).toFixed(2)} kWp`} • ${fmtFecha(q.updatedAt)}</p>
+            <p class="text-[11px] text-slate-500 truncate">${q.options.length > 1 ? escapeHtml(q.options.map(o => o.name).join(" • ")) : `${escapeHtml(first.projectName || "")}${first.projectName ? " • " : ""}${fmtKwp(first.potenciaKw)} kWp`} • ${fmtFecha(q.updatedAt)}</p>
           </button>
           <div class="flex flex-wrap sm:justify-end gap-1">${tiposHtml}</div>
           </div>
@@ -2190,7 +2192,7 @@
     }
 
     function updateLiveSummaryBar(r) {
-      document.getElementById("liveBarKwp").innerHTML = `${r.potenciaKw.toFixed(2)} kWp <span class="text-[11px] font-normal text-slate-300">(${r.sinGeneracion ? potenciaDetalle(r) : `${r.panelQty}×${r.panelW}W`})</span>`;
+      document.getElementById("liveBarKwp").innerHTML = `${fmtKwp(r.potenciaKw)} kWp <span class="text-[11px] font-normal text-slate-300">(${r.sinGeneracion ? potenciaDetalle(r) : `${r.panelQty}×${r.panelW}W`})</span>`;
       setShown("liveBarKwh", !r.sinGeneracion);
       setShown("liveBarAhorro", !r.sinGeneracion);
       document.getElementById("liveBarRoi").previousElementSibling.textContent = r.sinGeneracion ? "Costo por Wp" : "Costo por Wp & ROI";
@@ -2254,7 +2256,7 @@
       document.getElementById("comProjectMeta").textContent = `${r.projectName} • ${r.province} • ${({ hibrido: "Híbrido", ongrid: "Inyección", integracion: "Integración de almacenamiento" }[r.modalidad] || r.modalidad)}`;
       document.getElementById("comTotalUsd").textContent = fmtUSD(r.totalEjecucion);
       document.getElementById("comTotalDop").textContent = `≈ ${fmtDOP(r.totalDop)}`;
-      document.getElementById("comPotenciaKw").textContent = `${r.potenciaKw.toFixed(2)} kWp`;
+      document.getElementById("comPotenciaKw").textContent = `${fmtKwp(r.potenciaKw)} kWp`;
       document.getElementById("comPanelCountText").textContent = potenciaDetalle(r);
       setShown("comKwhMes", !r.sinGeneracion);
       setShown("comAhorroAnual", !r.sinGeneracion);
@@ -2282,8 +2284,8 @@
       const displayClient = r.clientName.trim() || "Nuevo Cliente";
       document.getElementById("accDateBadge").textContent = `Fecha: ${today}`;
       document.getElementById("accProjectTitle").textContent = `Informe de Costos: ${displayClient} — ${r.projectName}`;
-      document.getElementById("accMetaInfo").textContent = `Provincia: ${r.province} | Potencia: ${r.potenciaKw.toFixed(2)} kWp (${r.potenciaW.toLocaleString()} W) | Índice de costos: ${r.indiceCosto.toFixed(2)} | Tasa Compra: ${r.tasaCompra.toFixed(2)} | Tasa Venta: ${r.tasaVenta.toFixed(2)}`;
-      document.getElementById("accKwpSummary").textContent = `${r.potenciaKw.toFixed(2)} kWp (${r.panelQty}×${r.panelW}W)`;
+      document.getElementById("accMetaInfo").textContent = `Provincia: ${r.province} | Potencia: ${fmtKwp(r.potenciaKw)} kWp (${r.potenciaW.toLocaleString()} W) | Índice de costos: ${r.indiceCosto.toFixed(2)} | Tasa Compra: ${r.tasaCompra.toFixed(2)} | Tasa Venta: ${r.tasaVenta.toFixed(2)}`;
+      document.getElementById("accKwpSummary").textContent = `${fmtKwp(r.potenciaKw)} kWp (${r.panelQty}×${r.panelW}W)`;
       document.getElementById("accEnergySummary").textContent = `${fmtInt(r.kwhMes)} kWh/mes (${(r.kwhMes / 30).toLocaleString("es-DO", { maximumFractionDigits: 1 })}/día) • RD$ ${fmtInt(r.ahorroAnualDop)}/año`;
       document.getElementById("accRoiSummary").textContent = `$${r.costoPorWp.toFixed(2)}/Wp • ${r.roiContado.toFixed(2)}a (${r.roiConLey.toFixed(2)}a)`;
       document.getElementById("accFinSummary").textContent = `RD$ ${fmtInt(r.cuota70)} / RD$ ${fmtInt(r.cuota100)}`;
@@ -2324,7 +2326,7 @@
       const line = `------------------------------------------------------------\n`;
       let t = `INFORME INTERNO (HOJA 1 - CONTABILIDAD) | FREEDOM ENERGY GROUP\n`;
       t += `Cliente: ${r.clientName} | Proyecto: ${r.projectName}\n`;
-      t += `Provincia: ${r.province} (HSP: ${r.hsp}) | Potencia: ${r.potenciaW.toLocaleString()} W (${r.potenciaKw.toFixed(2)} kWp)\n`;
+      t += `Provincia: ${r.province} (HSP: ${r.hsp}) | Potencia: ${r.potenciaW.toLocaleString()} W (${fmtKwp(r.potenciaKw)} kWp)\n`;
       t += `Índice de costos: ${r.indiceCosto} | Tasa Venta: ${r.tasaVenta} | Tasa Compra: ${r.tasaCompra}\n` + line;
       t += `A. EQUIPOS Y MATERIALES:\n`;
       r.equiposList.forEach(i => { t += `• ${i.concepto}: ${i.cant} x ${fmtUSD(i.pu)} = ${fmtUSD(i.pu * i.cant)}\n`; });
