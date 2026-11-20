@@ -204,10 +204,16 @@
                 <label class="block text-xs font-medium text-slate-600 mb-1">Nombre del Cliente</label>
                 <input type="text" id="clientName" value="Patria Brea / Residencial" oninput="recalculateAll()"
                   class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400" />
+                <label class="block text-xs font-medium text-slate-600 mb-1 mt-3">Contrato (NIC)</label>
+                <input type="text" id="contratoNic" value="" inputmode="numeric" placeholder="Ej. 6224826" oninput="scheduleAutosave()"
+                  class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400" />
               </div>
               <div>
                 <label class="block text-xs font-medium text-slate-600 mb-1">Nombre del Proyecto</label>
                 <input type="text" id="projectName" value="Sistema Solar 13 kWp" oninput="recalculateAll()"
+                  class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400" />
+                <label class="block text-xs font-medium text-slate-600 mb-1 mt-3">Consumo máximo mensual (kWh)</label>
+                <input type="text" id="consumoMax" value="" inputmode="decimal" placeholder="Ej. 1773" oninput="scheduleAutosave()"
                   class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400" />
               </div>
             </div>
@@ -280,6 +286,14 @@
             </div>
 
             <div class="grid grid-cols-2 gap-3">
+              <div class="col-span-2">
+                <label class="block text-xs font-medium text-slate-600 mb-1">Marca del panel <span class="text-slate-400 font-normal">(sale en la propuesta y elige su ficha técnica)</span></label>
+                <select id="panelMarca" onchange="scheduleAutosave()"
+                  class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-slate-400">
+                  <option>JINKO Solar</option>
+                  <option>JA Solar</option>
+                </select>
+              </div>
               <div>
                 <label class="block text-xs font-medium text-slate-600 mb-1">Panel (W)</label>
                 <input type="number" id="panelW" value="650" min="100" step="5" oninput="onConfigChange()"
@@ -1546,6 +1560,8 @@
       loadParams();
       document.getElementById("clientName").value = "";
       document.getElementById("projectName").value = "";
+      setDatosCliente({});
+      document.getElementById("panelMarca").value = "JINKO Solar";
       setConsensuadoValue("");
       setBatteryCalc();
       setFormDefaults(10);
@@ -1620,6 +1636,7 @@
         batteryId: document.getElementById("quickBatterySelect").value,
         batteryQty: document.getElementById("quickBatteryQty").value,
         panelW: document.getElementById("panelW").value,
+        panelMarca: document.getElementById("panelMarca").value,
         panelQty: document.getElementById("panelQty").value,
         lineItems: JSON.parse(JSON.stringify(lineItems)),
         params,
@@ -1653,6 +1670,10 @@
       const { clientName, ...optData } = snap;
       prop.clientName = clientName;
       prop.updatedAt = now;
+      prop.datos = Object.assign({}, prop.datos || {}, {
+        contrato: document.getElementById("contratoNic").value.trim(),
+        consumo: document.getElementById("consumoMax").value.trim()
+      });
       let opt = currentOptionId ? prop.options.find(o => o.id === currentOptionId) : null;
       if (!opt) {
         opt = { id: "o_" + Date.now() + Math.floor(Math.random() * 1000), name: `Opción ${prop.options.length + 1}` };
@@ -1694,6 +1715,7 @@
       document.getElementById("quickBatterySelect").value = (q.batteryId === "none" || getBattery(q.batteryId)) ? q.batteryId : "none";
       document.getElementById("quickBatteryQty").value = q.batteryQty;
       document.getElementById("panelW").value = q.panelW;
+      document.getElementById("panelMarca").value = q.panelMarca || "JINKO Solar";
       document.getElementById("panelQty").value = q.panelQty;
       // Las tasas, margen y lista de precio se abren como estaban en esa opción
       if (q.params) {
@@ -1713,6 +1735,11 @@
       recalculateAll();
     }
 
+    function setDatosCliente(d) {
+      d = d || {};
+      document.getElementById("contratoNic").value = d.contrato || "";
+      document.getElementById("consumoMax").value = d.consumo || "";
+    }
     function abrirCotizacion(id) {
       const prop = readQuotes().find(x => x.id === id);
       if (!prop || !prop.options.length) return;
@@ -1722,6 +1749,7 @@
       const opt = prop.options.find(o => o.id === prop.activeOptionId) || prop.options[0];
       currentOptionId = opt.id;
       document.getElementById("clientName").value = prop.clientName || "";
+      setDatosCliente(prop.datos);
       applyOption(opt);
       loadingQuote = false;
       updateQuoteHeader();

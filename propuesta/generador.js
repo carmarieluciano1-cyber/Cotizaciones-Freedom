@@ -14,11 +14,19 @@
   // imagen ya trae el encabezado naranja; si no, se le pone el encabezado.
   // siempre: "paneles" (si hay paneles) | "todos" | "" (según equipos)
   // ---------------------------------------------------------------------
+  // Paneles: sale UNA sola ficha, la de la marca del panel y cuyo rango de vatios incluye los del panel.
+  const FICHAS_VER = 2;
   const FICHAS_DEF = [
-    { id: "ja620", nombre: "Panel JA Solar 620W", cat: 1, paginas: 2, completa: true, siempre: "paneles", equipos: [] },
-    { id: "deye-sg02lp1", nombre: "Inversor Deye SUN-(8-12)K-SG02LP1", cat: 2, paginas: 1, completa: true, siempre: "", equipos: ["inv_deye8", "inv_deye10", "inv_deye12"] },
-    { id: "deye-5-12k-sg05lp2-us", nombre: "Inversor Deye SUN-(5-12)K-SG05LP2-US", cat: 2, paginas: 2, completa: false, siempre: "", equipos: ["inv_deye6"] },
-    { id: "deye-sun76-12k-sg02lp1-ds", nombre: "Inversor Deye SUN-(7.6-12)K-SG02LP1 (US)", cat: 2, paginas: 2, completa: false, siempre: "", equipos: [] },
+    { id: "jinko-66hl4m", nombre: "Panel JINKO Tiger Neo 66HL4M 625-650W", cat: 1, paginas: 2, completa: true, siempre: "panel", marca: "JINKO Solar", wMin: 625, wMax: 650, equipos: [] },
+    { id: "jinko-66ql6", nombre: "Panel JINKO JKM635-670N-66QL6", cat: 1, paginas: 2, completa: false, siempre: "panel", marca: "JINKO Solar", wMin: 635, wMax: 670, equipos: [] },
+    { id: "jinko-78hl4", nombre: "Panel JINKO JKM615-635N-78HL4", cat: 1, paginas: 2, completa: false, siempre: "panel", marca: "JINKO Solar", wMin: 615, wMax: 635, equipos: [] },
+    { id: "jinko-72hl4", nombre: "Panel JINKO JKM550-570N-72HL4", cat: 1, paginas: 2, completa: false, siempre: "panel", marca: "JINKO Solar", wMin: 550, wMax: 570, equipos: [] },
+    { id: "jinko-66hl5", nombre: "Panel JINKO JKM710-735N-66HL5", cat: 1, paginas: 2, completa: false, siempre: "panel", marca: "JINKO Solar", wMin: 710, wMax: 735, equipos: [] },
+    { id: "ja620", nombre: "Panel JA Solar JAM66D45 620W", cat: 1, paginas: 2, completa: true, siempre: "panel", marca: "JA Solar", wMin: 600, wMax: 630, equipos: [] },
+    { id: "ja465", nombre: "Panel JA Solar JAM54D41 465W", cat: 1, paginas: 2, completa: false, siempre: "panel", marca: "JA Solar", wMin: 440, wMax: 470, equipos: [] },
+    { id: "deye-5-12k-sg05lp2-us", nombre: "Inversor Deye SUN-(5-12)K-SG05LP2-US", cat: 2, paginas: 1, completa: true, siempre: "", equipos: ["inv_deye6", "inv_deye8", "inv_deye10", "inv_deye12"] },
+    { id: "deye-sg02lp1", nombre: "Inversor Deye SUN-(8-12)K-SG02LP1 (EU)", cat: 2, paginas: 1, completa: true, siempre: "", equipos: [] },
+    { id: "deye-sun76-12k-sg02lp1-ds", nombre: "Inversor Deye SUN-(7.6-12)K-SG02LP1 (EU)", cat: 2, paginas: 2, completa: false, siempre: "", equipos: [] },
     { id: "deye-sun3-12k-sg05lp3", nombre: "Inversor Deye SUN-(3-12)K-SG05LP3 (trifásico)", cat: 2, paginas: 2, completa: false, siempre: "", equipos: [] },
     { id: "ion-hibrido-5-8k", nombre: "Inversor ION híbrido 5K / 8K", cat: 2, paginas: 2, completa: false, siempre: "", equipos: ["inv_ion5", "inv_ion8"] },
     { id: "ion-lv-us-12k", nombre: "Inversor ION LV-US 12K", cat: 2, paginas: 2, completa: false, siempre: "", equipos: ["inv_ion12"] },
@@ -27,11 +35,15 @@
     { id: "solis-s5-gr1p7-10k", nombre: "Inversor Solis S5-GR1P(7-10)K", cat: 2, paginas: 2, completa: false, siempre: "", equipos: ["inv_sol7", "inv_sol8", "inv_sol9", "inv_sol10"] },
     { id: "solis-s5-gc25-36k", nombre: "Inversor Solis S5-GC(25-36)K", cat: 2, paginas: 2, completa: false, siempre: "", equipos: ["inv_sol30"] },
     { id: "solis-s5-gc50-60k", nombre: "Inversor Solis S5-GC(50-60)K", cat: 2, paginas: 2, completa: false, siempre: "", equipos: ["inv_sol60a", "inv_sol60b"] },
+    { id: "pytes-v16", nombre: "Batería PYTES V16 (16 kWh, pared)", cat: 3, paginas: 2, completa: true, siempre: "", equipos: ["bat_py16"] },
+    { id: "pytes-v10", nombre: "Batería PYTES V10 (10 kWh, pared)", cat: 3, paginas: 2, completa: false, siempre: "", equipos: ["bat_py10"] },
+    { id: "pytes-v5", nombre: "Batería PYTES V5 (5 kWh, rack)", cat: 3, paginas: 2, completa: false, siempre: "", equipos: ["bat_py5"] },
     { id: "soluna10", nombre: "Batería Soluna 10 kWh", cat: 3, paginas: 2, completa: true, siempre: "", equipos: [] },
     { id: "ion-bateria", nombre: "Batería ION de pared 5 kWh", cat: 3, paginas: 2, completa: true, siempre: "", equipos: ["bat_ion_p5"] },
     { id: "estructura", nombre: "Estructura de montaje", cat: 4, paginas: 1, completa: true, siempre: "paneles", equipos: [] },
     { id: "cable", nombre: "Cable solar", cat: 5, paginas: 1, completa: true, siempre: "todos", equipos: [] }
   ];
+  const MARCAS_PANEL = ["JINKO Solar", "JA Solar"];
   const GALERIA_DEF = [
     { id: "proyecto-1", nombre: "Proyecto 1 (plantilla)" },
     { id: "proyecto-2", nombre: "Proyecto 2 (plantilla)" }
@@ -72,6 +84,13 @@
   // ---------------------------------------------------------------------
   function biblio() {
     if (!Array.isArray(settings.fichas)) settings.fichas = [];
+    // Actualización de la biblioteca: las fichas de fábrica toman la configuración nueva
+    if ((settings.fichasVer || 1) < FICHAS_VER) {
+      settings.fichas = settings.fichas.filter(f => !FICHAS_DEF.some(d => d.id === f.id) && f.id !== "ja620");
+      settings.fichas = JSON.parse(JSON.stringify(FICHAS_DEF)).concat(settings.fichas);
+      settings.fichasVer = FICHAS_VER;
+      setTimeout(saveSettings, 0);
+    }
     FICHAS_DEF.forEach(d => { if (!settings.fichas.some(f => f.id === d.id)) settings.fichas.push(JSON.parse(JSON.stringify(d))); });
     if (!Array.isArray(settings.galeria)) settings.galeria = [];
     GALERIA_DEF.forEach(d => { if (!settings.galeria.some(f => f.id === d.id)) settings.galeria.push(Object.assign({}, d)); });
@@ -183,7 +202,23 @@
     if (!bat || !(qty > 0)) return "";
     return `${qty} ${qty === 1 ? "Batería de Litio" : "Baterías de Litio"}\n${nombreEquipo(bat.name, "kWh")}`;
   }
-  const lineaPaneles = (qty, w) => qty > 0 ? `${qty} Paneles Solares\nJA Solar ${w}W` : "";
+  const lineaPaneles = (qty, w, marca) => qty > 0 ? `${qty} Paneles Solares\n${marca || MARCAS_PANEL[0]} ${w}W` : "";
+  const marcaPanelActual = () => { const el = document.getElementById("panelMarca"); return (el && el.value) || MARCAS_PANEL[0]; };
+  // Textos de la página "Descripción del proyecto" (formato de la última propuesta)
+  function marcaEquipo(name) { const w = String(name || "").split(/\s+/)[0]; return /^h[ií]brido$/i.test(w) ? "Solis" : w; }
+  function descInversores(combo) {
+    if (!combo.length) return "";
+    const total = combo.reduce((a, c) => a + c.qty, 0);
+    const hib = combo.every(c => c.inv.type === "hibrido");
+    const tipo = hib ? (total === 1 ? "Inversor Híbrido" : "Inversores Híbridos") : (total === 1 ? "Inversor de inyección" : "Inversores de inyección");
+    const mod = (inv) => `${marcaEquipo(inv.name)} de ${nt(inv.kw)}kW`;
+    return combo.length === 1 ? `${total} ${tipo} ${mod(combo[0].inv)}` : `${total} ${tipo} (${combo.map(c => `${c.qty} ${mod(c.inv)}`).join(" + ")})`;
+  }
+  function descBaterias(bat, qty) {
+    if (!bat || !(qty > 0)) return "";
+    const nom = String(bat.name).replace(/\s+de\s+(?=\d)/i, " ").replace(/(\d+(?:\.\d+)?)\s*K\b/i, "$1kWh");
+    return `${qty} ${qty === 1 ? "Batería de Litio" : "Baterías de Litio"} ${nom}`;
+  }
 
   // Valores de una opción guardada (para la página de Alternativas)
   function resumenOpcion(o) {
@@ -199,7 +234,7 @@
     else titulo = kwh > 0 ? `GENERACIÓN HÍBRIDA DE ${kwp.toFixed(2)} kWp` : "GENERACIÓN HÍBRIDA SIN ALMACENAMIENTO";
     return {
       titulo,
-      paneles: lineaPaneles(panelQty, o.panelW),
+      paneles: lineaPaneles(panelQty, o.panelW, o.panelMarca),
       inversor: lineaInversores(combo),
       bateria: lineaBaterias(bat, bq),
       prod: o.sinGeneracion || !(o.kwhMes > 0) ? "" : `Producción de\n${n2(o.kwhMes)} kWh/Mes`,
@@ -255,7 +290,7 @@
       cuota70: rd(r.cuota70),
       tasaInteres: n2(r.tasaAnual) + "%",
       plazoAnios: Number.isInteger(plazoAnios) ? String(plazoAnios) : plazoAnios.toFixed(1),
-      panelesLinea: lineaPaneles(r.panelQty || 0, r.panelW),
+      panelesLinea: lineaPaneles(r.panelQty || 0, r.panelW, marcaPanelActual()),
       inversorLinea: lineaInversores(combo),
       bateriaLinea: lineaBaterias(bat, batQty),
       dod: nt(dod),
@@ -264,6 +299,18 @@
       salidaKwCover: `${nt(invKw)}kW`,
       salidaKwSp: `${nt(invKw)} kW`
     };
+    const mod0 = r.modalidad || opt.modalidad || "hibrido";
+    if (mod0 === "ongrid") { v.descL1 = `Sistema solar de inyección a red de ${v.kwp}`; v.descL2 = ""; }
+    else if (mod0 === "integracion") { v.descL1 = `Sistema de integración de almacenamiento de ${v.almKwhSp}`; v.descL2 = (r.panelQty || 0) > 0 ? `con ${v.kwp} de paneles solares.` : ""; }
+    else if (almKwh > 0) { v.descL1 = `Sistema solar híbrido de ${v.kwp} con`; v.descL2 = "almacenamiento en baterías."; }
+    else { v.descL1 = `Sistema solar híbrido de ${v.kwp}`; v.descL2 = "sin almacenamiento en baterías."; }
+    const filas = [];
+    if ((r.panelQty || 0) > 0) filas.push({ k: "paneles", t: `${r.panelQty} Paneles Solares ${marcaPanelActual()} ${r.panelW}W` });
+    if (combo.length) filas.push({ k: "inversor", t: descInversores(combo) });
+    if (bat && batQty > 0) filas.push({ k: "bateria", t: descBaterias(bat, batQty) });
+    filas.push({ k: "cable", t: "Cablería y canalizaciones", sub: "Certificadas" });
+    filas.push({ k: "protecciones", t: "Protecciones Eléctricas", sub: "Certificadas" });
+    filas.push({ k: "instalacion", t: "Instalación y puesta en funcionamiento" });
     [0, 1, 2, 3].forEach(k => {
       v["cons" + (k + 1)] = cons[k] > 0 ? `${nt(cons[k])} kW` : "";
       v["h" + (k + 1)] = horas[k] > 0 ? `${nt(horas[k])} HORAS` : "";
@@ -278,13 +325,25 @@
     const panelQty = r.panelQty || 0;
 
     return {
+      filasDesc: filas, panelW: r.panelW, marcaPanel: marcaPanelActual(),
       prop, opt, r, datos, v, otras, almKwh, panelQty, equipos,
       modalidad: r.modalidad || opt.modalidad || "hibrido",
       doc: Object.assign({ pag: {}, edits: {}, fichas: {}, galeria: null }, opt.doc || {})
     };
   }
 
+  // La ficha del panel: la de su marca cuyo rango incluye los vatios (si ninguna, la de rango más cercano)
+  function fichaPanelId(ctx) {
+    if (!(ctx.panelQty > 0)) return null;
+    const W = Number(ctx.panelW) || 0;
+    const marca = String(ctx.marcaPanel || "").toLowerCase();
+    const cands = settings.fichas.filter(f => f.siempre === "panel" && String(f.marca || "").toLowerCase() === marca);
+    if (!cands.length) return null;
+    const dist = (f) => W < f.wMin ? f.wMin - W : W > f.wMax ? W - f.wMax : 0;
+    return cands.slice().sort((a, b) => dist(a) - dist(b))[0].id;
+  }
   function fichaAuto(f, ctx) {
+    if (f.siempre === "panel") return f.id === ctx.fichaPanel;
     if (f.siempre === "todos") return true;
     if (f.siempre === "paneles") return ctx.panelQty > 0;
     return (f.equipos || []).some(id => ctx.equipos.has(id));
@@ -406,7 +465,32 @@
       extra += `<div style="position:absolute;${rect(z.tarjeta2, "background:#fff")}"></div>`;
       filtro = (b) => b.y < y0;
     }
+    if (tplKey === "d1") extra += filasDescripcion(ctx, p.id);
     return `<div class="pp-page" data-id="${esc(p.id)}"><img class="pp-bg" src="${BASE}bg/${pg.bg}" alt="">${extra}${bloquesPagina(tplKey, p.id, ctx, filtro)}</div>`;
+  }
+
+  // Filas de la descripción: ícono + barra naranja + texto, una debajo de otra
+  function bloquesFilas(ctx) {
+    const F = TPL.filasDesc, T = F.texto;
+    let y = F.base[0];
+    const out = [];
+    ctx.filasDesc.forEach(f => {
+      out.push({ k: f.k, y, b: { id: "fila_" + f.k, x: T.x - 2.2, y, w: 380, size: T.size, family: "Montserrat", weight: T.weight, color: T.color, align: "left", lh: T.size * 1.2, text: "", f: "→" + f.t, fa: "l" } });
+      if (f.sub) out.push({ b: { id: "sub_" + f.k, x: T.x, y: y + T.sub.dy, w: 70, size: T.sub.size, family: "Montserrat", weight: T.sub.weight, color: T.sub.color, align: "left", lh: T.sub.size * 1.2, text: f.sub } });
+      y += F.gap[f.k] || 52;
+    });
+    return out;
+  }
+  function filasDescripcion(ctx, pagId) {
+    const F = TPL.filasDesc;
+    const ed = ctx.doc.edits[pagId] || {};
+    return bloquesFilas(ctx).map(x => {
+      let h = "";
+      if (x.k) { const ic = F.iconos[x.k]; h += `<img src="${BASE}desc/${x.k}.jpg" alt="" style="position:absolute;left:${ic.x}pt;top:${x.y + ic.y}pt;width:${ic.w}pt;height:${ic.h}pt">`; }
+      const auto = !!x.b.f, def = auto ? x.b.f : x.b.text;
+      const editado = Object.prototype.hasOwnProperty.call(ed, x.b.id);
+      return h + htmlBloque(x.b, editado ? ed[x.b.id] : def, auto, editado, pagId);
+    }).join("");
   }
 
   // Pone cada texto en su línea base exacta (como en la plantilla)
@@ -553,7 +637,8 @@
     let tplKey;
     if (pagId.startsWith("ficha:")) tplKey = "c15";
     else { const p = (ctx.paginas || []).find(x => x.id === pagId); tplKey = p && p.key; }
-    const b = tplKey && TPL.paginas[tplKey].blocks.find(x => x.id === bId);
+    let b = tplKey && TPL.paginas[tplKey].blocks.find(x => x.id === bId);
+    if (!b && tplKey === "d1") { const x = bloquesFilas(ctx).find(z => z.b.id === bId); b = x && x.b; }
     if (!b) return null;
     return b.f ? textoAuto(b, ctx.v) : b.text;
   }
@@ -683,6 +768,7 @@
     const turno = ++dibujando;
     const ctx = construirContexto();
     if (!ctx) { cerrar(); return; }
+    ctx.fichaPanel = fichaPanelId(ctx);
     ctx.paginas = listaPaginas(ctx);
     ultimoCtx = ctx;
     const scroll = $("ppSide").scrollTop;
@@ -749,7 +835,12 @@
     cambiarDoc(doc => { doc.galeria = sel; });
     dibujar();
   }
-  function setDato(k, v) { cambiarDatos(d => { d[k] = String(v || "").trim(); }); dibujar(); }
+  function setDato(k, v) {
+    cambiarDatos(d => { d[k] = String(v || "").trim(); });
+    const campo = { contrato: "contratoNic", consumo: "consumoMax" }[k];
+    if (campo && $(campo)) $(campo).value = String(v || "").trim();
+    dibujar();
+  }
   function restaurarTodo() {
     if (!confirm("¿Volver todos los textos a como los pone el cotizador? Se pierden los cambios hechos a mano en esta opción.")) return;
     cambiarDoc(doc => { doc.edits = {}; });
@@ -845,7 +936,12 @@
     const filas = settings.fichas.slice().sort((a, b) => (a.cat || 6) - (b.cat || 6)).map(f => {
       const idx = settings.fichas.indexOf(f);
       const eq = (f.equipos || []).map(id => { const e = equiposOpts.find(x => x.id === id); return e ? `<span class="${chip}">${esc(e.nombre)}<button type="button" onclick="FEGPropuesta.quitarEquipo(${idx}, '${esc(id)}')" class="font-bold text-orange-400 hover:text-rose-600">&times;</button></span>` : ""; }).join(" ");
-      const regla = f.siempre === "todos" ? "Siempre" : f.siempre === "paneles" ? "Siempre que haya paneles" : "";
+      const regla = f.siempre === "todos" ? "Siempre" : f.siempre === "paneles" ? "Siempre que haya paneles" : f.siempre === "panel" ? "panel" : "";
+      const inp = "w-16 px-1.5 py-1 text-[11px] text-center bg-white border border-slate-200 rounded-md";
+      const panelCfg = f.siempre === "panel" ? `<span class="text-[11px] text-slate-500">marca</span>
+          <select onchange="FEGPropuesta.setFichaCampo(${idx}, 'marca', this.value)" class="px-2 py-1 text-[11px] bg-white border border-slate-200 rounded-md">${MARCAS_PANEL.concat((f.marca && !MARCAS_PANEL.includes(f.marca)) ? [f.marca] : []).map(m => `<option ${m === f.marca ? "selected" : ""}>${esc(m)}</option>`).join("")}</select>
+          <span class="text-[11px] text-slate-500">de</span><input type="number" value="${f.wMin || 0}" onchange="FEGPropuesta.setFichaCampo(${idx}, 'wMin', this.value)" class="${inp}">
+          <span class="text-[11px] text-slate-500">a</span><input type="number" value="${f.wMax || 0}" onchange="FEGPropuesta.setFichaCampo(${idx}, 'wMax', this.value)" class="${inp}"><span class="text-[11px] text-slate-500">W</span>` : "";
       return `<div class="py-2.5 border-b border-slate-100">
         <div class="flex items-center gap-2">
           <input type="text" value="${esc(f.nombre)}" onchange="FEGPropuesta.renombrarFicha(${idx}, this.value)" class="flex-1 min-w-0 px-2 py-1 text-xs font-semibold text-slate-800 bg-transparent border border-transparent hover:border-slate-200 focus:border-slate-300 rounded-md focus:outline-none" />
@@ -857,7 +953,9 @@
             <option value="" ${!f.siempre ? "selected" : ""}>Sale con estos equipos:</option>
             <option value="paneles" ${f.siempre === "paneles" ? "selected" : ""}>Sale siempre que haya paneles</option>
             <option value="todos" ${f.siempre === "todos" ? "selected" : ""}>Sale siempre</option>
+            <option value="panel" ${f.siempre === "panel" ? "selected" : ""}>Es ficha de panel:</option>
           </select>
+          ${panelCfg}
           ${regla ? "" : eq}
           ${regla ? "" : `<select onchange="FEGPropuesta.agregarEquipo(${idx}, this.value); this.value=''" class="px-2 py-1 text-[11px] bg-white border border-dashed border-slate-300 rounded-md text-slate-500">
             <option value="">+ equipo</option>
@@ -905,7 +1003,8 @@
     togglePagina, toggleFicha, toggleFoto, setDato, restaurarTodo,
     subirFactura, quitarFactura, subirFicha, subirFotos, borrarFoto,
     renombrarFicha(i, v) { settings.fichas[i].nombre = String(v).trim() || settings.fichas[i].nombre; trasCambioFicha(); },
-    setSiempre(i, v) { settings.fichas[i].siempre = v; trasCambioFicha(); },
+    setFichaCampo(i, k, v) { const f = settings.fichas[i]; f[k] = k === "marca" ? v : (parseFloat(v) || 0); if (k === "marca" && !f.cat) f.cat = 1; trasCambioFicha(); },
+    setSiempre(i, v) { const f = settings.fichas[i]; f.siempre = v; if (v === "panel" && !f.marca) { f.marca = MARCAS_PANEL[0]; f.wMin = 0; f.wMax = 9999; f.cat = 1; } trasCambioFicha(); },
     agregarEquipo(i, id) { if (!id) return; const f = settings.fichas[i]; f.equipos = (f.equipos || []).concat(id); trasCambioFicha(); },
     quitarEquipo(i, id) { const f = settings.fichas[i]; f.equipos = (f.equipos || []).filter(x => x !== id); trasCambioFicha(); },
     borrarFicha(i) {
