@@ -1006,14 +1006,17 @@
         { id: "bat_py16",    group: "PYTES", name: "PYTES 16K",              kwh: 16, price: 2708.10 }
       ],
 
-      // Estructura: costo fijo POR PANEL según el tipo
+      // Estructura: precio POR PANEL según el tipo y la cantidad de paneles (tabla de Freedom).
+      // Se toma la fila igual o mayor a la cantidad de paneles; con más de 30 se usa la de 30.
+      structureCounts: [4, 8, 12, 16, 20, 24, 30],
+      structuresVer: 2,
       structures: [
-        { name: "Plano / Concreto",             price: 45.5341 },
-        { name: "Plano / Aluzinc",              price: 38.572 },
-        { name: "Al Ras / Concreto",            price: 36.4331 },
-        { name: "Al Ras / Aluzinc",             price: 29.471 },
-        { name: "Alto / Bajo Perfil / Concreto", price: 54.6355 },
-        { name: "Alto / Bajo Perfil / Aluzinc",  price: 47.673 }
+        { name: "Plano / Concreto",              price: 48.22, tabla: [59.94, 48.31, 44.43, 48.22, 43.98, 42.82, 43.98] },
+        { name: "Plano / Aluzinc",               price: 38.97, tabla: [41.44, 39.06, 38.26, 38.97, 36.58, 36.65, 36.58] },
+        { name: "Al Ras / Concreto",             price: 38.55, tabla: [50.26, 38.63, 34.76, 38.55, 36.24, 34.76, 36.24] },
+        { name: "Al Ras / Aluzinc",              price: 29.30, tabla: [31.76, 29.38, 28.59, 29.30, 28.84, 28.59, 28.84] },
+        { name: "Alto / Bajo Perfil / Concreto", price: 57.89, tabla: [69.61, 57.98, 54.11, 57.89, 51.72, 50.88, 51.72] },
+        { name: "Alto / Bajo Perfil / Aluzinc",  price: 48.64, tabla: [51.11, 48.73, 47.94, 48.64, 44.32, 44.71, 44.32] }
       ],
 
       // Eléctricos híbridos: precio completo, precio integración (-25%) y bypass para 2+ equipos
@@ -1134,6 +1137,13 @@
             setTimeout(saveSettings, 0);
           }
         }
+        // Estructura por cantidad de paneles (nov 2026): se cargan una sola vez las tablas nuevas
+        if ((settings.structuresVer || 1) < EXCEL_SETTINGS.structuresVer) {
+          settings.structures = JSON.parse(JSON.stringify(EXCEL_SETTINGS.structures));
+          settings.structureCounts = EXCEL_SETTINGS.structureCounts.slice();
+          settings.structuresVer = EXCEL_SETTINGS.structuresVer;
+          setTimeout(saveSettings, 0);
+        }
         settings.provinces.forEach(p => { if (p.indexIntegracion === undefined || p.indexIntegracion === null) p.indexIntegracion = calcIndexIntegracion(p.indexHibrido); });
         // Capacidad (kWh) de cada batería: si falta, se toma del nombre (ej. "PYTES 16K" = 16 kWh)
         settings.batteries.forEach(b => { if (b.kwh === undefined || b.kwh === null) { const m = String(b.name).match(/(\d+(?:\.\d+)?)\s*K/i); b.kwh = m ? Number(m[1]) : 0; } });
@@ -1212,6 +1222,19 @@
     }
 
     // Transporte y viáticos según provincia y cantidad de paneles
+    // Precio por panel de la estructura según la cantidad de paneles
+    function structureRow(panelQty) {
+      const c = settings.structureCounts || [];
+      let i = c.findIndex(n => Number(n) >= panelQty);
+      if (i < 0) i = c.length - 1;
+      return i;
+    }
+    function structurePrice(stDef, panelQty) {
+      const i = structureRow(panelQty);
+      const v = stDef && Array.isArray(stDef.tabla) ? Number(stDef.tabla[i]) : NaN;
+      return v > 0 ? v : (Number(stDef && stDef.price) || 0);
+    }
+
     function computeLogisticsByRules(provinceName, panelQty) {
       const prov = getProvince(provinceName);
       const L = settings.logistics;
@@ -1375,7 +1398,7 @@
       const batQty = bat ? (parseInt(document.getElementById("quickBatteryQty").value, 10) || 0) : 0;
 
       const stDef = settings.structures[stIdx] || settings.structures[0];
-      const st = { price: Number(stDef.price) || 0 };
+      const st = { price: structurePrice(stDef, panelQty) };
       const log = computeLogisticsByRules(province, panelQty);
       const elec = computeElectrical(combo, batQty, document.getElementById("modalidadSelect").value);   // usa la modalidad actual
 
@@ -1393,12 +1416,17 @@
       // Inyección: medidor Emporia
       if (modalidad === "ongrid") items.push(eq({ role: "emporia", concepto: "Emporia V3 (medidor)", pu: Number(settings.rules.emporiaPrecio) || 0, cant: 1 }));
       // Sin paneles no hay materiales de estructura
-      if (panelQty > 0) items.push(eq({ role: "structure", concepto: `Estructura: ${stDef.name}`, pu: st.price, cant: panelQty }));
+      if (panelQty > 0) items.push(eq({ role: "structure", concepto: `Estructura: ${stDef.name} (tabla ${(settings.structureCounts || [])[structureRow(panelQty)] || ""} paneles)`, pu: st.price, cant: panelQty }));
       // Integración de almacenamiento: no lleva sometimiento
       if (modalidad !== "integracion") items.push(ad({ role: "sometimiento", concepto: "Sometimiento / Trámites", pu: Number(settings.logistics.sometimiento), cant: 1 }));
       items.push(ad({ role: "transport", concepto: log.transportLabel, pu: log.transportCost, cant: 1 }));
       items.push(ad({ role: "viaticos", concepto: log.viaticosLabel, pu: log.viaticosRate, cant: log.viaticosDays }));
       customs.forEach(c => items.push(Object.assign({}, c, { id: id++ })));
+      // Precios escritos a mano en esta cotización (ej. embarrado): se conservan al recalcular
+      const manual = {};
+      const mkey = (o) => ["elec_emb", "elec_pb", "sometimiento", "emporia"].includes(o.role) ? o.role : o.role + "|" + o.concepto;
+      lineItems.forEach(o => { if (o.puManual && o.role !== "custom") manual[mkey(o)] = o.pu; });
+      items.forEach(it => { const k = mkey(it); if (k in manual) { it.pu = manual[k]; it.puManual = true; it.pending = false; } });
       lineItems = items;
 
       document.getElementById("panelOver100Alert").classList.toggle("hidden", !log.over100);
@@ -1435,6 +1463,8 @@
       onConfigChange();
     }
     function reapplyLogisticsRules(notifyUser) {
+      // El botón de recalcular vuelve todos los precios a los de las reglas
+      if (notifyUser) lineItems.forEach(o => { delete o.puManual; });
       onConfigChange();
       if (notifyUser) showToast("Equipos, eléctricos, estructura, transporte y viáticos recalculados", "success");
     }
@@ -1445,6 +1475,14 @@
     function updateLineField(idx, field, value) {
       if (!lineItems[idx]) return;
       lineItems[idx][field] = value;
+      if (field === "pu") {
+        const it = lineItems[idx];
+        it.puManual = true;
+        // Embarrado / Panel Board sin precio en las reglas: el precio escrito queda guardado para las próximas cotizaciones
+        const regla = { elec_emb: "embPrecio", elec_pb: "pbPrecio" }[it.role];
+        if (regla && value > 0 && !(Number(settings.rules[regla]) > 0)) { settings.rules[regla] = value; saveSettings(); showToast("Precio guardado también en Precios y Reglas para las próximas cotizaciones", "success"); }
+        if (value > 0) it.pending = false;
+      }
       if (field === "pu" || field === "cant") {
         const cell = document.getElementById(`lineTotal_${idx}`);
         if (cell) cell.textContent = fmtUSD((lineItems[idx].pu || 0) * (lineItems[idx].cant || 0));
@@ -2394,9 +2432,12 @@
           <label>Precio por vatio (US$/W)${numIn("panel.pricePerW", S.panel.pricePerW, "0.001")}</label></div>
          <p class="text-[11px] text-slate-500 mt-2">Precio del panel = vatios × US$/W. Ej.: 650 W × $${S.panel.pricePerW} = ${fmtUSD(650 * S.panel.pricePerW)}.</p>`);
 
-      html += card("Estructura: costo por panel (US$)", "Precio fijo por panel según el tipo de estructura.",
-        `<table class="w-full text-xs max-w-md"><thead><tr>${th("Tipo de estructura")}${th("US$ por panel", "w-28")}</tr></thead><tbody>` +
-        S.structures.map((s, i) => `<tr>${td(txtIn(`structures.${i}.name`, s.name))}${td(numIn(`structures.${i}.price`, s.price, "0.0001"))}</tr>`).join("") +
+      const SC = S.structureCounts || [];
+      const smallIn = "w-full px-1.5 py-1 text-xs text-right bg-white border border-slate-200 rounded-md focus:outline-none focus:border-orange-300";
+      html += card("Estructura: precio por panel (US$) según la cantidad de paneles", "Se usa la fila igual o mayor a los paneles de la cotización (ej. 10 paneles → fila de 12). Con más paneles que la última fila, se usa la última.",
+        `<table class="w-full text-xs"><thead><tr>${th("Paneles", "w-16")}${S.structures.map(st => th(escapeHtml(st.name), "text-right")).join("")}</tr></thead><tbody>` +
+        SC.map((n, r) => `<tr>${td(`<input type="number" step="1" value="${n}" onchange="setSetting('structureCounts.${r}', this.value, 'num')" class="${smallIn} text-center font-semibold" />`)}` +
+          S.structures.map((st, i) => td(`<input type="number" step="0.01" value="${(st.tabla || [])[r] ?? ""}" oninput="setStructurePrice(${i}, ${r}, this.value)" class="${smallIn}" />`)).join("") + `</tr>`).join("") +
         `</tbody></table>`);
 
       // Inversores
@@ -2510,6 +2551,12 @@
     }
 
     // Viáticos: editar, agregar y quitar rangos
+    function setStructurePrice(i, r, val) {
+      const st = settings.structures[i];
+      st.tabla = Array.isArray(st.tabla) ? st.tabla : [];
+      st.tabla[r] = parseFloat(val) || 0;
+      saveSettings();
+    }
     function setViaticoRow(i, field, val) {
       settings.logistics.viaticosDias[i][field] = Math.max(0, parseInt(val, 10) || 0);
       settings.logistics.viaticosDias.sort((a, b) => a.hasta - b.hasta);
