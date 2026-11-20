@@ -1006,16 +1006,35 @@
         { id: "bat_py16",    group: "PYTES", name: "PYTES 16K",              kwh: 16, price: 2708.10 }
       ],
 
-      // Estructura: costo fijo POR PANEL según el tipo
-      structuresVer: 3,
+      // Estructura (Excel "Molde Estructura"): materiales en RD$ con cantidades según los paneles.
+      // La porción depende del tipo: angulares → alto/bajo perfil 1, plano 0.5, al ras 0;
+      // uretano → aluzinc 1; resina y sella techo → concreto 1. Subtotal US$ = subtotal RD$ ÷ tasa de compra.
+      structuresVer: 4,
       structures: [
-        { name: "Plano / Concreto",             price: 45.5341 },
-        { name: "Plano / Aluzinc",              price: 38.572 },
-        { name: "Al Ras / Concreto",            price: 36.4331 },
-        { name: "Al Ras / Aluzinc",             price: 29.471 },
-        { name: "Alto / Bajo Perfil / Concreto", price: 54.6355 },
-        { name: "Alto / Bajo Perfil / Aluzinc",  price: 47.673 }
+        { name: "Plano / Concreto",              perfil: "plano", techo: "concreto" },
+        { name: "Plano / Aluzinc",               perfil: "plano", techo: "aluzinc" },
+        { name: "Al Ras / Concreto",             perfil: "ras",   techo: "concreto" },
+        { name: "Al Ras / Aluzinc",              perfil: "ras",   techo: "aluzinc" },
+        { name: "Alto / Bajo Perfil / Concreto", perfil: "alto",  techo: "concreto" },
+        { name: "Alto / Bajo Perfil / Aluzinc",  perfil: "alto",  techo: "aluzinc" }
       ],
+      estructura: {
+        porcionAngular: { alto: 1, plano: 0.5, ras: 0 },
+        materiales: [
+          { id: "ang22",   name: "Angular 2 x 2",            precio: 2608 },
+          { id: "ang15",   name: "Angular 1.5x1.5",          precio: 1784 },
+          { id: "riel",    name: "Riel 5.2 Mts",             precio: 2025 },
+          { id: "uretano", name: "Urethano",                 precio: 1000 },
+          { id: "resina",  name: "Resina Epóxica Anclaje",   precio: 2200 },
+          { id: "sella",   name: "Sella Techo",              precio: 3000 },
+          { id: "tornL",   name: "Tornillo L 2 1/2 x 5/16",  precio: 30 },
+          { id: "mid",     name: "MidClamps",                precio: 80 },
+          { id: "end",     name: "Endclamp",                 precio: 80 },
+          { id: "tierra",  name: "Conector de tierra",       precio: 80 },
+          { id: "lfoot",   name: "L Foot",                   precio: 80 },
+          { id: "torn34",  name: "Tornillo 3/4x5/16",        precio: 10 }
+        ]
+      },
 
       // Eléctricos híbridos: precio completo, precio integración (-25%) y bypass para 2+ equipos
       elecHibrido: [
@@ -1135,13 +1154,15 @@
             setTimeout(saveSettings, 0);
           }
         }
-        // Se quitó la tabla de estructura por cantidad de paneles: vuelven los precios fijos por panel
-        if (settings.structuresVer === 2) {
+        // Estructura calculada por materiales (como el Excel "Molde Estructura"): se carga una sola vez
+        if ((settings.structuresVer || 1) < EXCEL_SETTINGS.structuresVer) {
           settings.structures = JSON.parse(JSON.stringify(EXCEL_SETTINGS.structures));
+          settings.estructura = JSON.parse(JSON.stringify(EXCEL_SETTINGS.estructura));
           delete settings.structureCounts;
           settings.structuresVer = EXCEL_SETTINGS.structuresVer;
           setTimeout(saveSettings, 0);
         }
+        if (!settings.estructura) settings.estructura = JSON.parse(JSON.stringify(EXCEL_SETTINGS.estructura));
         settings.provinces.forEach(p => { if (p.indexIntegracion === undefined || p.indexIntegracion === null) p.indexIntegracion = calcIndexIntegracion(p.indexHibrido); });
         // Capacidad (kWh) de cada batería: si falta, se toma del nombre (ej. "PYTES 16K" = 16 kWh)
         settings.batteries.forEach(b => { if (b.kwh === undefined || b.kwh === null) { const m = String(b.name).match(/(\d+(?:\.\d+)?)\s*K/i); b.kwh = m ? Number(m[1]) : 0; } });
@@ -1220,6 +1241,60 @@
     }
 
     // Transporte y viáticos según provincia y cantidad de paneles
+    // ESTRUCTURA: misma lógica del Excel "Molde Estructura"
+    const ceilX = (x) => Math.ceil(x - 1e-9);
+    const FORMULAS_ESTRUCTURA = {
+      ang22:   { txt: "redondear arriba(paneles ÷ 5)",        q: (n) => ceilX(n / 5) },
+      ang15:   { txt: "redondear arriba(paneles ÷ 5)",        q: (n) => ceilX(n / 5) },
+      riel:    { txt: "redondear arriba(paneles ÷ 2)",        q: (n) => ceilX(n / 2) },
+      uretano: { txt: "redondear arriba(paneles ÷ 12)",       q: (n) => ceilX(n / 12) },
+      resina:  { txt: "redondear arriba(paneles ÷ 12)",       q: (n) => ceilX(n / 12) },
+      sella:   { txt: "redondear arriba(paneles ÷ 12)",       q: (n) => ceilX(n / 12) },
+      tornL:   { txt: "rieles × 4",                           q: (n) => ceilX(n / 2) * 4 },
+      mid:     { txt: "paneles × 2",                          q: (n) => n * 2 },
+      end:     { txt: "redondear arriba(paneles ÷ 5 × 4)",    q: (n) => ceilX(n / 5 * 4) },
+      tierra:  { txt: "igual que los rieles",                 q: (n) => ceilX(n / 2) },
+      lfoot:   { txt: "rieles × 4",                           q: (n) => ceilX(n / 2) * 4 },
+      torn34:  { txt: "paneles × 4",                          q: (n) => n * 4 }
+    };
+    function porcionMaterial(id, tipo) {
+      const E = settings.estructura || EXCEL_SETTINGS.estructura;
+      if (id === "ang22" || id === "ang15") return Number((E.porcionAngular || {})[tipo.perfil]) || 0;
+      if (id === "uretano") return tipo.techo === "aluzinc" ? 1 : 0;
+      if (id === "resina" || id === "sella") return tipo.techo === "concreto" ? 1 : 0;
+      return 1;
+    }
+    // Devuelve { filas, totalDop, totalUsd, porPanel }
+    function calcularEstructura(tipo, panelQty, tasaCompra) {
+      const E = settings.estructura || EXCEL_SETTINGS.estructura;
+      const n = Math.max(0, parseInt(panelQty, 10) || 0);
+      const filas = (E.materiales || []).map(m => {
+        const f = FORMULAS_ESTRUCTURA[m.id];
+        const cant = f ? f.q(n) : 0;
+        const porcion = tipo ? porcionMaterial(m.id, tipo) : 1;
+        return { name: m.name, cant, precio: Number(m.precio) || 0, porcion, subtotal: cant * (Number(m.precio) || 0) * porcion };
+      });
+      const totalDop = filas.reduce((a, f) => a + f.subtotal, 0);
+      const t = Number(tasaCompra) || 0;
+      const totalUsd = t > 0 ? totalDop / t : 0;
+      return { filas, totalDop, totalUsd, porPanel: n > 0 ? totalUsd / n : 0 };
+    }
+    function estructuraRefHtml() {
+      const tc = tasaCompraActual();
+      return `<table class="w-full text-xs"><thead><tr>${th("Paneles", "w-16")}${settings.structures.map(st => th(escapeHtml(st.name), "text-right")).join("")}</tr></thead><tbody>` +
+        [4, 8, 12, 16, 20, 24, 30].map(n => `<tr class="border-t border-slate-100">${td(`<strong class="text-slate-800">${n}</strong>`)}${settings.structures.map(st => { const c = calcularEstructura(st, n, tc); return td(`<span class="block text-right font-semibold text-slate-900">${fmtUSD(c.totalUsd)}</span><span class="block text-right text-[10px] text-slate-500">${fmtUSD(c.porPanel)}/panel</span>`); }).join("")}</tr>`).join("") +
+        `</tbody></table>`;
+    }
+    const tasaCompraActual = () => parseFloat(document.getElementById("tasaCompra").value) || 56.75;
+    // Si cambia la tasa de compra, se recalcula la línea de estructura de la cotización abierta
+    function refreshStructureLine() {
+      const it = lineItems.find(i => i.role === "structure");
+      if (!it || it.puManual) return;
+      const tipo = settings.structures[parseInt(document.getElementById("quickStructureSelect").value, 10) || 0] || settings.structures[0];
+      it.pu = calcularEstructura(tipo, parseInt(document.getElementById("panelQty").value, 10) || 0, tasaCompraActual()).totalUsd;
+      renderQuotePrices();
+    }
+
     function computeLogisticsByRules(provinceName, panelQty) {
       const prov = getProvince(provinceName);
       const L = settings.logistics;
@@ -1383,7 +1458,7 @@
       const batQty = bat ? (parseInt(document.getElementById("quickBatteryQty").value, 10) || 0) : 0;
 
       const stDef = settings.structures[stIdx] || settings.structures[0];
-      const st = { price: Number(stDef.price) || 0 };
+      const st = calcularEstructura(stDef, panelQty, tasaCompraActual());
       const log = computeLogisticsByRules(province, panelQty);
       const elec = computeElectrical(combo, batQty, document.getElementById("modalidadSelect").value);   // usa la modalidad actual
 
@@ -1401,7 +1476,7 @@
       // Inyección: medidor Emporia
       if (modalidad === "ongrid") items.push(eq({ role: "emporia", concepto: "Emporia V3 (medidor)", pu: Number(settings.rules.emporiaPrecio) || 0, cant: 1 }));
       // Sin paneles no hay materiales de estructura
-      if (panelQty > 0) items.push(eq({ role: "structure", concepto: `Estructura: ${stDef.name}`, pu: st.price, cant: panelQty }));
+      if (panelQty > 0) items.push(eq({ role: "structure", concepto: `Estructura: ${stDef.name} (materiales para ${panelQty} paneles)`, pu: st.totalUsd, cant: 1 }));
       // Integración de almacenamiento: no lleva sometimiento
       if (modalidad !== "integracion") items.push(ad({ role: "sometimiento", concepto: "Sometimiento / Trámites", pu: Number(settings.logistics.sometimiento), cant: 1 }));
       items.push(ad({ role: "transport", concepto: log.transportLabel, pu: log.transportCost, cant: 1 }));
@@ -2038,6 +2113,7 @@
     }
     function onParamChange() {
       saveParams();
+      refreshStructureLine();
       const usd = document.getElementById("precioConsensuado").value;
       if (usd !== "") setConsensuadoValue(usd);
       recalculateAll();
@@ -2417,10 +2493,29 @@
           <label>Precio por vatio (US$/W)${numIn("panel.pricePerW", S.panel.pricePerW, "0.001")}</label></div>
          <p class="text-[11px] text-slate-500 mt-2">Precio del panel = vatios × US$/W. Ej.: 650 W × $${S.panel.pricePerW} = ${fmtUSD(650 * S.panel.pricePerW)}.</p>`);
 
-      html += card("Estructura: costo por panel (US$)", "Precio fijo por panel según el tipo de estructura.",
-        `<table class="w-full text-xs max-w-md"><thead><tr>${th("Tipo de estructura")}${th("US$ por panel", "w-28")}</tr></thead><tbody>` +
-        S.structures.map((s, i) => `<tr>${td(txtIn(`structures.${i}.name`, s.name))}${td(numIn(`structures.${i}.price`, s.price, "0.0001"))}</tr>`).join("") +
-        `</tbody></table>`);
+      // Estructura por materiales (como el Excel)
+      const E = S.estructura;
+      const tc = tasaCompraActual();
+      const smallIn = "w-full px-1.5 py-1 text-xs text-right bg-white border border-slate-200 rounded-md focus:outline-none focus:border-orange-300";
+      html += card("Estructura: materiales (RD$)", `Igual que el Excel "Molde Estructura". La cantidad de cada material sale de los paneles; la porción depende del tipo de estructura. Total US$ = total RD$ ÷ tasa de compra (${fmtTasa(tc)}).`,
+        `<table class="w-full text-xs"><thead><tr>${th("Material")}${th("Cantidad según los paneles")}${th("Precio RD$", "w-24")}${th("Porción", "w-40")}</tr></thead><tbody>` +
+        E.materiales.map((m, i) => {
+          const f = FORMULAS_ESTRUCTURA[m.id];
+          const por = (m.id === "ang22" || m.id === "ang15") ? "Alto/bajo perfil, plano o al ras (abajo)" : m.id === "uretano" ? "1 en aluzinc, 0 en concreto" : (m.id === "resina" || m.id === "sella") ? "1 en concreto, 0 en aluzinc" : "1 (siempre)";
+          return `<tr>${td(`<span class="font-medium text-slate-800">${escapeHtml(m.name)}</span>`)}${td(`<span class="text-slate-500">${f ? f.txt : ""}</span>`)}${td(numIn(`estructura.materiales.${i}.precio`, m.precio, "1"))}${td(`<span class="text-[11px] text-slate-500">${por}</span>`)}</tr>`;
+        }).join("") +
+        `</tbody></table>
+        <div class="flex flex-wrap items-center gap-3 mt-3 text-xs text-slate-600"><span class="font-semibold text-slate-800">Porción de los angulares:</span>
+          <label class="flex items-center gap-1">Alto / bajo perfil <span class="w-16">${numIn("estructura.porcionAngular.alto", E.porcionAngular.alto, "0.1")}</span></label>
+          <label class="flex items-center gap-1">Plano <span class="w-16">${numIn("estructura.porcionAngular.plano", E.porcionAngular.plano, "0.1")}</span></label>
+          <label class="flex items-center gap-1">Al ras <span class="w-16">${numIn("estructura.porcionAngular.ras", E.porcionAngular.ras, "0.1")}</span></label></div>`);
+      html += card("Estructura: precio que sale (US$)", `Total de la estructura según los paneles, con la tasa de compra ${fmtTasa(tc)}. Debajo, lo que sale por panel. Es solo de referencia: la cotización lo calcula con sus propios paneles.`,
+        `<div id="estrRef">${estructuraRefHtml()}</div>
+        <p class="mt-4 mb-1 text-xs font-semibold text-slate-800">Qué es cada tipo de estructura</p><div class="text-xs text-slate-600 grid grid-cols-1 gap-2 max-w-lg">` +
+        S.structures.map((st, i) => `<label class="flex items-center gap-2"><span class="flex-1">${escapeHtml(st.name)}</span>
+          ${selIn(`structures.${i}.perfil`, st.perfil, [["alto", "Alto/bajo perfil"], ["plano", "Plano"], ["ras", "Al ras"]])}
+          ${selIn(`structures.${i}.techo`, st.techo, [["concreto", "Concreto"], ["aluzinc", "Aluzinc"]])}</label>`).join("") +
+        `</div>`);
 
       // Inversores
       html += card("Inversores", "El tipo (híbrido o inyección) y los kW deciden qué tabla de eléctricos se usa.",
@@ -2529,6 +2624,12 @@
         if (cell) cell.value = settings.provinces[i].indexIntegracion;
       }
       if (path.startsWith("provinces")) applyProvinceIndex(true);
+      if (path.startsWith("estructura") || path.startsWith("structures")) {
+        const ref = document.getElementById("estrRef");
+        if (ref) ref.innerHTML = estructuraRefHtml();
+        refreshStructureLine();
+        recalculateAll();
+      }
       onConfigChange();
     }
 
