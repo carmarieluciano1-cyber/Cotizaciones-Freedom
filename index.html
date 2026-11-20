@@ -832,6 +832,20 @@
                 <p id="consensuadoInfo" class="text-[11px] text-indigo-900"></p>
               </div>
             </div>
+            <!-- Tasa del dólar del Banco Popular (automática) -->
+            <div id="tasaPopularBox" class="rounded-xl border border-slate-200 bg-slate-50 p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div class="min-w-0">
+                <p class="text-xs font-semibold text-slate-800 flex items-center gap-1.5"><span id="tasaPopDot" class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>Tasa del dólar · Banco Popular</p>
+                <p id="tasaPopTexto" class="text-[11px] text-slate-500 mt-0.5">Buscando la tasa…</p>
+              </div>
+              <div class="flex flex-wrap items-center gap-2 sm:gap-3 shrink-0">
+                <label class="flex items-center gap-1.5 text-[11px] text-slate-600 cursor-pointer">
+                  <input type="checkbox" id="tasaAuto" checked onchange="onTasaAutoChange()" class="rounded border-slate-300" />Usar automática
+                </label>
+                <button type="button" onclick="actualizarTasaPopular(true)" class="px-2.5 py-1.5 rounded-lg text-[11px] font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-100">↻ Actualizar</button>
+                <button type="button" id="btnAplicarTasa" onclick="aplicarTasaPopular(true)" style="display:none" class="px-2.5 py-1.5 rounded-lg text-[11px] font-semibold text-white bg-slate-900 hover:bg-slate-800">Aplicar a esta cotización</button>
+              </div>
+            </div>
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div>
                   <label class="block text-[11px] text-slate-500 mb-1">Margen Presupuesto (%)</label>
@@ -839,11 +853,11 @@
                 </div>
                 <div>
                   <label class="block text-[11px] text-slate-500 mb-1">Tasa Venta (RD$)</label>
-                  <input type="number" id="tasaVenta" value="60.50" step="0.05" oninput="onParamChange()" class="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-md" />
+                  <input type="number" id="tasaVenta" value="60.50" step="0.05" oninput="onTasaManual()" class="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-md" />
                 </div>
                 <div>
                   <label class="block text-[11px] text-slate-500 mb-1">Tasa Compra (RD$)</label>
-                  <input type="number" id="tasaCompra" value="56.75" step="0.05" oninput="onParamChange()" class="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-md" />
+                  <input type="number" id="tasaCompra" value="56.75" step="0.05" oninput="onTasaManual()" class="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-md" />
                 </div>
                 <div>
                   <label class="block text-[11px] text-slate-500 mb-1">Tarifa Eléctrica (RD$/kWh)</label>
@@ -977,11 +991,31 @@
 
       // Eléctricos híbridos: precio completo, precio integración (-25%) y bypass para 2+ equipos
       elecHibrido: [
-        { kw: 6,  completo: 812.50,  integracion: 609.38,  bypass: 0 },
-        { kw: 8,  completo: 900.00,  integracion: 675.00,  bypass: 0 },
-        { kw: 12, completo: 1250.00, integracion: 937.50,  bypass: 800 },
-        { kw: 16, completo: 1550.00, integracion: 1162.50, bypass: 900 }
+        { kw: 6,  completo: 812.50,  integracion: 609.38 },
+        { kw: 8,  completo: 900.00,  integracion: 675.00 },
+        { kw: 12, completo: 1250.00, integracion: 937.50 },
+        { kw: 16, completo: 1550.00, integracion: 1162.50 }
       ],
+      // Panel Board de híbridos según la combinación (archivo "combinaciones panel board híbridos")
+      // bypass: 0 = integrado (ya viene incluido)
+      pbHibrido: [
+        { kw: 8, equipos: 2, entrada: 100.16, salida: 100.16, bypass: 600 },
+        { kw: 8, equipos: 3, entrada: 100.16, salida: 100.16, bypass: 600 },
+        { kw: 8, equipos: 4, entrada: 186.67, salida: 186.67, bypass: 800 },
+        { kw: 8, equipos: 5, entrada: 1250, salida: 700, bypass: 0 },
+        { kw: 8, equipos: 6, entrada: 1325, salida: 785, bypass: 0 },
+        { kw: 12, equipos: 2, entrada: 100.16, salida: 100.16, bypass: 600 },
+        { kw: 12, equipos: 3, entrada: 186, salida: 186, bypass: 800 },
+        { kw: 12, equipos: 4, entrada: 1325, salida: 785, bypass: 0 },
+        { kw: 12, equipos: 5, entrada: 1410, salida: 825, bypass: 0 },
+        { kw: 12, equipos: 6, entrada: 1750, salida: 1050, bypass: 0 },
+        { kw: 16, equipos: 2, entrada: 186.67, salida: 186.67, bypass: 800 },
+        { kw: 16, equipos: 3, entrada: 1325, salida: 785, bypass: 0 },
+        { kw: 16, equipos: 4, entrada: 1410, salida: 825, bypass: 0 },
+        { kw: 16, equipos: 5, entrada: 1750, salida: 1050, bypass: 0 },
+        { kw: 16, equipos: 6, entrada: 1950, salida: 1150, bypass: 0 }
+      ],
+
       // Eléctricos de inyección: precio por inversor
       elecInyeccion: [
         { kw: 3,  price: 325 },
@@ -1204,17 +1238,38 @@
       if (!units.length) return { lines, warnings };
 
       // Híbridos: precio Completo para los primeros equipos, Integración desde el equipo N
-      let maxBypass = 0, bypassKw = 0;
       hib.forEach((inv, k) => {
         const { tier, fuera } = findTier(settings.elecHibrido, inv.kw);
         if (fuera) warnFuera(inv, tier, "híbridos");
         if (modalidad === "integracion") add("elec_integ", `Eléctricos Integración ${tier.kw}kW`, Number(tier.integracion));
         else if (k < R.hibDescDesde - 1) add("elec_base", `Eléctricos Híbrido ${tier.kw}kW (Completo)`, Number(tier.completo));
         else add("elec_integ", `Eléctricos Híbrido ${tier.kw}kW (Integración, desde equipo ${R.hibDescDesde})`, Number(tier.integracion));
-        if (Number(tier.bypass) > maxBypass) { maxBypass = Number(tier.bypass); bypassKw = tier.kw; }
       });
-      if (hib.length >= 2 && maxBypass > 0) {
-        lines.push({ role: "elec_bypass", concepto: `Bypass (${hib.length} equipos híbridos, ${bypassKw}kW)`, pu: maxBypass, cant: 1 });
+
+      // Panel Board de entrada, de salida y Bypass para 2 o más híbridos (tabla de combinaciones)
+      let pbHibridoAplicado = false;
+      if (hib.length >= 2 && (settings.pbHibrido || []).length) {
+        const tamanos = [...new Set(settings.pbHibrido.map(r => Number(r.kw)))].sort((a, b) => a - b);
+        const maxKw = Math.max(...hib.map(u => Number(u.kw)));
+        let kwFila = tamanos.find(k => k >= maxKw);
+        if (kwFila === undefined) {
+          kwFila = tamanos[tamanos.length - 1];
+          warnings.push(`Los híbridos de ${maxKw}kW son más grandes que la tabla de Panel Board. Se usó la de ${kwFila}kW: revisa el precio.`);
+        }
+        const filas = settings.pbHibrido.filter(r => Number(r.kw) === kwFila).sort((a, b) => a.equipos - b.equipos);
+        let fila = filas.find(r => Number(r.equipos) === hib.length);
+        if (!fila && filas.length) {
+          fila = hib.length > filas[filas.length - 1].equipos ? filas[filas.length - 1] : filas[0];
+          warnings.push(`No hay combinación de Panel Board para ${hib.length} equipos de ${kwFila}kW. Se usó la de ${fila.equipos} equipos: consulta el precio.`);
+        }
+        if (fila) {
+          pbHibridoAplicado = true;
+          const comb = `${hib.length} equipos de ${kwFila}kW`;
+          const integrado = !(Number(fila.bypass) > 0);
+          lines.push({ role: "elec_pb_in", concepto: `Panel Board de entrada (${comb})${integrado ? " – bypass integrado" : ""}`, pu: Number(fila.entrada), cant: 1 });
+          lines.push({ role: "elec_pb_out", concepto: `Panel Board de salida (${comb})`, pu: Number(fila.salida), cant: 1 });
+          if (!integrado) lines.push({ role: "elec_bypass", concepto: `Bypass (${comb})`, pu: Number(fila.bypass), cant: 1 });
+        }
       }
 
       // Inyección: el 1er inversor a precio completo y cada adicional con descuento
@@ -1227,7 +1282,8 @@
 
       const totalKw = units.reduce((a, u) => a + Number(u.kw), 0);
       const invQty = units.length;
-      if (totalKw > R.pbKwUmbral || invQty >= R.pbEquiposDesde) {
+      // Panel Board general (inyección, o híbridos que no entran en la tabla de combinaciones)
+      if (!pbHibridoAplicado && (totalKw > R.pbKwUmbral || invQty >= R.pbEquiposDesde)) {
         const why = totalKw > R.pbKwUmbral ? `${totalKw}kW > ${R.pbKwUmbral}kW` : `${invQty} equipos`;
         lines.push({ role: "elec_pb", concepto: `Panel Board (${why})`, pu: Number(R.pbPrecio), cant: 1, pending: !(R.pbPrecio > 0) });
       }
@@ -1662,6 +1718,7 @@
       renderComparison();
       switchTab("comercial");
       showEditor();
+      renderTasaPopular();
       showToast(`Abierta: ${prop.clientName || opt.projectName}`, "info");
     }
 
@@ -1900,8 +1957,11 @@
     const PARAM_IDS = ["margenPresupuesto", "tasaVenta", "tasaCompra", "tarifaKwh", "omPct", "tasaAnual", "plazoMeses"];
     const PARAM_DEFAULTS = { margenPresupuesto: 2.0, tasaVenta: 60.50, tasaCompra: 56.75, tarifaKwh: 14.04, omPct: 1.0, tasaAnual: 14.0, plazoMeses: 60, tipoPrecio: "standard" };
     function saveParams() {
-      const data = { tipoPrecio: selectedTipoPrecio };
+      const prev = lsGet(PARAMS_KEY, {});
+      const data = { tipoPrecio: selectedTipoPrecio, tasaAuto: document.getElementById("tasaAuto").checked };
       PARAM_IDS.forEach(id => data[id] = document.getElementById(id).value);
+      // Las tasas globales no cambian cuando estás viendo una cotización guardada con sus propias tasas
+      if (currentQuoteId && document.getElementById("editorView").style.display !== "none") { data.tasaVenta = prev.tasaVenta ?? data.tasaVenta; data.tasaCompra = prev.tasaCompra ?? data.tasaCompra; }
       try { localStorage.setItem(PARAMS_KEY, JSON.stringify(data)); } catch (e) { }
       if (!applyingCloud) markAjustesChanged();
     }
@@ -1909,6 +1969,7 @@
       let data = Object.assign({}, PARAM_DEFAULTS);
       if (!useDefaults) { try { Object.assign(data, JSON.parse(localStorage.getItem(PARAMS_KEY) || "{}")); } catch (e) { } }
       PARAM_IDS.forEach(id => document.getElementById(id).value = data[id]);
+      document.getElementById("tasaAuto").checked = data.tasaAuto !== false;
       selectedTipoPrecio = data.tipoPrecio === "preferencial" ? "preferencial" : "standard";   // "consensuado" es solo por cotización
     }
     function onParamChange() {
@@ -2310,10 +2371,22 @@
         `</tbody></table>`, addBtn("addBattery", "+ Batería"));
 
       // Eléctricos
-      html += card("Eléctricos híbridos (US$)", `Se toma la fila igual o mayor a los kW del inversor. Los primeros ${R.hibDescDesde - 1} equipos van a precio Completo y desde el equipo ${R.hibDescDesde} a precio de Integración. El bypass se agrega con 2 o más equipos.`,
-        `<table class="w-full text-xs max-w-xl"><thead><tr>${th("kW")}${th("Completo")}${th("Integración")}${th("Bypass 2+ equipos")}</tr></thead><tbody>` +
-        S.elecHibrido.map((r, i) => `<tr>${td(numIn(`elecHibrido.${i}.kw`, r.kw, "1"))}${td(numIn(`elecHibrido.${i}.completo`, r.completo))}${td(numIn(`elecHibrido.${i}.integracion`, r.integracion))}${td(numIn(`elecHibrido.${i}.bypass`, r.bypass))}</tr>`).join("") +
+      html += card("Eléctricos híbridos (US$)", `Se toma la fila igual o mayor a los kW del inversor. Los primeros ${R.hibDescDesde - 1} equipos van a precio Completo y desde el equipo ${R.hibDescDesde} a precio de Integración.`,
+        `<table class="w-full text-xs max-w-md"><thead><tr>${th("kW")}${th("Completo")}${th("Integración")}</tr></thead><tbody>` +
+        S.elecHibrido.map((r, i) => `<tr>${td(numIn(`elecHibrido.${i}.kw`, r.kw, "1"))}${td(numIn(`elecHibrido.${i}.completo`, r.completo))}${td(numIn(`elecHibrido.${i}.integracion`, r.integracion))}</tr>`).join("") +
         `</tbody></table>`);
+
+      // Panel Board de híbridos por combinación
+      const pbTam = [...new Set((S.pbHibrido || []).map(r => Number(r.kw)))].sort((a, b) => a - b);
+      html += card("Panel Board de híbridos (US$)", "Se aplica cuando hay 2 o más inversores híbridos. Se toma el tamaño igual o mayor al inversor más grande. Bypass en 0 = integrado (ya viene incluido).",
+        `<div class="grid grid-cols-1 gap-3 max-w-xl">` +
+        pbTam.map(k => `<div class="rounded-xl border border-slate-200 overflow-hidden">
+            <p class="px-3 py-2 text-xs font-bold text-slate-800 bg-slate-50 border-b border-slate-200">Equipos de ${k} kW</p>
+            <table class="w-full text-xs"><thead><tr>${th("Equipos", "pl-3")}${th("PB entrada")}${th("PB salida")}${th("Bypass")}</tr></thead><tbody>` +
+            S.pbHibrido.map((r, i) => Number(r.kw) !== k ? "" :
+              `<tr>${td(`<span class="pl-2 font-semibold text-slate-700">${r.equipos}</span>`)}${td(numIn(`pbHibrido.${i}.entrada`, r.entrada))}${td(numIn(`pbHibrido.${i}.salida`, r.salida))}${td(numIn(`pbHibrido.${i}.bypass`, r.bypass) + (Number(r.bypass) > 0 ? "" : `<span class="block text-[10px] text-emerald-700 text-center">integrado</span>`))}</tr>`).join("") +
+            `</tbody></table></div>`).join("") +
+        `</div>`);
 
       html += card("Eléctricos de inyección (US$)", `Precio por inversor; cada inversor adicional lleva ${R.inyDescPct}% de descuento.`,
         `<table class="w-full text-xs max-w-xs"><thead><tr>${th("kW")}${th("Precio")}</tr></thead><tbody>` +
@@ -2326,9 +2399,9 @@
         `<div class="text-xs max-w-lg divide-y divide-slate-100">` +
         ruleRow("Híbridos: precio de Integración a partir del equipo #", "rules.hibDescDesde", R.hibDescDesde, "1") +
         ruleRow("Inyección: % descuento por inversor adicional", "rules.inyDescPct", R.inyDescPct, "1") +
-        ruleRow("Panel Board si la potencia de inversores pasa de (kW)", "rules.pbKwUmbral", R.pbKwUmbral, "1") +
-        ruleRow("Panel Board a partir de (cantidad de inversores)", "rules.pbEquiposDesde", R.pbEquiposDesde, "1") +
-        ruleRow("Precio del Panel Board (US$)", "rules.pbPrecio", R.pbPrecio, "0.01", !(R.pbPrecio > 0)) +
+        ruleRow("Panel Board general (inyección): si la potencia pasa de (kW)", "rules.pbKwUmbral", R.pbKwUmbral, "1") +
+        ruleRow("Panel Board general: a partir de (cantidad de inversores)", "rules.pbEquiposDesde", R.pbEquiposDesde, "1") +
+        ruleRow("Precio del Panel Board general (US$)", "rules.pbPrecio", R.pbPrecio, "0.01", !(R.pbPrecio > 0)) +
         ruleRow("Embarrado a partir de (cantidad de baterías)", "rules.embBatDesde", R.embBatDesde, "1") +
         ruleRow("Precio del embarrado (US$)", "rules.embPrecio", R.embPrecio, "0.01", !(R.embPrecio > 0)) +
         ruleRow("Cablería por cada batería de más vs. inversores (US$)", "rules.cableriaPorDif", R.cableriaPorDif) +
@@ -2626,6 +2699,89 @@
     }
 
     // =========================================================================
+    // TASA DEL DÓLAR DEL BANCO POPULAR
+    // La lee la función "tasa-popular" de Supabase (guarda la última en la tabla "ajustes").
+    // Venta del Popular → Tasa Venta • Compra del Popular → Tasa Compra
+    // =========================================================================
+    const TASA_KEY = "feg_tasa_popular";
+    const TASA_REFRESCO_HORAS = 3;
+    let tasaPopular = lsGet(TASA_KEY, null);   // { compra, venta, fecha, fuente }
+
+    function fmtTasa(n) { return Number(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+    function editandoGuardada() { return !!currentQuoteId && document.getElementById("editorView").style.display !== "none"; }
+
+    function renderTasaPopular(estado) {
+      const dot = document.getElementById("tasaPopDot"), txt = document.getElementById("tasaPopTexto");
+      const btnAp = document.getElementById("btnAplicarTasa");
+      const t = tasaPopular;
+      const auto = document.getElementById("tasaAuto").checked;
+      if (!t) {
+        dot.className = "w-1.5 h-1.5 rounded-full bg-amber-500";
+        txt.textContent = estado === "buscando" ? "Buscando la tasa…" : "No se pudo leer la tasa del Popular. Se usan las tasas escritas abajo.";
+        btnAp.style.display = "none";
+        return;
+      }
+      const vieja = (Date.now() - new Date(t.fecha).getTime()) > 36 * 3600 * 1000;
+      dot.className = "w-1.5 h-1.5 rounded-full " + (estado === "error" || vieja ? "bg-amber-500" : "bg-emerald-500");
+      txt.innerHTML = `Compra <strong class="text-slate-800">RD$ ${fmtTasa(t.compra)}</strong> · Venta <strong class="text-slate-800">RD$ ${fmtTasa(t.venta)}</strong> · ${fmtFecha(t.fecha)}` +
+        (estado === "error" ? ` <span class="text-amber-700">(no se pudo actualizar ahora; es la última que se leyó)</span>` : "") +
+        (!auto ? ` <span class="text-slate-400">· usando tasas manuales</span>` : "");
+      const distinta = Math.abs((parseFloat(document.getElementById("tasaVenta").value) || 0) - t.venta) > 0.001 || Math.abs((parseFloat(document.getElementById("tasaCompra").value) || 0) - t.compra) > 0.001;
+      btnAp.style.display = editandoGuardada() && distinta ? "" : "none";
+    }
+
+    // Pone la tasa del Popular en los campos (y en el guardado global si corresponde)
+    function aplicarTasaPopular(manualClick) {
+      if (!tasaPopular) return;
+      if (!manualClick && editandoGuardada()) {
+        // No se cambian las tasas de una cotización guardada; solo se actualiza la tasa global
+        const prev = lsGet(PARAMS_KEY, {});
+        if (prev.tasaAuto !== false) { prev.tasaVenta = tasaPopular.venta; prev.tasaCompra = tasaPopular.compra; lsSet(PARAMS_KEY, prev); }
+        renderTasaPopular();
+        return;
+      }
+      document.getElementById("tasaVenta").value = tasaPopular.venta;
+      document.getElementById("tasaCompra").value = tasaPopular.compra;
+      if (manualClick && editandoGuardada()) { recalculateAll(); showToast("Tasa del Popular aplicada a esta cotización", "success"); renderTasaPopular(); return; }
+      onParamChange();
+      renderTasaPopular();
+    }
+
+    async function actualizarTasaPopular(forzar) {
+      if (!cloudOn()) { renderTasaPopular("error"); return; }
+      if (!forzar && tasaPopular && (Date.now() - new Date(tasaPopular.revisado || tasaPopular.fecha).getTime()) < TASA_REFRESCO_HORAS * 3600 * 1000) {
+        if (document.getElementById("tasaAuto").checked) aplicarTasaPopular(false);
+        renderTasaPopular(); return;
+      }
+      if (!tasaPopular) renderTasaPopular("buscando");
+      try {
+        const res = await fetch(NUBE.url.replace(/\/$/, "") + "/functions/v1/tasa-popular" + (forzar ? "?forzar=1" : ""), { headers: cloudHeaders() });
+        const d = await res.json();
+        if (!res.ok || !(d.venta > 0) || !(d.compra > 0)) throw new Error(d.error || res.status);
+        tasaPopular = { compra: Number(d.compra), venta: Number(d.venta), fecha: d.fecha, fuente: d.fuente, revisado: new Date().toISOString() };
+        lsSet(TASA_KEY, tasaPopular);
+        if (document.getElementById("tasaAuto").checked) aplicarTasaPopular(false);
+        renderTasaPopular(d.desactualizada ? "error" : "ok");
+        if (forzar) showToast(d.desactualizada ? "El Popular no respondió; se mantiene la última tasa" : "Tasa del Popular actualizada", d.desactualizada ? "info" : "success");
+      } catch (e) {
+        renderTasaPopular("error");
+        if (forzar) showToast("No se pudo leer la tasa del Popular ahora", "error");
+      }
+    }
+
+    function onTasaAutoChange() {
+      if (document.getElementById("tasaAuto").checked && tasaPopular) aplicarTasaPopular(false);
+      saveParams();
+      renderTasaPopular();
+    }
+    // Si escribes una tasa a mano, se apaga el modo automático (en cotizaciones nuevas)
+    function onTasaManual() {
+      if (!editandoGuardada()) document.getElementById("tasaAuto").checked = false;
+      onParamChange();
+      renderTasaPopular();
+    }
+
+    // =========================================================================
     // INICIO
     // =========================================================================
     document.addEventListener("DOMContentLoaded", () => {
@@ -2634,7 +2790,9 @@
       refreshSelects();
       nuevaCotizacion(true);
       showHome();
-      cloudSync();
+      cloudSync().finally(() => actualizarTasaPopular(false));
+      renderTasaPopular(tasaPopular ? "ok" : "buscando");
+      setInterval(() => { if (document.visibilityState === "visible") actualizarTasaPopular(false); }, 30 * 60000);
       document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") cloudSync(); });
       setInterval(() => { if (document.visibilityState === "visible") cloudSync(); }, 60000);
     });
