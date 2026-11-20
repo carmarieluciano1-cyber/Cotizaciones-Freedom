@@ -481,6 +481,11 @@
       filtro = (b) => b.y < y0;
     }
     if (tplKey === "d1") extra += filasDescripcion(ctx, p.id);
+    // Sin contrato: se quita la palabra "Contrato" y la línea gris que la separa
+    if (p.rol === "portada" && !String(ctx.v.contrato || "").trim()) {
+      filtro = (b) => !(b.f && b.f.includes("{contrato}"));
+      extra += `<div style="position:absolute;${rect([384.5, 533, 394.5, 608], "background:#333333")}"></div>`;
+    }
     // Sin la página de la Ley 57-07: se quita el ROI y lo que menciona la ley; "Para alcanzar tu libertad energética" sube
     let cambios = null;
     if (p.rol === "recupera" && sinLey(ctx) && (tplKey === "c5" || tplKey === "i5")) {
