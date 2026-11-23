@@ -15,7 +15,7 @@
   // siempre: "paneles" (si hay paneles) | "todos" | "" (según equipos)
   // ---------------------------------------------------------------------
   // Paneles: sale UNA sola ficha, la de la marca del panel y cuyo rango de vatios incluye los del panel.
-  const FICHAS_VER = 3;
+  const FICHAS_VER = 4;
   const FICHAS_DEF = [
     { id: "jinko-66hl4m", nombre: "Panel JINKO Tiger Neo 66HL4M 625-650W", cat: 1, paginas: 2, completa: true, siempre: "panel", marca: "JINKO Solar", wMin: 640, wMax: 650, equipos: [] },
     { id: "jinko-66ql6", nombre: "Panel JINKO JKM635-670N-66QL6", cat: 1, paginas: 2, completa: false, siempre: "panel", marca: "JINKO Solar", wMin: 635, wMax: 670, equipos: [] },
@@ -40,7 +40,9 @@
     { id: "pytes-v5", nombre: "Batería PYTES V5 (5 kWh, rack)", cat: 3, paginas: 2, completa: false, siempre: "", equipos: ["bat_py5"] },
     { id: "soluna10", nombre: "Batería Soluna 10 kWh", cat: 3, paginas: 2, completa: true, siempre: "", equipos: [] },
     { id: "ion-bateria", nombre: "Batería ION de pared 5 kWh", cat: 3, paginas: 2, completa: true, siempre: "", equipos: ["bat_ion_p5"] },
-    { id: "estructura", nombre: "Estructura de montaje", cat: 4, paginas: 1, completa: true, siempre: "paneles", equipos: [] },
+    { id: "antai", nombre: "Estructura ANTAI", cat: 4, paginas: 1, completa: true, siempre: "paneles", equipos: [] },
+    { id: "estructura", nombre: "Estructura de montaje (sin marca)", cat: 4, paginas: 1, completa: true, siempre: "", equipos: [] },
+    { id: "wurth", nombre: "Sellador / adhesivo Würth", cat: 4, paginas: 1, completa: true, siempre: "", equipos: [] },
     { id: "cable", nombre: "Cable solar", cat: 5, paginas: 1, completa: true, siempre: "todos", equipos: [] }
   ];
   const MARCAS_PANEL = ["JINKO Solar", "JA Solar"];
@@ -319,6 +321,31 @@
       v["h" + (k + 1)] = horas[k] > 0 ? `${nt(horas[k])} HORAS` : "";
     });
     // Alternativas: las otras opciones de esta misma propuesta (máximo 2)
+    // Propuesta comercial / industrial
+    v.prodMesC = `${n2(r.kwhMes)}kWh/mes`;
+    v.consumoC = consumo > 0 ? `${nt(consumo)}kWh` : "";
+    v.almKwhC = almKwh > 0 ? `${nt(almKwh)} kWh` : "";
+    v.tarifa = (datos.tarifa || "BTD").trim();
+    v.tarEnergia = (datos.tarEnergia || "9.83").trim();
+    v.tarPotencia = (datos.tarPotencia || "10.560").trim();
+    v.vendedor = (datos.vendedor || "").trim();
+    v.kwpSp = `${fx(r.potenciaKw, 2)} kWp`;
+    v.roiNum = (r.roiConLey > 0) ? fx(r.roiConLey, 1) : "—";
+    v.pago5 = usd((r.totalEjecucion || 0) * 0.05);
+    v.pago45 = usd((r.totalEjecucion || 0) * 0.45);
+    v.pago50 = usd((r.totalEjecucion || 0) * 0.50);
+    const filasCot = [];
+    if ((r.panelQty || 0) > 0) filasCot.push([String(r.panelQty), `Paneles ${marcaPanelActual()} ${r.panelW}W`]);
+    if (combo.length) {
+      const tot = combo.reduce((a, c) => a + c.qty, 0);
+      const mod = (inv) => `${marcaEquipo(inv.name).toUpperCase()} ${nt(inv.kw)}kW`;
+      filasCot.push([String(tot), `${tot === 1 ? "Inversor" : "Inversores"} ${combo.map(c => (combo.length > 1 ? `${c.qty} ` : "") + mod(c.inv)).join(" + ")}`]);
+    }
+    if (bat && batQty > 0) filasCot.push([String(batQty), `${batQty === 1 ? "Batería" : "Baterías"} ${String(bat.name).replace(/\s+de\s+(?=\d)/i, " ").replace(/(\d+(?:\.\d+)?)\s*K\b/i, "$1kWh")}`]);
+    if ((r.panelQty || 0) > 0) filasCot.push(["1", "Estructura ANTAI Certificada"]);
+    filasCot.push(["1", "Transporte/ Montaje/ Cableado/ Materiales Eléctricos"]);
+    for (let i = 0; i < 5; i++) { v["q" + (i + 1)] = filasCot[i] ? filasCot[i][0] : ""; v["d" + (i + 1)] = filasCot[i] ? filasCot[i][1] : ""; }
+
     const otras = prop.options.filter(o => o.id !== opt.id).slice(0, 2);
     otras.forEach((o, i) => { const a = resumenOpcion(o); Object.keys(a).forEach(k => v[`a${i + 1}_${k}`] = a[k]); });
     ["a1", "a2"].forEach((p, i) => { if (!otras[i]) ["titulo", "paneles", "inversor", "bateria", "prod", "alm", "inv", "roi", "ley"].forEach(k => v[`${p}_${k}`] = ""); });
@@ -356,7 +383,13 @@
 
   // Lista de páginas en el orden de la plantilla
   function listaPaginas(ctx) {
-    const orden = TPL.orden[ctx.modalidad] || TPL.orden.hibrido;
+    let orden = TPL.orden[ctx.modalidad] || TPL.orden.hibrido;
+    if (ctx.datos.tipo === "comercial") {
+      // Propuesta comercial / industrial: otro orden, objetivo con tarifa y página de cotización; sin notas ni alternativas
+      const por = {}; orden.forEach(e => { por[e[2]] = e; });
+      por.objetivo = ["k", 6, "objetivo"]; por.cotizacion = ["k", 11, "cotizacion"];
+      orden = ["portada", "somos", "galeria", "descripcion", "capacidad", "objetivo", "factura", "recupera", "ley", "amortizacion", "cotizacion", "compromiso", "garantia", "fichas", "contraportada"].filter(r => por[r]).map(r => por[r]);
+    }
     const out = [];
     orden.forEach(([t, n, rol]) => {
       const key = t + n;
@@ -375,6 +408,7 @@
       }
       const p = Object.assign(base, { inst: rol });
       if (rol === "factura" && !ctx.datos.facturaId) { p.vacia = true; p.nota = "Sube la factura del cliente"; }
+      else if (rol === "factura" && !String(ctx.v.contrato || "").trim()) { p.defOff = true; p.nota = "Sin contrato"; }
       if (rol === "alternativas" && !ctx.otras.length) { p.vacia = true; p.nota = "Solo hay una opción en esta propuesta"; }
       if (rol === "capacidad" && !(ctx.almKwh > 0)) { p.defOff = true; p.nota = "Sin baterías"; }
       out.push(p);
@@ -447,6 +481,7 @@
     const pg = TPL.paginas[tplKey];
     const z = (TPL.zonas || {})[tplKey] || {};
     let extra = "", filtro = null;
+    const objCambios = {};
     if (p.rol === "factura") {
       const a = await getArchivo(ctx.datos.facturaId);
       extra += `<div style="position:absolute;${rect(z.tapar, `background:${z.color || "#fba81c"}`)}"></div>`;
@@ -481,13 +516,34 @@
       filtro = (b) => b.y < y0;
     }
     if (tplKey === "d1") extra += filasDescripcion(ctx, p.id);
+    // Objetivo: sin contrato se quita "Consumo máximo mensual" y el almacenamiento sube a su lugar; sin baterías se quita el almacenamiento
+    if (p.rol === "objetivo" && z.consumo) {
+      const sinContrato = !String(ctx.v.contrato || "").trim();
+      const sinBat = !(ctx.almKwh > 0);
+      const ocultar = new Set(), mover = {};
+      const fondo = `background:#fff`;
+      if (sinContrato) { extra += `<div style="position:absolute;${rect([z.consumo[0] - 2, z.consumo[1] - 2, z.consumo[2] + 2, z.consumo[3] + 2], fondo)}"></div>`; z.bConsumo.forEach(id => ocultar.add(id)); }
+      if (z.alm) {
+        if (sinBat) { extra += `<div style="position:absolute;${rect([z.alm[0] - 2, z.alm[1] - 2, z.alm[2] + 2, z.alm[3] + 2], fondo)}"></div>`; z.bAlm.forEach(id => ocultar.add(id)); }
+        else if (sinContrato) {
+          const dy = z.consumo[1] - z.alm[1], a = z.alm;
+          extra += `<div style="position:absolute;${rect([a[0] - 2, a[1] - 2, a[2] + 2, a[3] + 2], fondo)}"></div>`;
+          extra += `<div style="position:absolute;${rect([a[0], a[1] + dy, a[2], a[3] + dy], `background-image:url(${BASE}bg/${pg.bg});background-size:612pt 792pt;background-position:-${a[0]}pt -${a[1]}pt`)}"></div>`;
+          z.bAlm.forEach(id => { mover[id] = dy; });
+        }
+      }
+      const f0 = filtro;
+      filtro = (b) => !ocultar.has(b.id) && (!f0 || f0(b));
+      const blocks = TPL.paginas[tplKey].blocks;
+      Object.keys(mover).forEach(id => { const b = blocks.find(x => x.id === id); if (b) { objCambios[id] = { y: b.y + mover[id] }; } });
+    }
     // Sin contrato: se quita la palabra "Contrato" y la línea gris que la separa
     if (p.rol === "portada" && !String(ctx.v.contrato || "").trim()) {
       filtro = (b) => !(b.f && b.f.includes("{contrato}"));
       extra += `<div style="position:absolute;${rect([384.5, 533, 394.5, 608], "background:#333333")}"></div>`;
     }
     // Sin la página de la Ley 57-07: se quita el ROI y lo que menciona la ley; "Para alcanzar tu libertad energética" sube
-    let cambios = null;
+    let cambios = Object.keys(objCambios).length ? objCambios : null;
     if (p.rol === "recupera" && sinLey(ctx) && (tplKey === "c5" || tplKey === "i5")) {
       filtro = (b) => !["p5b3", "p5b4", "p5b5"].includes(b.id);
       cambios = { p5b6: { x: 278.1, y: 349.8, size: 14.13 }, p5b7: { x: 278.1, y: 372.7, size: 23.54 } };
@@ -755,6 +811,16 @@
     return `
       <div class="pp-sec" style="border:0;margin:0;padding-top:4px">
         <h4>Datos del cliente</h4>
+        <label class="pp-lab">Tipo de propuesta<select class="pp-in" onchange="FEGPropuesta.setDato('tipo', this.value)">
+          <option value="" ${d.tipo !== "comercial" ? "selected" : ""}>Residencial</option>
+          <option value="comercial" ${d.tipo === "comercial" ? "selected" : ""}>Comercial / industrial</option></select></label>
+        ${d.tipo === "comercial" ? `<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:10px 10px 2px;margin-bottom:10px">
+          <label class="pp-lab">Vendedor<input class="pp-in" value="${esc(d.vendedor || "")}" placeholder="Nombre del vendedor" onchange="FEGPropuesta.setDato('vendedor', this.value)"></label>
+          <label class="pp-lab">Tarifa<input class="pp-in" value="${esc(d.tarifa || "")}" placeholder="BTD" onchange="FEGPropuesta.setDato('tarifa', this.value)"></label>
+          <div style="display:flex;gap:8px">
+            <label class="pp-lab" style="flex:1">Energía (RD$ por kWh)<input class="pp-in" value="${esc(d.tarEnergia || "")}" placeholder="9.83" onchange="FEGPropuesta.setDato('tarEnergia', this.value)"></label>
+            <label class="pp-lab" style="flex:1">Potencia (RD$ por kW)<input class="pp-in" value="${esc(d.tarPotencia || "")}" placeholder="10.560" onchange="FEGPropuesta.setDato('tarPotencia', this.value)"></label>
+          </div></div>` : ""}
         <label class="pp-lab">Contrato (NIC)<input class="pp-in" value="${esc(d.contrato || "")}" onchange="FEGPropuesta.setDato('contrato', this.value)"></label>
         <label class="pp-lab">Consumo máximo mensual (kWh)<input class="pp-in" inputmode="decimal" value="${esc(d.consumo || "")}" placeholder="Ej. 1773" onchange="FEGPropuesta.setDato('consumo', this.value)"></label>
         <label class="pp-lab">Ubicación<input class="pp-in" value="${esc(d.ubicacion || "")}" placeholder="${esc(ctx.r.province || "")}" onchange="FEGPropuesta.setDato('ubicacion', this.value)"></label>
@@ -863,7 +929,7 @@
   }
   function setDato(k, v) {
     cambiarDatos(d => { d[k] = String(v || "").trim(); });
-    const campo = { contrato: "contratoNic", consumo: "consumoMax" }[k];
+    const campo = { contrato: "contratoNic", consumo: "consumoMax", tipo: "tipoPropuesta" }[k];
     if (campo && $(campo)) $(campo).value = String(v || "").trim();
     dibujar();
   }
