@@ -665,14 +665,14 @@
 @media (prefers-reduced-motion:reduce){#ppOverlay *,#ppOverlay{animation-duration:1ms!important;animation-delay:0ms!important;transition-duration:1ms!important}.pp-btn:active,.pp-thumb:active{transform:none}}
 @media (max-width:900px){ .pp-lg,#ppSub{display:none} }
 @media print{
-  @page{size:letter;margin:0}
+  @page propuesta{size:letter;margin:0}
   body.pp-abierto{background:#fff!important;height:auto!important;overflow:visible!important;min-height:0!important;display:block!important}
   body.pp-abierto>*:not(#ppOverlay){display:none!important}
   body.pp-abierto #ppOverlay{position:static!important;display:block!important;background:#fff!important}
   body.pp-abierto #ppOverlay .pp-top,body.pp-abierto #ppSide,body.pp-abierto #ppTool{display:none!important}
   body.pp-abierto #ppOverlay .pp-body{display:block!important}
   body.pp-abierto #ppPages{padding:0!important;overflow:visible!important}
-  body.pp-abierto .pp-wrap{width:612pt!important;height:792pt!important;margin:0!important;overflow:hidden;break-after:page;page-break-after:always}
+  body.pp-abierto .pp-wrap{page:propuesta;width:612pt!important;height:792pt!important;margin:0!important;overflow:hidden;break-after:page;page-break-after:always}
   body.pp-abierto .pp-wrap:last-child{break-after:auto;page-break-after:auto}
   body.pp-abierto .pp-page{position:relative!important;transform:none!important;box-shadow:none!important}
   body.pp-abierto .pp-t{box-shadow:none!important;background:none!important}
