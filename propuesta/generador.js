@@ -606,7 +606,9 @@
 #ppOverlay.pp-anim{animation:pp-abre 260ms var(--pp-ease) both}
 #ppPages.pp-cascada .pp-wrap{animation:pp-sube 320ms var(--pp-ease) both}
 #ppPages.pp-cascada .pp-wrap:nth-child(2){animation-delay:40ms}#ppPages.pp-cascada .pp-wrap:nth-child(3){animation-delay:80ms}#ppPages.pp-cascada .pp-wrap:nth-child(n+4){animation-delay:120ms}
-#ppOverlay .pp-top{background:#fff;border-bottom:1px solid #e2e8f0;padding:10px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+#ppOverlay .pp-top{background:#2b2b2b;box-shadow:inset 0 -2px 0 #ffab00;padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+#ppOverlay .pp-top .pp-btn.light{background:rgba(255,255,255,.1);color:rgba(255,255,255,.88)}
+@media (hover:hover) and (pointer:fine){#ppOverlay .pp-top .pp-btn.light:hover{background:rgba(255,255,255,.16)}}
 #ppOverlay .pp-body{flex:1;display:flex;min-height:0}
 #ppSide{width:330px;flex-shrink:0;background:#fff;border-right:1px solid #e2e8f0;overflow-y:auto;padding:14px 16px 40px}
 #ppPages{flex:1;overflow:auto;padding:24px 12px 80px}
@@ -628,24 +630,24 @@
 .pp-row{display:flex;align-items:center;gap:8px;padding:5px 6px;border-radius:8px;font-size:12px;color:#334155;cursor:pointer}
 .pp-row{transition:background-color 140ms var(--pp-ease)}
 @media (hover:hover) and (pointer:fine){.pp-row:hover{background:#f8fafc}}
-.pp-row input{accent-color:#f97316;width:15px;height:15px;flex-shrink:0}
+.pp-row input{accent-color:#ffab00;width:15px;height:15px;flex-shrink:0}
 .pp-row.off{color:#94a3b8}
 .pp-nota{font-size:10px;color:#94a3b8;margin-left:auto;text-align:right}
 .pp-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 12px;border-radius:9px;font-size:12px;font-weight:600;white-space:nowrap;cursor:pointer;border:0;transition:background-color 150ms var(--pp-ease),transform 160ms var(--pp-ease),box-shadow 150ms var(--pp-ease);-webkit-tap-highlight-color:transparent}
 .pp-btn:active{transform:scale(.97)}
 .pp-btn.dark{background:#0f172a;color:#fff}
-.pp-btn.orange{background:#f97316;color:#fff;box-shadow:0 1px 2px rgba(234,88,12,.25),inset 0 1px 0 rgba(255,255,255,.18)}
+.pp-btn.orange{background:#ffab00;color:#2b2b2b;font-weight:700;box-shadow:0 1px 2px rgba(199,125,0,.25),inset 0 1px 0 rgba(255,255,255,.25)}
 .pp-btn.light{background:#f1f5f9;color:#334155}
-@media (hover:hover) and (pointer:fine){.pp-btn.dark:hover{background:#1e293b}.pp-btn.orange:hover{background:#ea580c}.pp-btn.light:hover{background:#e2e8f0}}
+@media (hover:hover) and (pointer:fine){.pp-btn.dark:hover{background:#1e293b}.pp-btn.orange:hover{background:#ffbd1f}.pp-btn.light:hover{background:#e2e8f0}}
 .pp-link{font-size:11px;font-weight:600;color:#ea580c;cursor:pointer;background:none;border:0;padding:0}
 .pp-thumbs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .pp-thumb{position:relative;border-radius:8px;overflow:hidden;border:2px solid #e2e8f0;cursor:pointer;aspect-ratio:16/10;background:#f1f5f9;transition:border-color 150ms var(--pp-ease),transform 160ms var(--pp-ease)}
 .pp-thumb:active{transform:scale(.97)}
 .pp-thumb .ck{transition:background-color 150ms var(--pp-ease),border-color 150ms var(--pp-ease)}
-.pp-thumb.sel{border-color:#f97316}
+.pp-thumb.sel{border-color:#ffab00}
 .pp-thumb img{width:100%;height:100%;object-fit:cover;display:block}
 .pp-thumb .ck{position:absolute;top:4px;left:4px;width:18px;height:18px;border-radius:5px;background:#fff;border:1.5px solid #cbd5e1;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff}
-.pp-thumb.sel .ck{background:#f97316;border-color:#f97316}
+.pp-thumb.sel .ck{background:#ffab00;border-color:#ffab00}
 .pp-thumb .del{position:absolute;top:3px;right:5px;color:#fff;font-weight:700;text-shadow:0 0 3px #000;font-size:14px}
 @keyframes pp-tool{from{opacity:0;transform:translateY(4px) scale(.96)}to{opacity:1;transform:none}}
 #ppTool{animation:pp-tool 160ms var(--pp-ease) both;transform-origin:bottom left}
@@ -683,9 +685,10 @@
     div.innerHTML = `
       <div class="pp-top">
         <button type="button" class="pp-btn light" onclick="FEGPropuesta.cerrar()">← Volver</button>
+        <div class="feg-logo pp-lg" style="width:112px;height:32px;flex-shrink:0" aria-hidden="true"></div>
         <div style="min-width:0;flex:1">
-          <div id="ppTitulo" style="font-size:14px;font-weight:700;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Propuesta</div>
-          <div id="ppSub" style="font-size:11px;color:#64748b">Toca cualquier texto de la propuesta para cambiarlo</div>
+          <div id="ppTitulo" style="font-size:14px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Propuesta</div>
+          <div id="ppSub" style="font-size:11px;color:rgba(255,255,255,.55)">Toca cualquier texto de la propuesta para cambiarlo</div>
         </div>
         <button type="button" class="pp-btn orange" onclick="FEGPropuesta.imprimir()">⬇ <span class="pp-lg">Descargar PDF / Imprimir</span><span class="pp-sm">PDF</span></button>
       </div>
