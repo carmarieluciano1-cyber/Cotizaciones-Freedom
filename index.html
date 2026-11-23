@@ -304,7 +304,8 @@
             </button>
             <button type="button" onclick="FEGSimulador.abrir()"
               class="inline-flex items-center justify-center gap-1.5 px-5 py-3 rounded-xl text-sm font-bold text-white bg-white/10 hover:bg-white/15 ring-1 ring-white/15 transition-colors">
-              🔋 Dimensionar batería
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="17" height="10" rx="2"/><path d="M22 10.5v3M6 10v4M9.5 10v4"/></svg>
+              Dimensionar batería
             </button>
           </div>
         </div>
@@ -3188,26 +3189,53 @@
 
   // Equipos y valores de referencia (potencia en W). El cliente nunca ve los watts.
   const EQUIPOS = [
-    { id: "aire", nombre: "Aire acondicionado", icono: "❄️", horas: 8, tipo: "12k", inverterPregunta: true,
+    { id: "aire", nombre: "Aire acondicionado", horas: 8, tipo: "12k", inverterPregunta: true,
       tipos: [{ id: "9k", t: "9,000 BTU", w: 750 }, { id: "12k", t: "12,000 BTU", w: 1200 }, { id: "18k", t: "18,000 BTU", w: 1700 }, { id: "24k", t: "24,000 BTU", w: 2200 }, { id: "nose", t: "No sé" }],
       noSe: [{ id: "p", t: "Pequeño (habitación)", w: 750 }, { id: "m", t: "Mediano", w: 1200 }, { id: "g", t: "Grande (sala)", w: 2200 }] },
-    { id: "abanico", nombre: "Abanico", icono: "🌀", horas: 8, w: 75 },
-    { id: "nevera", nombre: "Nevera", icono: "🧊", horas: 24, ciclo: 0.45, tipo: "n",
+    { id: "abanico", nombre: "Abanico", horas: 8, w: 75 },
+    { id: "nevera", nombre: "Nevera", horas: 24, ciclo: 0.45, tipo: "n",
       tipos: [{ id: "p", t: "Pequeña", w: 100 }, { id: "n", t: "Normal", w: 150 }, { id: "g", t: "Grande / 2 puertas", w: 250 }] },
-    { id: "freezer", nombre: "Freezer", icono: "🥶", horas: 24, ciclo: 0.45, w: 200 },
-    { id: "lavadora", nombre: "Lavadora", icono: "🧺", horas: 1, w: 500 },
-    { id: "tv", nombre: "Televisor", icono: "📺", horas: 4, tipo: "m",
+    { id: "freezer", nombre: "Freezer", horas: 24, ciclo: 0.45, w: 200 },
+    { id: "lavadora", nombre: "Lavadora", horas: 1, w: 500 },
+    { id: "tv", nombre: "Televisor", horas: 4, tipo: "m",
       tipos: [{ id: "p", t: "Pequeño", w: 60 }, { id: "m", t: "Mediano", w: 100 }, { id: "g", t: "Grande", w: 150 }] },
-    { id: "camaras", nombre: "Cámaras", icono: "📷", horas: 24, w: 10 },
-    { id: "router", nombre: "Internet / WiFi", icono: "📡", horas: 24, w: 15 },
-    { id: "luces", nombre: "Luces", icono: "💡", horas: 5, w: 10 },
-    { id: "microondas", nombre: "Microondas", icono: "🍳", horas: 0.25, w: 1200 },
-    { id: "cafetera", nombre: "Cafetera", icono: "☕", horas: 0.25, w: 900 },
-    { id: "estufa", nombre: "Estufa eléctrica", icono: "🔥", horas: 1, w: 1500 },
-    { id: "compu", nombre: "Computadora", icono: "🖥️", horas: 4, tipo: "lap",
+    { id: "camaras", nombre: "Cámaras", horas: 24, w: 10 },
+    { id: "router", nombre: "Internet / WiFi", horas: 24, w: 15 },
+    { id: "luces", nombre: "Luces", horas: 5, w: 10 },
+    { id: "microondas", nombre: "Microondas", horas: 0.25, w: 1200 },
+    { id: "cafetera", nombre: "Cafetera", horas: 0.25, w: 900 },
+    { id: "estufa", nombre: "Estufa eléctrica", horas: 1, w: 1500 },
+    { id: "compu", nombre: "Computadora", horas: 4, tipo: "lap",
       tipos: [{ id: "lap", t: "Laptop", w: 60 }, { id: "esc", t: "De escritorio", w: 200 }] },
-    { id: "bomba", nombre: "Bomba de agua", icono: "💧", horas: 1, w: 750 }
+    { id: "bomba", nombre: "Bomba de agua", horas: 1, w: 750 }
   ];
+
+  // Íconos de línea (sin emojis), en el estilo sobrio de la marca
+  const P = {
+    aire: '<rect x="2" y="4" width="20" height="9" rx="2"/><path d="M6 9h12M7 16v2.5M12 16v4M17 16v2.5"/>',
+    abanico: '<circle cx="12" cy="10" r="7.5"/><circle cx="12" cy="10" r="1.3"/><path d="M12 8.7c0-2.6 1.2-4 2.6-4M13.2 10.6c2.3 1.2 2.9 2.9 2.2 4.1M10.8 10.6c-2.3 1.2-3.4.2-3.9-1.2M12 17.5V22M8.5 22h7"/>',
+    nevera: '<rect x="6" y="2" width="12" height="20" rx="2"/><path d="M6 10h12M9 5v2.5M9 13v3"/>',
+    freezer: '<rect x="3" y="8" width="18" height="12" rx="2"/><path d="M3 12h18M9.5 10h5"/>',
+    lavadora: '<rect x="4" y="2" width="16" height="20" rx="2"/><circle cx="12" cy="13" r="4.5"/><path d="M7 5.5h1.5M11 5.5h1.5"/>',
+    tv: '<rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/>',
+    camaras: '<rect x="2" y="6" width="13" height="7" rx="1.5"/><path d="M15 8.5l5-2v6l-5-2M6 13v4H3"/>',
+    router: '<path d="M4.5 12.5a10.5 10.5 0 0 1 15 0M8 16a5.5 5.5 0 0 1 8 0"/><circle cx="12" cy="19.5" r="1"/>',
+    luces: '<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z"/>',
+    microondas: '<rect x="2" y="5" width="20" height="14" rx="2"/><rect x="5" y="8" width="10" height="8" rx="1"/><path d="M18 9v1M18 13v1"/>',
+    cafetera: '<path d="M5 9h11v5a5 5 0 0 1-5 5h-1a5 5 0 0 1-5-5z"/><path d="M16 11h1.5a2 2 0 0 1 0 4H16M8.5 3.5v2.5M12.5 3.5v2.5"/>',
+    estufa: '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="2"/><circle cx="15.5" cy="8.5" r="2"/><circle cx="8.5" cy="15.5" r="2"/><circle cx="15.5" cy="15.5" r="2"/>',
+    compu: '<rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M9 20h6M12 16v4"/>',
+    bomba: '<path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/>',
+    otro: '<path d="M9 2v5M15 2v5M6 7h12v4a6 6 0 0 1-12 0zM12 17v5"/>',
+    bateria: '<rect x="2" y="7" width="17" height="10" rx="2"/><path d="M22 10.5v3M6 10v4M9.5 10v4"/>',
+    rayo: '<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>',
+    casa: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+    reloj: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    grafico: '<path d="M3 20h18M6 16l4-5 3 3 5-7"/>',
+    alerta: '<path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17v.5"/>',
+    recargar: '<path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/>'
+  };
+  const ic = (k, sz) => `<svg class="sim-svg" width="${sz || 22}" height="${sz || 22}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[k] || P.otro}</svg>`;
   const TAM_OTRO = [{ id: "p", t: "Pequeño", w: 100 }, { id: "m", t: "Mediano", w: 500 }, { id: "g", t: "Grande", w: 1500 }];
   const HORAS = [{ h: 0.25, t: "15 min" }, { h: 0.5, t: "30 min" }, { h: 1, t: "1 hora" }, { h: 2, t: "2 horas" }, { h: 4, t: "4 horas" },
     { h: 6, t: "6 horas" }, { h: 8, t: "Toda la noche" }, { h: 12, t: "12 horas" }, { h: 24, t: "Todo el día" }];
@@ -3218,8 +3246,22 @@
   let sim = null;   // estado de la simulación
 
   function cargar() {
-    try { const s = JSON.parse(localStorage.getItem(KEY) || "null"); if (s && s.items) return Object.assign({ extras: [], cfg: Object.assign({}, CFG_DEF), wOverride: {} }, s); } catch (e) { }
+    try {
+      const s = JSON.parse(localStorage.getItem(KEY) || "null");
+      if (s && s.items) {
+        // Versión anterior: una sola configuración por equipo → se pasa a grupos
+        Object.keys(s.items).forEach(k => { const it = s.items[k]; if (it && !Array.isArray(it.grupos)) s.items[k] = { grupos: it.qty > 0 ? [it] : [] }; });
+        return Object.assign({ extras: [], cfg: Object.assign({}, CFG_DEF), wOverride: {} }, s);
+      }
+    } catch (e) { }
     return { items: {}, extras: [], cfg: Object.assign({}, CFG_DEF), wOverride: {} };
+  }
+  const grupos = (id) => ((st.items[id] || {}).grupos || []);
+  function etiquetaGrupo(eq, g) {
+    if (!eq.tipos) return "";
+    let t = eq.tipos.find(x => x.id === (g.tipo || eq.tipo)) || eq.tipos[0];
+    if (t.id === "nose") { const n = (eq.noSe || []).find(x => x.id === (g.noSe || "m")); return n ? n.t.replace(/ \(.*\)/, "") : "Tamaño estimado"; }
+    return t.t + (eq.inverterPregunta && g.inverter ? " inverter" : "");
   }
   function guardar() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) { } }
   const $ = (id) => document.getElementById(id);
@@ -3243,10 +3285,11 @@
   function lista() {
     const out = [];
     EQUIPOS.forEach(eq => {
-      const it = st.items[eq.id];
-      if (it && it.qty > 0) out.push({ key: eq.id, nombre: eq.nombre, icono: eq.icono, qty: it.qty, horas: it.horas ?? eq.horas, w: wattsDe(eq, it), ciclo: eq.ciclo || 1 });
+      grupos(eq.id).forEach((g, i) => {
+        if (g.qty > 0) out.push({ key: eq.id + "#" + i, nombre: eq.nombre, detalle: etiquetaGrupo(eq, g), icono: eq.id, qty: g.qty, horas: g.horas ?? eq.horas, w: wattsDe(eq, g), ciclo: eq.ciclo || 1 });
+      });
     });
-    st.extras.forEach(x => { if (x.qty > 0) out.push({ key: x.id, nombre: x.nombre || "Otro equipo", icono: "🔌", qty: x.qty, horas: x.horas ?? 2, w: (TAM_OTRO.find(t => t.id === x.tam) || TAM_OTRO[1]).w, ciclo: 1 }); });
+    st.extras.forEach(x => { if (x.qty > 0) out.push({ key: x.id, nombre: x.nombre || "Otro equipo", detalle: "", icono: "otro", qty: x.qty, horas: x.horas ?? 2, w: (TAM_OTRO.find(t => t.id === x.tam) || TAM_OTRO[1]).w, ciclo: 1 }); });
     return out;
   }
   function calcular() {
@@ -3305,7 +3348,8 @@
 .sim-card{background:#fff;border:1.5px solid #ececea;border-radius:18px;padding:14px;transition:border-color 160ms var(--e),box-shadow 160ms var(--e);position:relative}
 .sim-card.on{border-color:#ffab00;box-shadow:0 6px 20px rgba(255,171,0,.12)}
 .sim-card .fila{display:flex;align-items:center;gap:12px}
-.sim-ico{width:48px;height:48px;border-radius:14px;background:#f5f5f3;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;transition:background-color 160ms var(--e)}
+@media (hover:hover) and (pointer:fine){.sim-otro-tam:hover{border-color:#ffcf4d;color:#2b2b2b}}
+.sim-ico{width:48px;height:48px;border-radius:14px;background:#f5f5f3;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background-color 160ms var(--e)}
 .sim-card.on .sim-ico{background:#fff4d6}
 .sim-nom{font-weight:700;font-size:14px;line-height:1.2;flex:1;min-width:0}
 .sim-cant{display:flex;align-items:center;gap:6px}
@@ -3347,7 +3391,7 @@
 .sim-pila .nivel{position:absolute;left:6px;right:6px;bottom:6px;border-radius:14px;background:linear-gradient(180deg,#ffcf4d,#ffab00);transition:height 500ms var(--e),background 400ms}
 .sim-pila .nivel.bajo{background:linear-gradient(180deg,#ff8a65,#e5533a)}
 .sim-pila .pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:Montserrat,Inter,sans-serif;font-weight:900;font-size:30px;color:#2b2b2b;text-shadow:0 1px 0 rgba(255,255,255,.4)}
-.sim-pila .rayo{position:absolute;top:10px;left:0;right:0;font-size:18px;opacity:0;transition:opacity 200ms}
+.sim-pila .rayo{position:absolute;top:10px;left:0;right:0;display:flex;justify-content:center;color:#2b2b2b;opacity:0;transition:opacity 200ms}
 .sim-bat.activa .sim-pila .rayo{opacity:1;animation:sim-late 1.2s ease-in-out infinite}
 @keyframes sim-late{50%{transform:scale(1.15)}}
 .sim-kpis{display:grid;grid-template-columns:1fr 1fr;gap:8px;text-align:left;margin-top:6px}
@@ -3356,7 +3400,7 @@
 .sim-kpis b{font-size:15px}
 .sim-flujo{display:flex;align-items:center;justify-content:space-between;gap:6px;background:#fff;border:1.5px solid #ececea;border-radius:18px;padding:12px 14px;margin-bottom:12px}
 .sim-nodo{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;font-weight:600;color:#777;min-width:62px}
-.sim-nodo i{font-style:normal;font-size:24px;width:46px;height:46px;border-radius:14px;background:#f5f5f3;display:flex;align-items:center;justify-content:center}
+.sim-nodo i{font-style:normal;width:46px;height:46px;border-radius:14px;background:#f5f5f3;display:flex;align-items:center;justify-content:center}
 .sim-linea{flex:1;height:6px;border-radius:6px;background:#ececea;position:relative;overflow:hidden}
 .sim-linea:after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,#ffab00 0 14px,transparent 14px 26px);opacity:0;transition:opacity 200ms}
 .sim-flujo.activo .sim-linea:after{opacity:1;animation:sim-flu var(--vel,1s) linear infinite}
@@ -3364,11 +3408,11 @@
 .sim-eqs{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
 .sim-eq{background:#fff;border:1.5px solid #ececea;border-radius:16px;padding:12px;text-align:left;cursor:pointer;transition:border-color 160ms var(--e),background-color 160ms var(--e),transform 140ms var(--e);position:relative}
 .sim-eq:active{transform:scale(.97)}
-.sim-eq .i{font-size:26px;filter:grayscale(1);opacity:.55;transition:filter 200ms,opacity 200ms}
+.sim-eq .i{transition:color 200ms}
 .sim-eq .n{font-weight:700;font-size:13px;margin-top:4px}
 .sim-eq .s{font-size:11px;color:#9b9b9b}
 .sim-eq.on{border-color:#ffab00;background:#fffaf0}
-.sim-eq.on .i{filter:none;opacity:1}
+
 .sim-eq.on .s{color:#c77d00;font-weight:700}
 .sim-eq .pt{position:absolute;top:10px;right:10px;width:9px;height:9px;border-radius:9px;background:#d9d9d6}
 .sim-eq.on .pt{background:#ffab00;box-shadow:0 0 0 4px rgba(255,171,0,.2);animation:sim-late 1.4s ease-in-out infinite}
@@ -3379,8 +3423,19 @@
 .sim-avz summary{cursor:pointer;font-weight:700;color:#444}
 .sim-avz label{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:5px 0}
 .sim-avz input{width:90px;padding:5px 8px;border:1px solid #e2e2df;border-radius:8px;text-align:right}
+.sim-svg{display:block}
+.sim-ico{color:#5a5a5a}.sim-card.on .sim-ico{color:#c77d00}
+.sim-nom small{display:block;font-size:11px;font-weight:600;color:#9b9b9b;margin-top:2px}
+.sim-grupo{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;font-size:12.5px;font-weight:700;color:#2b2b2b}
+.sim-cant-s button{width:30px;height:30px;border-radius:10px;font-size:17px}
+.sim-otro-tam{margin-top:10px;width:100%;padding:9px;border:1.5px dashed #e2e2df;border-radius:12px;background:#fff;font-size:12px;font-weight:700;color:#777;cursor:pointer;transition:border-color 150ms var(--e),color 150ms var(--e)}
+.sim-dico{width:40px;height:40px;border-radius:12px;background:#f5f5f3;color:#c77d00;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sim-li{display:flex;align-items:center;gap:8px;color:#444}.sim-li .sim-svg{color:#8a8a8a}.sim-li em{font-style:normal;color:#9b9b9b;font-size:12px}
+.sim-eq .i{color:#8a8a8a}.sim-eq.on .i{color:#c77d00}
+.sim-eq .d{font-size:11px;color:#9b9b9b}
+.sim-nodo i{color:#8a8a8a}.sim-flujo.activo .sim-nodo i{color:#c77d00}
 .sim-otro input[type=text]{width:100%;padding:8px 10px;border:1.5px solid #ececea;border-radius:10px;font-size:13px;margin-bottom:8px}
-@media (max-width:820px){.sim-res,.sim-sim{grid-template-columns:1fr}.sim-hero .big{font-size:46px}.sim-card{padding:12px}.sim-ico{width:42px;height:42px;font-size:22px}.sim-titulo{display:none}.sim-dato{padding:12px;gap:8px}.sim-dato .v{font-size:16px}.sim-dato>span{display:none}.sim-bat .sim-pila{height:150px;width:96px}}
+@media (max-width:820px){.sim-res,.sim-sim{grid-template-columns:1fr}.sim-hero .big{font-size:46px}.sim-card{padding:12px}.sim-ico{width:42px;height:42px}.sim-titulo{display:none!important}.sim-dato{padding:12px;gap:8px}.sim-dato .v{font-size:16px}.sim-dato>.sim-dico{display:none}.sim-bat .sim-pila{height:150px;width:96px}}
 @media (max-width:480px){.sim-grid{grid-template-columns:1fr}}
 @media (hover:hover) and (pointer:fine){.sim-chip:hover{border-color:#ffcf4d}.sim-eq:hover{border-color:#ffcf4d}.sim-cant button:hover{background:#e6e6e3}.sim-cant .mas:hover{background:#ffbd1f}}
 @media (prefers-reduced-motion:reduce){#simOverlay *,#simOverlay{animation:none!important;transition:none!important}}
@@ -3392,7 +3447,7 @@
       <div class="sim-top">
         <button type="button" class="sim-btn cla" style="padding:8px 12px;font-size:12px;background:rgba(255,255,255,.1);color:#fff;white-space:nowrap" onclick="FEGSimulador.cerrar()">← Volver</button>
         <div class="feg-logo" style="width:112px;height:32px;flex-shrink:0" aria-hidden="true"></div>
-        <div class="sim-titulo" style="font-size:13px;font-weight:700;color:#fff;margin-left:auto">🔋 Dimensionar batería</div>
+        <div class="sim-titulo" style="font-size:13px;font-weight:700;color:#fff;margin-left:auto;display:flex;align-items:center;gap:6px">${ic("bateria", 18)} Dimensionar batería</div>
       </div>
       <div class="sim-body" id="simBody"><div class="sim-wrap" id="simWrap"></div></div>
       <div class="sim-pie"><div class="in" id="simPie"></div></div>`;
@@ -3406,31 +3461,43 @@
 
   // Paso 1: equipos, cantidad y tiempo de uso
   function htmlPaso1() {
-    const card = (eq) => {
-      const it = st.items[eq.id] || { qty: 0 };
-      const on = it.qty > 0;
+    const opcionesGrupo = (eq, g, i) => {
       let op = "";
+      const llamada = (k, v) => `FEGSimulador.set('${eq.id}',${i},'${k}',${typeof v === "string" ? `'${v}'` : v})`;
+      if (eq.tipos) {
+        op += `<p>${eq.id === "aire" ? "¿De qué tamaño es?" : "¿Cómo es?"}</p><div class="sim-chips">` +
+          eq.tipos.map(t => `<button type="button" class="sim-chip ${(g.tipo || eq.tipo) === t.id ? "on" : ""}" onclick="${llamada("tipo", t.id)}">${t.t}</button>`).join("") + `</div>`;
+        if ((g.tipo || eq.tipo) === "nose" && eq.noSe) op += `<p>¿Es pequeño, mediano o grande?</p><div class="sim-chips">` +
+          eq.noSe.map(t => `<button type="button" class="sim-chip ${(g.noSe || "m") === t.id ? "on" : ""}" onclick="${llamada("noSe", t.id)}">${t.t}</button>`).join("") + `</div>`;
+      }
+      if (eq.inverterPregunta) op += `<p>¿Es inverter?</p><div class="sim-chips">
+        <button type="button" class="sim-chip ${g.inverter ? "on" : ""}" onclick="${llamada("inverter", true)}">Sí</button>
+        <button type="button" class="sim-chip ${!g.inverter ? "on" : ""}" onclick="${llamada("inverter", false)}">No / No sé</button></div>`;
+      const h = g.horas ?? eq.horas;
+      op += `<p>¿Cuánto tiempo lo usas al día?</p><div class="sim-chips">` +
+        HORAS.map(x => `<button type="button" class="sim-chip ${h === x.h ? "on" : ""}" onclick="${llamada("horas", x.h)}">${x.t}</button>`).join("") + `</div>`;
+      return op;
+    };
+    const card = (eq) => {
+      const gs = grupos(eq.id);
+      const total = gs.reduce((a, g) => a + (g.qty || 0), 0);
+      const on = total > 0;
+      const varios = gs.length > 1;
+      let cuerpo = "";
       if (on) {
-        if (eq.tipos) {
-          op += `<p>${eq.id === "aire" ? "¿De qué tamaño es?" : "¿Cómo es?"}</p><div class="sim-chips">` +
-            eq.tipos.map(t => `<button type="button" class="sim-chip ${(it.tipo || eq.tipo) === t.id ? "on" : ""}" onclick="FEGSimulador.set('${eq.id}','tipo','${t.id}')">${t.t}</button>`).join("") + `</div>`;
-          if ((it.tipo || eq.tipo) === "nose" && eq.noSe) op += `<p>¿Es pequeño, mediano o grande?</p><div class="sim-chips">` +
-            eq.noSe.map(t => `<button type="button" class="sim-chip ${(it.noSe || "m") === t.id ? "on" : ""}" onclick="FEGSimulador.set('${eq.id}','noSe','${t.id}')">${t.t}</button>`).join("") + `</div>`;
-        }
-        if (eq.inverterPregunta) op += `<p>¿Es inverter?</p><div class="sim-chips">
-          <button type="button" class="sim-chip ${it.inverter ? "on" : ""}" onclick="FEGSimulador.set('${eq.id}','inverter',true)">Sí</button>
-          <button type="button" class="sim-chip ${!it.inverter ? "on" : ""}" onclick="FEGSimulador.set('${eq.id}','inverter',false)">No / No sé</button></div>`;
-        const h = it.horas ?? eq.horas;
-        op += `<p>¿Cuánto tiempo lo usas al día?</p><div class="sim-chips">` +
-          HORAS.map(x => `<button type="button" class="sim-chip ${h === x.h ? "on" : ""}" onclick="FEGSimulador.set('${eq.id}','horas',${x.h})">${x.t}</button>`).join("") + `</div>`;
+        cuerpo = gs.map((g, i) => `<div class="sim-op">
+          ${varios ? `<div class="sim-grupo"><span>${eq.nombre} ${i + 1}${etiquetaGrupo(eq, g) ? " · " + etiquetaGrupo(eq, g) : ""}</span>
+            <div class="sim-cant sim-cant-s"><button type="button" aria-label="Quitar" onclick="FEGSimulador.qty('${eq.id}',-1,${i})">−</button><span>${g.qty}</span><button type="button" class="mas" aria-label="Agregar" onclick="FEGSimulador.qty('${eq.id}',1,${i})">+</button></div></div>` : ""}
+          ${opcionesGrupo(eq, g, i)}</div>`).join("") +
+          `<button type="button" class="sim-otro-tam" onclick="FEGSimulador.agregarGrupo('${eq.id}')">+ Agregar ${eq.nombre.toLowerCase()} ${eq.tipos ? "de otro tamaño" : "con otro horario"}</button>`;
       }
       return `<div class="sim-card ${on ? "on" : ""}">
-        <div class="fila"><div class="sim-ico">${eq.icono}</div><div class="sim-nom">${eq.nombre}</div>
-          <div class="sim-cant"><button type="button" aria-label="Quitar" onclick="FEGSimulador.qty('${eq.id}',-1)">−</button><span>${it.qty || 0}</span><button type="button" class="mas" aria-label="Agregar" onclick="FEGSimulador.qty('${eq.id}',1)">+</button></div></div>
-        ${on ? `<div class="sim-op">${op}</div>` : ""}</div>`;
+        <div class="fila"><div class="sim-ico">${ic(eq.id, 24)}</div><div class="sim-nom">${eq.nombre}${varios ? `<small>${total} en total</small>` : ""}</div>
+          ${varios ? "" : `<div class="sim-cant"><button type="button" aria-label="Quitar" onclick="FEGSimulador.qty('${eq.id}',-1,0)">−</button><span>${total}</span><button type="button" class="mas" aria-label="Agregar" onclick="FEGSimulador.qty('${eq.id}',1,0)">+</button></div>`}</div>
+        ${cuerpo}</div>`;
     };
     const extras = st.extras.map((x, i) => `<div class="sim-card on sim-otro">
-        <div class="fila"><div class="sim-ico">🔌</div><div class="sim-nom">Otro equipo</div>
+        <div class="fila"><div class="sim-ico">${ic("otro", 24)}</div><div class="sim-nom">Otro equipo</div>
           <div class="sim-cant"><button type="button" onclick="FEGSimulador.qtyOtro(${i},-1)">−</button><span>${x.qty}</span><button type="button" class="mas" onclick="FEGSimulador.qtyOtro(${i},1)">+</button></div></div>
         <div class="sim-op"><input type="text" placeholder="¿Qué equipo es? (ej. plancha)" value="${esc(x.nombre)}" onchange="FEGSimulador.setOtro(${i},'nombre',this.value)">
           <p>¿Qué tan grande es?</p><div class="sim-chips">${TAM_OTRO.map(t => `<button type="button" class="sim-chip ${x.tam === t.id ? "on" : ""}" onclick="FEGSimulador.setOtro(${i},'tam','${t.id}')">${t.t}</button>`).join("")}</div>
@@ -3438,7 +3505,7 @@
     return `${pasos()}<h2 class="sim-h">¿Qué equipos tienes en tu casa?</h2>
       <p class="sim-sub">Toca <b>+</b> en los que tienes y dinos cuánto los usas. Nosotros hacemos los cálculos.</p>
       <div class="sim-grid">${EQUIPOS.map(card).join("")}${extras}
-        <button type="button" class="sim-card" style="border-style:dashed;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:700;color:#777;min-height:76px" onclick="FEGSimulador.agregarOtro()">＋ Agregar otro equipo</button>
+        <button type="button" class="sim-card" style="border-style:dashed;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:700;color:#777;min-height:76px" onclick="FEGSimulador.agregarOtro()">${ic("otro", 20)} Agregar otro equipo</button>
       </div>`;
   }
 
@@ -3451,24 +3518,24 @@
       <p class="sim-sub">Calculado con los equipos que elegiste. Es una estimación: el consumo real depende de cada equipo.</p>
       <div class="sim-res">
         <div class="sim-hero">
-          <div class="k">🔋 Batería recomendada</div>
+          <div class="k" style="display:flex;align-items:center;gap:6px">${ic("bateria", 16)} Batería recomendada</div>
           <div class="big">${n1(r.cap)}<small>kWh</small></div>
           <div style="font-size:13px;color:rgba(255,255,255,.75)">${bat ? `Por ejemplo: <b style="color:#fff">${bat.qty} × ${esc(bat.nombre)}</b> (${n1(bat.total)} kWh)` : ""}</div>
           <div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap">
-            <button type="button" class="sim-btn nar" onclick="FEGSimulador.ir(3)">⚡ Simular mi sistema</button>
+            <button type="button" class="sim-btn nar" onclick="FEGSimulador.ir(3)">Simular mi sistema</button>
             <button type="button" class="sim-btn cla" style="background:rgba(255,255,255,.1);color:#fff" onclick="FEGSimulador.ir(1)">Modificar equipos</button>
           </div>
         </div>
         <div>
           <div class="sim-datos">
-            <div class="sim-dato"><span style="font-size:24px">⚡</span><div><div class="v">${inv ? `${inv.qty > 1 ? inv.qty + " × " : ""}${n1(inv.qty > 1 ? inv.kw / inv.qty : inv.kw)} kW` : "—"}</div><div class="l">Inversor recomendado</div></div></div>
-            <div class="sim-dato"><span style="font-size:24px">🏠</span><div><div class="v">${n1(r.kwhDia)} kWh</div><div class="l">Consumo diario estimado</div></div></div>
-            <div class="sim-dato"><span style="font-size:24px">⏱️</span><div><div class="v">${horasTxt(r.autonomia)}</div><div class="l">Autonomía estimada</div></div></div>
-            <div class="sim-dato"><span style="font-size:24px">📈</span><div><div class="v">${n1(r.pico)} kW</div><div class="l">Potencia máxima simultánea</div></div></div>
+            <div class="sim-dato"><span class="sim-dico">${ic("rayo")}</span><div><div class="v">${inv ? `${inv.qty > 1 ? inv.qty + " × " : ""}${n1(inv.qty > 1 ? inv.kw / inv.qty : inv.kw)} kW` : "—"}</div><div class="l">Inversor recomendado</div></div></div>
+            <div class="sim-dato"><span class="sim-dico">${ic("casa")}</span><div><div class="v">${n1(r.kwhDia)} kWh</div><div class="l">Consumo diario estimado</div></div></div>
+            <div class="sim-dato"><span class="sim-dico">${ic("reloj")}</span><div><div class="v">${horasTxt(r.autonomia)}</div><div class="l">Autonomía estimada</div></div></div>
+            <div class="sim-dato"><span class="sim-dico">${ic("grafico")}</span><div><div class="v">${n1(r.pico)} kW</div><div class="l">Potencia máxima simultánea</div></div></div>
           </div>
           <div class="sim-lista" style="margin-top:10px">
             <div style="font-weight:700;color:#8a8a8a;font-size:11px;text-transform:uppercase;letter-spacing:.06em"><span>Equipos seleccionados</span><span>Consumo al día</span></div>
-            ${r.L.map(e => `<div><span>${e.icono} ${e.qty} × ${esc(e.nombre)}</span><b>${n2(e.w * e.qty * e.horas * e.ciclo / 1000)} kWh</b></div>`).join("")}
+            ${r.L.map(e => `<div><span class="sim-li">${ic(e.icono, 16)} ${e.qty} × ${esc(e.nombre)}${e.detalle ? ` <em>${esc(e.detalle)}</em>` : ""}</span><b>${n2(e.w * e.qty * e.horas * e.ciclo / 1000)} kWh</b></div>`).join("")}
           </div>
         </div>
       </div>
@@ -3485,7 +3552,7 @@
       <p style="margin:8px 0 4px;font-weight:700">Potencia estimada de cada equipo (W)</p>
       ${EQUIPOS.flatMap(eq => (eq.tipos ? eq.tipos.filter(t => t.w) : [{ id: "", t: "", w: eq.w }]).map(t => {
         const k = eq.id + ":" + t.id;
-        return `<label>${eq.icono} ${eq.nombre}${t.t ? " — " + t.t : ""}<input type="number" value="${st.wOverride[k] || t.w}" onchange="FEGSimulador.w('${k}',this.value)"></label>`;
+        return `<label>${eq.nombre}${t.t ? " — " + t.t : ""}<input type="number" value="${st.wOverride[k] || t.w}" onchange="FEGSimulador.w('${k}',this.value)"></label>`;
       })).join("")}
       <button type="button" class="sim-chip" style="margin-top:8px" onclick="FEGSimulador.restaurar()">Volver a los valores de referencia</button>
     </details>`;
@@ -3501,7 +3568,7 @@
       <div class="sim-sim">
         <div class="sim-bat" id="simBat">
           <div style="font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.65)">Batería de litio</div>
-          <div class="sim-pila"><div class="nivel" id="simNivel"></div><div class="rayo">⚡</div><div class="pct" id="simPct">100%</div></div>
+          <div class="sim-pila"><div class="nivel" id="simNivel"></div><div class="rayo">${ic("rayo", 18)}</div><div class="pct" id="simPct">100%</div></div>
           <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px">
             <button type="button" class="sim-chip" style="background:rgba(255,255,255,.1);color:#fff;border-color:transparent" onclick="FEGSimulador.capacidad(-5)">−</button>
             <b style="font-size:18px" id="simCap"></b>
@@ -3517,18 +3584,18 @@
         <div>
           <div id="simAlertas"></div>
           <div class="sim-flujo" id="simFlujo">
-            <div class="sim-nodo"><i>🔋</i>Batería</div><div class="sim-linea"></div>
-            <div class="sim-nodo"><i>⚡</i>Inversor</div><div class="sim-linea"></div>
-            <div class="sim-nodo"><i>🏠</i>Tu casa</div>
+            <div class="sim-nodo"><i>${ic("bateria")}</i>Batería</div><div class="sim-linea"></div>
+            <div class="sim-nodo"><i>${ic("rayo")}</i>Inversor</div><div class="sim-linea"></div>
+            <div class="sim-nodo"><i>${ic("casa")}</i>Tu casa</div>
           </div>
           <div class="sim-ctrl">
             <span style="font-size:12px;color:#777;font-weight:600">Velocidad:</span>
             ${[[1, "1 min/seg"], [10, "10 min/seg"], [60, "1 hora/seg"]].map(([v, t]) => `<button type="button" class="sim-chip ${sim.vel === v ? "on" : ""}" onclick="FEGSimulador.vel(${v})">${t}</button>`).join("")}
-            <button type="button" class="sim-chip" onclick="FEGSimulador.recargar()">🔄 Recargar batería</button>
+            <button type="button" class="sim-chip" onclick="FEGSimulador.recargar()" style="display:inline-flex;align-items:center;gap:5px">${ic("recargar", 14)} Recargar batería</button>
             <span style="font-size:12px;color:#777;margin-left:auto">Simulado: <b id="simReloj">0 h</b></span>
           </div>
           <div class="sim-eqs">${r.L.map(e => `<button type="button" class="sim-eq ${sim.on[e.key] ? "on" : ""}" data-k="${e.key}" onclick="FEGSimulador.toggle('${e.key}')">
-            <span class="pt"></span><div class="i">${e.icono}</div><div class="n">${e.qty > 1 ? e.qty + " × " : ""}${esc(e.nombre)}</div><div class="s">${sim.on[e.key] ? "Encendido" : "Apagado"}</div></button>`).join("")}</div>
+            <span class="pt"></span><div class="i">${ic(e.icono, 26)}</div><div class="n">${e.qty > 1 ? e.qty + " × " : ""}${esc(e.nombre)}</div>${e.detalle ? `<div class="d">${esc(e.detalle)}</div>` : ""}<div class="s">${sim.on[e.key] ? "Encendido" : "Apagado"}</div></button>`).join("")}</div>
           <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
             <button type="button" class="sim-btn cla" onclick="FEGSimulador.todos(true)">Encender todo</button>
             <button type="button" class="sim-btn cla" onclick="FEGSimulador.todos(false)">Apagar todo</button>
@@ -3564,9 +3631,9 @@
     f.style.setProperty("--vel", Math.max(0.25, 1.4 - kw / 4) + "s");
     const r = calcular();
     let al = "";
-    if (sim.inv && kw > sim.inv) al += `<div class="sim-alerta"><b>⚠️ Potencia simultánea elevada</b>Los equipos encendidos piden más de lo que da el inversor (${n1(sim.inv)} kW). Se recomienda un inversor más grande o no encenderlos todos a la vez.</div>`;
-    if (r.kwhDia > usable + 1e-9) al += `<div class="sim-alerta"><b>⚠️ Consumo elevado</b>Tus equipos pueden gastar más de lo que guarda esta batería en un día. Batería recomendada: <b style="display:inline">${n1(r.cap)} kWh</b>.</div>`;
-    if (rest <= 0 && sim.usada > 0) al += `<div class="sim-alerta" style="background:#fdeceb;border-color:#f5b7b1;color:#8a2a20"><b>🔋 Batería agotada</b>Toca "Recargar batería" para volver a empezar.</div>`;
+    if (sim.inv && kw > sim.inv) al += `<div class="sim-alerta"><b>Potencia simultánea elevada</b>Los equipos encendidos piden más de lo que da el inversor (${n1(sim.inv)} kW). Se recomienda un inversor más grande o no encenderlos todos a la vez.</div>`;
+    if (r.kwhDia > usable + 1e-9) al += `<div class="sim-alerta"><b>Consumo elevado</b>Tus equipos pueden gastar más de lo que guarda esta batería en un día. Batería recomendada: <b style="display:inline">${n1(r.cap)} kWh</b>.</div>`;
+    if (rest <= 0 && sim.usada > 0) al += `<div class="sim-alerta" style="background:#fdeceb;border-color:#f5b7b1;color:#8a2a20"><b>Batería agotada</b>Toca "Recargar batería" para volver a empezar.</div>`;
     if ($("simAlertas").innerHTML !== al) $("simAlertas").innerHTML = al;
   }
   function tick() {
@@ -3620,13 +3687,23 @@
       clearInterval(this._timer);
     },
     ir(n) { if (n === 3) { sim = null; } paso = n; render(true); },
-    qty(id, d) {
+    qty(id, d, i) {
       const eq = EQUIPOS.find(e => e.id === id);
-      const it = st.items[id] || { qty: 0, horas: eq.horas, tipo: eq.tipo };
-      it.qty = Math.max(0, Math.min(50, (it.qty || 0) + d));
+      const it = st.items[id] || { grupos: [] };
+      if (!it.grupos.length) it.grupos.push({ qty: 0, horas: eq.horas, tipo: eq.tipo });
+      const g = it.grupos[i || 0]; if (!g) return;
+      g.qty = Math.max(0, Math.min(50, (g.qty || 0) + d));
+      if (!g.qty && it.grupos.length > 1) it.grupos.splice(i || 0, 1);
       st.items[id] = it; guardar(); render();
     },
-    set(id, k, v) { const it = st.items[id]; if (!it) return; it[k] = v; guardar(); render(); },
+    agregarGrupo(id) {
+      const eq = EQUIPOS.find(e => e.id === id);
+      const it = st.items[id] || { grupos: [] };
+      const otroTipo = eq.tipos ? (eq.tipos.find(t => t.w && !it.grupos.some(g => (g.tipo || eq.tipo) === t.id)) || eq.tipos[0]).id : eq.tipo;
+      it.grupos.push({ qty: 1, horas: eq.horas, tipo: otroTipo });
+      st.items[id] = it; guardar(); render();
+    },
+    set(id, i, k, v) { const g = grupos(id)[i]; if (!g) return; g[k] = v; guardar(); render(); },
     agregarOtro() { st.extras.push({ id: "x" + Date.now(), nombre: "", tam: "m", qty: 1, horas: 2 }); guardar(); render(); },
     qtyOtro(i, d) { const x = st.extras[i]; x.qty = Math.max(0, x.qty + d); if (!x.qty) st.extras.splice(i, 1); guardar(); render(); },
     setOtro(i, k, v) { st.extras[i][k] = v; guardar(); if (k !== "nombre") render(); },
