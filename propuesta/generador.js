@@ -520,10 +520,27 @@
     if (p.rol === "objetivo" && z.consumo) {
       const sinContrato = !String(ctx.v.contrato || "").trim();
       const sinBat = !(ctx.almKwh > 0);
-      const ocultar = new Set(), mover = {};
+      const ocultar = new Set(), mover = {}, moverX = {};
       const fondo = `background:#fff`;
-      if (sinContrato) { extra += `<div style="position:absolute;${rect([z.consumo[0] - 2, z.consumo[1] - 2, z.consumo[2] + 2, z.consumo[3] + 2], fondo)}"></div>`; z.bConsumo.forEach(id => ocultar.add(id)); }
-      if (z.alm) {
+      // Integración sin paneles (comercial): no hay producción ni consumo; el almacenamiento pasa al primer lugar
+      if (z.prod && ctx.r.sinGeneracion) {
+        [z.prod, z.consumo].forEach(r => { extra += `<div style="position:absolute;${rect([r[0] - 4, r[1] - 4, r[2] + 4, r[3] + 4], fondo)}"></div>`; });
+        z.bProd.concat(z.bConsumo).forEach(id => ocultar.add(id));
+        if (z.alm && !sinBat) {
+          const a = z.alm, dx = z.prod[0] - a[0], dy = z.prod[1] - a[1];
+          extra += `<div style="position:absolute;${rect([a[0] - 2, a[1] - 2, a[2] + 2, a[3] + 2], fondo)}"></div>`;
+          extra += `<div style="position:absolute;${rect([a[0] + dx, a[1] + dy, a[2] + dx, a[3] + dy], `background-image:url(${BASE}bg/${pg.bg});background-size:612pt 792pt;background-position:-${a[0]}pt -${a[1]}pt`)}"></div>`;
+          z.bAlm.forEach(id => { mover[id] = dy; moverX[id] = dx; });
+        }
+      }
+      // Tarifa BTS (ej. BTS-2): no lleva cargo fijo por potencia
+      if (z.bPotencia && /^\s*BTS/i.test(ctx.v.tarifa || "")) {
+        z.bPotencia.forEach(id => ocultar.add(id));
+        extra += `<div style="position:absolute;${rect(z.flechaPotencia, fondo)}"></div>`;
+      }
+      const yaMovido = Object.keys(moverX).length > 0 || (z.prod && ctx.r.sinGeneracion);
+      if (sinContrato && !yaMovido) { extra += `<div style="position:absolute;${rect([z.consumo[0] - 2, z.consumo[1] - 2, z.consumo[2] + 2, z.consumo[3] + 2], fondo)}"></div>`; z.bConsumo.forEach(id => ocultar.add(id)); }
+      if (z.alm && !yaMovido) {
         if (sinBat) { extra += `<div style="position:absolute;${rect([z.alm[0] - 2, z.alm[1] - 2, z.alm[2] + 2, z.alm[3] + 2], fondo)}"></div>`; z.bAlm.forEach(id => ocultar.add(id)); }
         else if (sinContrato) {
           const dy = z.consumo[1] - z.alm[1], a = z.alm;
@@ -535,7 +552,7 @@
       const f0 = filtro;
       filtro = (b) => !ocultar.has(b.id) && (!f0 || f0(b));
       const blocks = TPL.paginas[tplKey].blocks;
-      Object.keys(mover).forEach(id => { const b = blocks.find(x => x.id === id); if (b) { objCambios[id] = { y: b.y + mover[id] }; } });
+      Object.keys(mover).forEach(id => { const b = blocks.find(x => x.id === id); if (b) { objCambios[id] = { y: b.y + mover[id], x: b.x + (moverX[id] || 0) }; } });
     }
     // Sin contrato: se quita la palabra "Contrato" y la línea gris que la separa
     if (p.rol === "portada" && !String(ctx.v.contrato || "").trim()) {
