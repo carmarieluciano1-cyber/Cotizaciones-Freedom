@@ -7,6 +7,8 @@
   <meta name="description" content="Portal de cotizaciones solares y control contable de Freedom Energy Group." />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E%E2%98%80%EF%B8%8F%3C/text%3E%3C/svg%3E" />
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Los efectos al pasar el mouse solo en computadora (en el teléfono no se quedan "pegados") -->
+  <script>tailwind.config = { future: { hoverOnlyWhenSupported: true } };</script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@300;400;600;700;900&family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
   <style>
     body {
@@ -34,6 +36,43 @@
         box-shadow: none !important;
         border: 1px solid #e2e8f0 !important;
       }
+    }
+    /* ===== Pulido de interfaz (movimiento corto, suave y con propósito) ===== */
+    :root { --ease-out: cubic-bezier(.23, 1, .32, 1); --ease-in-out: cubic-bezier(.77, 0, .175, 1); }
+    body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; }
+    ::selection { background: #fed7aa; color: #0f172a; }
+    /* Botones: responden al toque con una leve reducción */
+    button, [role="button"], label.cursor-pointer {
+      transition-property: color, background-color, border-color, box-shadow, transform, opacity;
+      transition-duration: 160ms; transition-timing-function: var(--ease-out);
+      -webkit-tap-highlight-color: transparent;
+    }
+    button:not(:disabled):active, [role="button"]:active, label.cursor-pointer:active { transform: scale(.97); }
+    /* Campos: el borde y el anillo de foco cambian suave */
+    input, select, textarea { transition: border-color 150ms var(--ease-out), box-shadow 150ms var(--ease-out), background-color 150ms var(--ease-out); }
+    input:focus-visible, select:focus-visible, textarea:focus-visible { box-shadow: 0 0 0 3px rgba(249, 115, 22, .16); border-color: #fdba74 !important; outline: none; }
+    button:focus-visible { outline: 2px solid #fb923c; outline-offset: 2px; }
+    /* Cambio de pantalla o pestaña: entra con un fundido corto */
+    @keyframes feg-entra { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+    .feg-entra { animation: feg-entra 240ms var(--ease-out) both; }
+    /* Lista de cotizaciones: aparece en cascada */
+    .feg-cascada > * { animation: feg-entra 260ms var(--ease-out) both; }
+    .feg-cascada > *:nth-child(2) { animation-delay: 30ms; } .feg-cascada > *:nth-child(3) { animation-delay: 60ms; }
+    .feg-cascada > *:nth-child(4) { animation-delay: 90ms; } .feg-cascada > *:nth-child(5) { animation-delay: 120ms; }
+    .feg-cascada > *:nth-child(6) { animation-delay: 150ms; } .feg-cascada > *:nth-child(n+7) { animation-delay: 180ms; }
+    /* Aviso (toast): sube y aparece; al irse, se desvanece más rápido */
+    #toastBox { opacity: 0; transform: translateY(10px) scale(.96); pointer-events: none; transform-origin: bottom right;
+      transition: opacity 160ms var(--ease-out), transform 160ms var(--ease-out); }
+    #toastBox.mostrar { opacity: 1; transform: none; pointer-events: auto; transition-duration: 280ms; }
+    /* Tarjetas que se pueden tocar: se elevan un poco al pasar el mouse (solo computadora) */
+    @media (hover: hover) and (pointer: fine) {
+      #savedQuotesList > * { transition: background-color 150ms var(--ease-out); }
+    }
+    /* Quien prefiera menos movimiento: sin desplazamientos, solo cambios inmediatos */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 1ms !important; animation-delay: 0ms !important; transition-duration: 1ms !important; }
+      button:active, [role="button"]:active, label.cursor-pointer:active { transform: none !important; }
+      #toastBox { transform: none !important; }
     }
     /* Ocultar flechas en inputs numéricos para mayor limpieza visual */
     input[type=number]::-webkit-inner-spin-button,
@@ -111,7 +150,7 @@
   </div>
 
   <!-- Notificación Toast (Reemplaza alert()) -->
-  <div id="toastBox" class="fixed bottom-5 right-5 z-50 hidden transform transition-all duration-300 no-print">
+  <div id="toastBox" class="fixed bottom-5 right-5 z-50 no-print" aria-live="polite">
     <div id="toastContent" class="flex items-center space-x-3 px-4 py-3 rounded-xl shadow-lg border text-sm font-medium bg-white border-slate-200 text-slate-800">
       <span id="toastIcon"></span>
       <span id="toastMessage">Mensaje</span>
@@ -370,19 +409,19 @@
         <div class="sticky top-14 z-20 lg:static bg-white p-1.5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between no-print">
           <div class="flex gap-1 w-full">
             <button type="button" id="tabBtnDatos" onclick="switchTab('datos')"
-              class="lg:hidden flex-1 py-2 px-2 rounded-xl text-xs font-medium text-slate-600 transition-all flex items-center justify-center">
+              class="lg:hidden flex-1 py-2 px-2 rounded-xl text-xs font-medium text-slate-600 transition-colors flex items-center justify-center">
               <span>Datos</span>
             </button>
             <button type="button" id="tabBtnComercial" onclick="switchTab('comercial')"
-              class="flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold bg-slate-900 text-white shadow-sm transition-all flex items-center justify-center space-x-2">
+              class="flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold bg-slate-900 text-white shadow-sm transition-colors flex items-center justify-center space-x-2">
               <span class="lg:hidden">Propuesta</span><span class="hidden lg:inline whitespace-nowrap">Propuesta al Cliente</span>
             </button>
             <button type="button" id="tabBtnContabilidad" onclick="switchTab('contabilidad')"
-              class="flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-all flex items-center justify-center space-x-2">
+              class="flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors flex items-center justify-center space-x-2">
               <span class="lg:hidden">Interno</span><span class="hidden lg:inline whitespace-nowrap">Informe Interno</span>
             </button>
             <button type="button" id="tabBtnPrecios" onclick="switchTab('precios')"
-              class="flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-all flex items-center justify-center space-x-2">
+              class="flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors flex items-center justify-center space-x-2">
               <span class="lg:hidden">Precios</span><span class="hidden lg:inline whitespace-nowrap">Precios y Reglas</span>
             </button>
           </div>
@@ -835,15 +874,15 @@
               <label class="block text-xs font-medium text-slate-600 mb-1.5">Lista de Precio Comercial</label>
               <div class="grid grid-cols-3 gap-2 p-1 bg-slate-100 rounded-xl">
                 <button type="button" id="btnPriceStandard" onclick="setTipoPrecio('standard')"
-                  class="py-1.5 px-3 rounded-lg text-xs font-semibold bg-white text-slate-900 shadow-sm transition-all">
+                  class="py-1.5 px-3 rounded-lg text-xs font-semibold bg-white text-slate-900 shadow-sm transition-colors">
                   <span class="block">Standard</span><span class="block text-[10px] opacity-70">÷ 0.67</span>
                 </button>
                 <button type="button" id="btnPricePreferencial" onclick="setTipoPrecio('preferencial')"
-                  class="py-1.5 px-3 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 transition-all">
+                  class="py-1.5 px-3 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 transition-colors">
                   <span class="block">Preferencial</span><span class="block text-[10px] opacity-70">÷ 0.69</span>
                 </button>
                 <button type="button" id="btnPriceConsensuado" onclick="setTipoPrecio('consensuado')"
-                  class="py-1.5 px-3 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 transition-all">
+                  class="py-1.5 px-3 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 transition-colors">
                   <span class="block">Consensuado</span><span class="block text-[10px] opacity-70">tú lo pones</span>
                 </button>
               </div>
@@ -1640,19 +1679,29 @@
     // =========================================================================
     // NAVEGACIÓN: INICIO (lista) ↔ EDITOR (pestañas)
     // =========================================================================
+    // Fundido corto al entrar a una pantalla o pestaña
+    function animarEntrada(el) {
+      if (!el) return;
+      el.classList.remove("feg-entra"); void el.offsetWidth; el.classList.add("feg-entra");
+    }
     function showHome() {
       flushSave();
       document.getElementById("homeView").style.display = "";
+      animarEntrada(document.getElementById("homeView"));
       document.getElementById("editorView").style.display = "none";
       document.getElementById("liveBar").style.display = "none";
       document.getElementById("btnBackHome").style.display = "none";
       renderSavedQuotes();
+      const lista = document.getElementById("savedQuotesList");
+      lista.classList.add("feg-cascada");
+      setTimeout(() => lista.classList.remove("feg-cascada"), 700);
       setTimeout(cloudSync, 300);
       window.scrollTo({ top: 0 });
     }
     function showEditor() {
       document.getElementById("homeView").style.display = "none";
       document.getElementById("editorView").style.display = "";
+      animarEntrada(document.getElementById("editorView"));
       document.getElementById("liveBar").style.display = "";
       document.getElementById("btnBackHome").style.display = "";
       window.scrollTo({ top: 0 });
@@ -2131,8 +2180,8 @@
     // =========================================================================
     function setTipoPrecio(tipo, silent) {
       selectedTipoPrecio = tipo;
-      const on = "py-1.5 px-3 rounded-lg text-xs font-semibold bg-white text-slate-900 shadow-sm transition-all";
-      const off = "py-1.5 px-3 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 transition-all";
+      const on = "py-1.5 px-3 rounded-lg text-xs font-semibold bg-white text-slate-900 shadow-sm transition-colors";
+      const off = "py-1.5 px-3 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 transition-colors";
       document.getElementById("btnPriceStandard").className = tipo === "standard" ? on : off;
       document.getElementById("btnPricePreferencial").className = tipo === "preferencial" ? on : off;
       document.getElementById("btnPriceConsensuado").className = tipo === "consensuado" ? on : off;
@@ -2166,14 +2215,17 @@
     function switchTab(tab) {
       if (tab === "datos" && !isMobile()) tab = "comercial";   // en computadora los datos siempre se ven a la izquierda
       currentTab = tab;
-      const base = "flex-1 py-2 px-2 lg:py-2.5 lg:px-4 rounded-xl text-xs lg:text-sm transition-all flex items-center justify-center";
+      const base = "flex-1 py-2 px-2 lg:py-2.5 lg:px-4 rounded-xl text-xs lg:text-sm transition-colors flex items-center justify-center";
       const on = base + " font-semibold bg-slate-900 text-white shadow-sm";
       const off = base + " font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50";
       document.getElementById("editorView").dataset.mtab = tab;
       document.getElementById("tabBtnDatos").className = "lg:hidden " + (tab === "datos" ? on : off);
       [["comercial", "viewComercial", "tabBtnComercial"], ["contabilidad", "viewContabilidad", "tabBtnContabilidad"], ["precios", "viewPrecios", "tabBtnPrecios"]]
         .forEach(([k, view, btn]) => {
-          document.getElementById(view).classList.toggle("hidden", k !== tab);
+          const v = document.getElementById(view);
+          const antes = v.classList.contains("hidden");
+          v.classList.toggle("hidden", k !== tab);
+          if (k === tab && antes) animarEntrada(v);
           document.getElementById(btn).className = k === tab ? on : off;
         });
       if (tab === "precios") renderSettings();
@@ -2724,9 +2776,9 @@
         content.className = "flex items-center space-x-2.5 px-4 py-3 rounded-xl shadow-lg border text-xs font-medium bg-white border-slate-200 text-slate-800";
         icon.textContent = "•";
       }
-      box.classList.remove("hidden");
+      box.classList.add("mostrar");
       clearTimeout(toastTimeout);
-      toastTimeout = setTimeout(() => box.classList.add("hidden"), 4500);
+      toastTimeout = setTimeout(() => box.classList.remove("mostrar"), 4500);
     }
 
     // =========================================================================

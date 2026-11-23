@@ -600,7 +600,12 @@
     if ($("ppOverlay")) return;
     const css = document.createElement("style");
     css.textContent = `
-#ppOverlay{position:fixed;inset:0;z-index:60;background:#e9ecf1;display:flex;flex-direction:column;font-family:Inter,system-ui,sans-serif}
+#ppOverlay{position:fixed;inset:0;z-index:60;background:#e9ecf1;display:flex;flex-direction:column;font-family:Inter,system-ui,sans-serif;--pp-ease:cubic-bezier(.23,1,.32,1)}
+@keyframes pp-abre{from{opacity:0;transform:scale(.985)}to{opacity:1;transform:none}}
+@keyframes pp-sube{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+#ppOverlay.pp-anim{animation:pp-abre 260ms var(--pp-ease) both}
+#ppPages.pp-cascada .pp-wrap{animation:pp-sube 320ms var(--pp-ease) both}
+#ppPages.pp-cascada .pp-wrap:nth-child(2){animation-delay:40ms}#ppPages.pp-cascada .pp-wrap:nth-child(3){animation-delay:80ms}#ppPages.pp-cascada .pp-wrap:nth-child(n+4){animation-delay:120ms}
 #ppOverlay .pp-top{background:#fff;border-bottom:1px solid #e2e8f0;padding:10px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 #ppOverlay .pp-body{flex:1;display:flex;min-height:0}
 #ppSide{width:330px;flex-shrink:0;background:#fff;border-right:1px solid #e2e8f0;overflow-y:auto;padding:14px 16px 40px}
@@ -609,33 +614,41 @@
 .pp-page{position:absolute;left:0;top:0;width:612pt;height:792pt;overflow:hidden;background:#fff;transform-origin:0 0;box-shadow:0 4px 24px rgba(15,23,42,.14)}
 .pp-page .pp-bg{position:absolute;left:0;top:0;width:612pt;height:792pt;display:block}
 .pp-page .pp-bg[style*="height:80pt"]{height:80pt}
-.pp-t{position:absolute;outline:none;border-radius:2px;cursor:text;min-width:4pt;-webkit-font-smoothing:antialiased;font-kerning:normal}
-.pp-t:hover{box-shadow:0 0 0 1px rgba(249,115,22,.55)}
+.pp-t{position:absolute;outline:none;border-radius:2px;cursor:text;min-width:4pt;-webkit-font-smoothing:antialiased;font-kerning:normal;transition:box-shadow 140ms var(--pp-ease)}
+@media (hover:hover) and (pointer:fine){.pp-t:hover{box-shadow:0 0 0 1px rgba(249,115,22,.55)}}
 .pp-t:focus{box-shadow:0 0 0 1.5px #f97316;background:rgba(255,255,255,.08)}
 .pp-t.pp-ed{box-shadow:0 0 0 1px rgba(249,115,22,.0);background-image:linear-gradient(90deg,rgba(249,115,22,.9) 50%,transparent 50%);background-size:6px 1.5px;background-repeat:repeat-x;background-position:0 100%}
 .pp-falta{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:14pt}
 .pp-sec{border-top:1px solid #f1f5f9;padding-top:12px;margin-top:12px}
 .pp-sec h4{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#334155;margin-bottom:8px}
 .pp-in{width:100%;padding:6px 9px;font-size:13px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;outline:none}
-.pp-in:focus{border-color:#fb923c;background:#fff}
+.pp-in{transition:border-color 150ms var(--pp-ease),box-shadow 150ms var(--pp-ease),background-color 150ms var(--pp-ease)}
+.pp-in:focus{border-color:#fb923c;background:#fff;box-shadow:0 0 0 3px rgba(249,115,22,.14)}
 .pp-lab{display:block;font-size:11px;font-weight:500;color:#475569;margin-bottom:8px}
 .pp-row{display:flex;align-items:center;gap:8px;padding:5px 6px;border-radius:8px;font-size:12px;color:#334155;cursor:pointer}
-.pp-row:hover{background:#f8fafc}
+.pp-row{transition:background-color 140ms var(--pp-ease)}
+@media (hover:hover) and (pointer:fine){.pp-row:hover{background:#f8fafc}}
 .pp-row input{accent-color:#f97316;width:15px;height:15px;flex-shrink:0}
 .pp-row.off{color:#94a3b8}
 .pp-nota{font-size:10px;color:#94a3b8;margin-left:auto;text-align:right}
-.pp-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 12px;border-radius:9px;font-size:12px;font-weight:600;white-space:nowrap;cursor:pointer;border:0}
-.pp-btn.dark{background:#0f172a;color:#fff}.pp-btn.dark:hover{background:#1e293b}
-.pp-btn.orange{background:#f97316;color:#fff}.pp-btn.orange:hover{background:#ea580c}
-.pp-btn.light{background:#f1f5f9;color:#334155}.pp-btn.light:hover{background:#e2e8f0}
+.pp-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 12px;border-radius:9px;font-size:12px;font-weight:600;white-space:nowrap;cursor:pointer;border:0;transition:background-color 150ms var(--pp-ease),transform 160ms var(--pp-ease),box-shadow 150ms var(--pp-ease);-webkit-tap-highlight-color:transparent}
+.pp-btn:active{transform:scale(.97)}
+.pp-btn.dark{background:#0f172a;color:#fff}
+.pp-btn.orange{background:#f97316;color:#fff;box-shadow:0 1px 2px rgba(234,88,12,.25),inset 0 1px 0 rgba(255,255,255,.18)}
+.pp-btn.light{background:#f1f5f9;color:#334155}
+@media (hover:hover) and (pointer:fine){.pp-btn.dark:hover{background:#1e293b}.pp-btn.orange:hover{background:#ea580c}.pp-btn.light:hover{background:#e2e8f0}}
 .pp-link{font-size:11px;font-weight:600;color:#ea580c;cursor:pointer;background:none;border:0;padding:0}
 .pp-thumbs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.pp-thumb{position:relative;border-radius:8px;overflow:hidden;border:2px solid #e2e8f0;cursor:pointer;aspect-ratio:16/10;background:#f1f5f9}
+.pp-thumb{position:relative;border-radius:8px;overflow:hidden;border:2px solid #e2e8f0;cursor:pointer;aspect-ratio:16/10;background:#f1f5f9;transition:border-color 150ms var(--pp-ease),transform 160ms var(--pp-ease)}
+.pp-thumb:active{transform:scale(.97)}
+.pp-thumb .ck{transition:background-color 150ms var(--pp-ease),border-color 150ms var(--pp-ease)}
 .pp-thumb.sel{border-color:#f97316}
 .pp-thumb img{width:100%;height:100%;object-fit:cover;display:block}
 .pp-thumb .ck{position:absolute;top:4px;left:4px;width:18px;height:18px;border-radius:5px;background:#fff;border:1.5px solid #cbd5e1;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff}
 .pp-thumb.sel .ck{background:#f97316;border-color:#f97316}
 .pp-thumb .del{position:absolute;top:3px;right:5px;color:#fff;font-weight:700;text-shadow:0 0 3px #000;font-size:14px}
+@keyframes pp-tool{from{opacity:0;transform:translateY(4px) scale(.96)}to{opacity:1;transform:none}}
+#ppTool{animation:pp-tool 160ms var(--pp-ease) both;transform-origin:bottom left}
 #ppTool{position:fixed;z-index:70;display:none;gap:6px;background:#0f172a;color:#fff;border-radius:8px;padding:5px 8px;font-size:11px;box-shadow:0 6px 18px rgba(0,0,0,.2)}
 #ppTool button{color:#fff;font-weight:600;background:none;border:0;cursor:pointer;font-size:11px}
 #ppTool span{color:#94a3b8}
@@ -647,6 +660,7 @@
   #ppPages{overflow:visible;padding:14px 8px 60px}
 }
 @media (min-width:901px){ #ppSideToggle{display:none} .pp-sm{display:none} }
+@media (prefers-reduced-motion:reduce){#ppOverlay *,#ppOverlay{animation-duration:1ms!important;animation-delay:0ms!important;transition-duration:1ms!important}.pp-btn:active,.pp-thumb:active{transform:none}}
 @media (max-width:900px){ .pp-lg,#ppSub{display:none} }
 @media print{
   @page{size:letter;margin:0}
@@ -855,7 +869,7 @@
   // ---------------------------------------------------------------------
   // Dibujar todo
   // ---------------------------------------------------------------------
-  let dibujando = 0;
+  let dibujando = 0, primeraVez = false;
   async function dibujar() {
     const turno = ++dibujando;
     const ctx = construirContexto();
@@ -875,6 +889,9 @@
     const cont = $("ppPages");
     const y = cont.scrollTop;
     cont.innerHTML = html.map(h => `<div class="pp-wrap">${h}</div>`).join("");
+    // Solo al abrir: las páginas aparecen en cascada (al editar no se anima, para no distraer)
+    cont.classList.toggle("pp-cascada", primeraVez);
+    if (primeraVez) { primeraVez = false; setTimeout(() => cont.classList.remove("pp-cascada"), 700); }
     escalar();
     try {
       await Promise.all(["300", "400", "600", "700", "900"].map(w => document.fonts.load(`${w} 12pt Montserrat`))
@@ -898,6 +915,8 @@
     crearPantalla();
     estado = { propId: currentQuoteId, optId: currentOptionId };
     $("ppOverlay").style.display = "flex";
+    $("ppOverlay").classList.remove("pp-anim"); void $("ppOverlay").offsetWidth; $("ppOverlay").classList.add("pp-anim");
+    primeraVez = true;
     document.body.style.overflow = "hidden";
     document.body.classList.add("pp-abierto");
     $("ppPages").innerHTML = `<div id="ppCargando">Armando la propuesta…</div>`;
