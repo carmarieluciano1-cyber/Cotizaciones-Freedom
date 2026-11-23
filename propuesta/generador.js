@@ -503,12 +503,16 @@
         if (g && esPropia(g)) { const a = await getArchivo("foto_" + id); return a && a.paginas && a.paginas[0]; }
         return `${BASE}galeria/${id}.jpg`;
       }));
+      // Cada foto va dentro de su marco naranja con esquinas redondeadas, igual que las fotos de la plantilla
       const slots = z.fotos || [];
+      const borde = z.borde || 2.4, radio = z.radio || 7.5;
+      const marco = (r, src) => `<div style="position:absolute;${rect([r[0] - 3, r[1] - 3, r[2] + 3, r[3] + 3], "background:#fff")}"></div>
+        <div style="position:absolute;${rect(r, `box-sizing:border-box;border:${borde}pt solid #ec8130;border-radius:${radio}pt;overflow:hidden;background:#f1f1ef`)}">
+          <img src="${src}" alt="" class="pp-foto" style="display:block;width:100%;height:100%;object-fit:cover;object-position:center;border-radius:${Math.max(0, radio - borde)}pt"></div>`;
       if (srcs.length === 1 && slots.length === 2) {
-        const r = [slots[0][0], slots[0][1], slots[1][2], slots[1][3]];
-        extra += `<div style="position:absolute;${rect(r, "background:#fff")}"></div>`;
-        extra += `<img src="${srcs[0]}" alt="" class="pp-foto" style="position:absolute;${rect(r, "object-fit:cover")}">`;
-      } else srcs.forEach((s, i) => { if (s && slots[i]) extra += `<img src="${s}" alt="" class="pp-foto" style="position:absolute;${rect(slots[i], "object-fit:cover")}">`; });
+        // Una sola foto: ocupa los dos espacios con un solo marco
+        extra += marco([slots[0][0], slots[0][1], slots[1][2], slots[1][3]], srcs[0]);
+      } else srcs.forEach((s, i) => { if (s && slots[i]) extra += marco(slots[i], s); });
     }
     if (p.rol === "alternativas" && ctx.otras.length === 1 && z.tarjeta2) {
       const y0 = z.tarjeta2[1];
