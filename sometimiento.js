@@ -443,12 +443,37 @@
   // Piezas de las páginas
   // ---------------------------------------------------------------------
   // Texto colocado con su línea base en (x, y) puntos
+  // Ancho de un texto en puntos (Arimo mide igual que Arial)
+  let ctxMedir = null;
+  function anchoTexto(texto, size, bold, fam) {
+    if (!ctxMedir) { try { ctxMedir = document.createElement("canvas").getContext("2d"); } catch (e) { } }
+    if (!ctxMedir) return String(texto).length * size * 0.5;
+    ctxMedir.font = `${bold ? "700 " : ""}${size}px ${fam || "Arimo, Arial, sans-serif"}`;
+    return ctxMedir.measureText(String(texto)).width;
+  }
+  // Texto en una línea del formulario: si no cabe en el ancho de la línea, se achica la letra
   function T(x, y, texto, o) {
-    o = o || {};
+    o = Object.assign({}, o);
+    if (o.max && texto) { let sz = o.size || 9; while (sz > (o.min || 6.5) && anchoTexto(texto, sz, o.bold) > o.max) sz -= 0.25; o.size = sz; }
     const size = o.size || 9, fam = o.fam || "'Arimo','Arial',sans-serif";
     if (!texto) return "";
     const w = o.w ? `width:${o.w}pt;white-space:normal;` : "white-space:nowrap;";
     return `<div class="som-t" style="left:${x}pt;top:${y - size * 0.85}pt;${w}font-family:${fam};font-size:${size}pt;line-height:${o.lh || 1};font-weight:${o.bold ? 700 : 400};${o.center ? "text-align:center;" : ""}${o.color ? `color:${o.color};` : ""}">${esc(texto)}</div>`;
+  }
+  // Texto largo en dos líneas del formulario (cada línea con su inicio y su ancho). Corta por palabras.
+  function T2(texto, l1, l2, o) {
+    o = o || {};
+    if (!texto) return "";
+    let size = o.size || 9.5;
+    const partir = (sz) => {
+      const pal = String(texto).split(/\s+/); let a = "", i = 0;
+      while (i < pal.length && anchoTexto((a ? a + " " : "") + pal[i], sz) <= l1[2]) { a = (a ? a + " " : "") + pal[i]; i++; }
+      if (!a) { a = pal[0]; i = 1; }
+      return [a, pal.slice(i).join(" ")];
+    };
+    let [a, b] = partir(size);
+    while (b && anchoTexto(b, size) > l2[2] && size > 7) { size -= 0.25; [a, b] = partir(size); }
+    return T(l1[0], l1[1], a, { size }) + (b ? T(l2[0], l2[1], b, { size, max: l2[2] }) : "");
   }
   const CHK = (x, y, s) => `<svg class="som-chk" style="left:${x - 1}pt;top:${y - (s || 9)}pt;width:${s || 9}pt;height:${s || 9}pt" viewBox="0 0 10 10"><path d="M1.2 5.4 4 8.2 9 1.6" fill="none" stroke="#111" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
   const BLANCO = (r) => `<div style="position:absolute;left:${r[0]}pt;top:${r[1]}pt;width:${r[2] - r[0]}pt;height:${r[3] - r[1]}pt;background:#fff"></div>`;
@@ -476,9 +501,9 @@
     e.invs.forEach(i => comp.push([`${i.r.qty} Inversor${i.r.qty > 1 ? "es" : ""} ${marcaDe(i.inv.name).toUpperCase()} ${nt(i.inv.kw)}kW${i.r.modelo ? " (" + i.r.modelo + ")" : ""}`, registroDe({ marca: marcaDe(i.inv.name), modelo: i.r.modelo })]));
     e.bats.forEach(b => comp.push([`${b.r.qty} Batería${b.r.qty > 1 ? "s" : ""} de litio ${b.bat.name}${b.r.modelo ? " (" + b.r.modelo + ")" : ""}`, registroDe({ marca: marcaDe(b.bat.name), modelo: b.r.modelo })]));
     const p1 = T(100.8, 198.5, f, { size: 9 }) +
-      T(106, 432.5, c.nombre) + T(126, 445.9, c.telefono) + T(368, 445.9, "") + T(102, 458.5, c.celular) +
-      T(96.5, 471.3, c.email) + T(449, 471.3, c.cedula) + T(110, 483.9, [c.calle, c.sector, c.municipio, c.provincia].filter(Boolean).join(", "), { w: 430 }) +
-      T(134, 638.1, direccion(s), { w: 400 }) + T(180, 651.5, s.sum.contrato) + T(150, 664.0, s.sum.medidor);
+      T(106, 431.8, c.nombre, { max: 430 }) + T(126, 445.2, c.telefono, { max: 124 }) + T(102, 457.8, c.celular, { max: 146 }) +
+      T(96.5, 471.3, c.email, { max: 240 }) + T(449, 471.3, c.cedula, { max: 92 }) + T(110, 484.6, [c.calle, c.sector, c.municipio, c.provincia].filter(Boolean).join(", "), { max: 428 }) +
+      T(135, 637.2, direccion(s), { max: 400 }) + T(180, 651.5, s.sum.contrato, { max: 150 }) + T(150, 664.0, s.sum.medidor, { max: 180 });
     const p2 = comp.slice(0, 3).map((r, i) => T(76, 168.3 + i * 11.4, r[0], { size: 7.5 }) + T(298, 168.3 + i * 11.4, r[1], { size: 7.5 })).join("") +
       T(176.2, 506.9, e.nInv ? String(e.nInv) : "", { size: 9 });
     let p3 = T(224.5, 226.2, kw ? nt(kw) : "", { size: 8, bold: true }) + T(323.7, 226.2, kw ? nt(kw) : "", { size: 8, bold: true }) + T(409.9, 226.2, kw ? nt(kw) : "", { size: 8, bold: true }) +
@@ -494,15 +519,15 @@
     const f = fechaCorta(s.fecha);
     const dirCliente = [c.calle, c.sector, c.municipio, c.provincia].filter(Boolean).join(", ");
     const p1 = T(178, 500.8, f, { size: 10 }) +
-      T(134, 643.3, c.nombre, { size: 10 }) + T(159, 667, c.telefono, { size: 9.5 }) + T(398, 667, c.celular, { size: 9.5 }) +
-      T(142, 690.9, c.email, { size: 9 }) + T(367, 690.9, c.cedula, { size: 9.5 }) +
-      T(139, 713.9, dirCliente, { size: 9.5, w: 340, lh: 2.2 });
+      T(134, 643.3, c.nombre, { size: 10, max: 342 }) + T(159, 667.3, c.telefono, { size: 9.5, max: 59 }) + T(399, 667.3, c.celular, { size: 9.5, max: 59 }) +
+      T(142, 690, c.email, { size: 9.5, max: 126 }) + T(367, 690, c.cedula, { size: 9.5, max: 103 }) +
+      T2(dirCliente, [139, 714.2, 340], [91, 735, 392], { size: 9.5 });
     // Tipo de cliente: se marca la segunda casilla de cada opción
     const casillas = { residencial: [108, 65], comercial: [184.5, 65], industrial: [254.5, 65], agricola: [320.5, 65], educativa: [381, 65], medica: [108, 80] };
     const cc = casillas[s.tipoCliente] || casillas.residencial;
     const dir = direccion(s);
     let p2 = CHK(cc[0], cc[1]) +
-      T(178, 143, dir, { size: 9.5, w: 320, lh: 2.25 }) + T(202, 190.5, s.sum.contrato, { size: 10 }) + T(209, 215, s.sum.medidor, { size: 10 }) +
+      T2(dir, [179, 141.6, 322], [106, 162.6, 396], { size: 9.5 }) + T(202, 190.5, s.sum.contrato, { size: 10 }) + T(209, 215, s.sum.medidor, { size: 10 }) +
       T(407, 259.6, e.kwp ? nt(e.kwp) : "", { size: 10 }) + T(430, 372.6, e.kwp ? nt(e.kwp) : "", { size: 10 }) +
       (s.compensa === "parte" ? CHK(172, 441) + T(200, 437.4, s.compensaPct || "", { size: 9.5 }) + CHK(220, 441) : CHK(114, 441)) +
       (s.instalado ? CHK(414.5, 495) : CHK(382, 495)) +
