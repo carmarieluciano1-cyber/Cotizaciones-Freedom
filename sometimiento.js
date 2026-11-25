@@ -7,7 +7,18 @@
 (function () {
   "use strict";
   const BASE = "propuesta/";
-  const SB = BASE + "som/";
+  // Carpeta de las imágenes: propuesta/som/ (y lib/ adentro). Si en GitHub quedaron sueltas en la raíz, se usan de ahí.
+  let SB = BASE + "som/", L = SB + "lib/";
+  let rutaLista = null;
+  const existe = (src) => new Promise(r => { const i = new Image(); i.onload = () => r(true); i.onerror = () => r(false); i.src = src + "?r=" + Date.now(); });
+  function buscarRuta() {
+    if (!rutaLista) rutaLista = (async () => {
+      if (await existe(SB + "firma.png")) { if (!(await existe(L + "cne-187.jpg")) && await existe(SB + "cne-187.jpg")) L = SB; return; }
+      if (await existe("firma.png")) { SB = ""; L = (await existe("lib/cne-187.jpg")) ? "lib/" : ""; return; }
+      if (await existe("som/firma.png")) { SB = "som/"; L = (await existe("som/lib/cne-187.jpg")) ? "som/lib/" : "som/"; }
+    })();
+    return rutaLista;
+  }
   const KEY = "feg_sometimientos_v1";
   const SIZES = { letter: [612, 792], a4: [595.3, 841.9], letterl: [792, 612], a4l: [841.9, 595.3] };
   const FREEDOM = { nombre: "FREEDOM ENERGY GROUP ALUES SRL", rnc: "133-59391-2", tel: "809-734-1605" };
@@ -96,21 +107,20 @@
   }
 
   // Biblioteca fija: certificados de la CNE, cartas de distribuidores y garantías de fábrica
-  const L = SB + "lib/";
   const BIBLIO_FIJA = [
-    { id: "f-cne-187", tipo: "cne", nombre: "CNE-DE-CMN-187-2025 (Solis, ION, JA Solar)", registro: "CNE-DE-CMN-187-2025", src: [L + "cne-187.jpg"],
+    { id: "f-cne-187", tipo: "cne", nombre: "CNE-DE-CMN-187-2025 (Solis, ION, JA Solar)", registro: "CNE-DE-CMN-187-2025", src: ["cne-187.jpg"],
       claves: "S6-EH3P30K-H-LV, S5-GC20K-LV, S6-EH2P16K03-SV-YD-L-US, ION-LV-8K-US, ION-LV-12K-US, JAM66D46-710/LB, JAM66D45-620/LB, JAM54D40-450/LB, JAM66D45-615/LB, SOLIS, ION, JA SOLAR" },
-    { id: "f-cne-176", tipo: "cne", nombre: "CNE-GE-CMN-176-2026 (ION, JA Solar, LONGi, YC Solar)", registro: "CNE-GE-CMN-176-2026", src: [L + "cne-176.jpg"],
+    { id: "f-cne-176", tipo: "cne", nombre: "CNE-GE-CMN-176-2026 (ION, JA Solar, LONGi, YC Solar)", registro: "CNE-GE-CMN-176-2026", src: ["cne-176.jpg"],
       claves: "ION-LV-US-8K PRO, ION-LV-US-12K PRO, ION-LV-US-16K, JAM66D45-630/LB, LR8-66HGD-635M, JAM66D45-640/LB, JAM54D41-460/LB, JAM66D46-730/LB, YC620NDF66G12R/2, ION, JA SOLAR, LONGI, YC SOLAR" },
-    { id: "f-cne-170", tipo: "cne", nombre: "CNE-GE-CMN-170-2026 (JINKO Tiger Neo)", registro: "CNE-GE-CMN-170-2026", src: [L + "cne-170.jpg"],
+    { id: "f-cne-170", tipo: "cne", nombre: "CNE-GE-CMN-170-2026 (JINKO Tiger Neo)", registro: "CNE-GE-CMN-170-2026", src: ["cne-170.jpg"],
       claves: "JKM635N-78HL4-BDV, JKM640N-66QL6-BDV, JKM645N-66QL6-BDV, JKM650N-66QL6-BDV, JINKO" },
-    { id: "f-carta-170", tipo: "distribuidor", nombre: "Sistemi di Energie Rinnovabili — uso del CNE-GE-CMN-170-2026", src: [L + "carta-170.jpg"],
+    { id: "f-carta-170", tipo: "distribuidor", nombre: "Sistemi di Energie Rinnovabili — uso del CNE-GE-CMN-170-2026", src: ["carta-170.jpg"],
       claves: "JKM635N-78HL4-BDV, JKM640N-66QL6-BDV, JKM645N-66QL6-BDV, JKM650N-66QL6-BDV, JINKO" },
-    { id: "f-carta-176", tipo: "distribuidor", nombre: "Santana German Supply — uso del CNE 176-2026 y 099-2026", src: [L + "carta-176-099.jpg"],
+    { id: "f-carta-176", tipo: "distribuidor", nombre: "Santana German Supply — uso del CNE 176-2026 y 099-2026", src: ["carta-176-099.jpg"],
       claves: "ION-LV-US-8K PRO, ION-LV-US-12K PRO, ION-LV-US-16K, JAM66D45-630/LB, LR8-66HGD-635M, JAM66D45-640/LB, JAM54D41-460/LB, JAM66D46-730/LB, YC620NDF66G12R/2, ION, JA SOLAR, LONGI, YC SOLAR" },
-    { id: "f-carta-047", tipo: "distribuidor", nombre: "Santana German Supply — uso del CNE 047-2026, 009-2025 y 153-2025", src: [L + "carta-047-009-153.jpg"], claves: "" },
-    { id: "f-gar-jinko", tipo: "garantiaFab", nombre: "Garantía limitada JINKO (módulos bifaciales)", src: [1, 2, 3, 4, 5, 6, 7, 8].map(n => L + "gar-jinko-" + n + ".jpg"), claves: "JINKO, JKM" },
-    { id: "f-gar-solis", tipo: "garantiaFab", nombre: "Garantía limitada Solis (5 años)", src: [1, 2, 3, 4, 5].map(n => L + "gar-solis-" + n + ".jpg"), claves: "SOLIS" }
+    { id: "f-carta-047", tipo: "distribuidor", nombre: "Santana German Supply — uso del CNE 047-2026, 009-2025 y 153-2025", src: ["carta-047-009-153.jpg"], claves: "" },
+    { id: "f-gar-jinko", tipo: "garantiaFab", nombre: "Garantía limitada JINKO (módulos bifaciales)", src: [1, 2, 3, 4, 5, 6, 7, 8].map(n => "gar-jinko-" + n + ".jpg"), claves: "JINKO, JKM" },
+    { id: "f-gar-solis", tipo: "garantiaFab", nombre: "Garantía limitada Solis (5 años)", src: [1, 2, 3, 4, 5].map(n => "gar-solis-" + n + ".jpg"), claves: "SOLIS" }
   ];
   const norm = (x) => String(x || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
   // Las palabras de un documento fijo se pueden cambiar; se guardan aparte
@@ -122,9 +132,9 @@
   function itemsEquipo(s) {
     const e = resumenEquipos(s);
     const it = [];
-    if (e.p.qty > 0) it.push({ marca: e.p.marca, modelo: e.p.modelo, nombre: "panel" });
-    e.invs.forEach(x => it.push({ marca: marcaDe(x.inv.name), modelo: x.r.modelo, nombre: "inversor " + x.inv.name }));
-    e.bats.forEach(x => it.push({ marca: marcaDe(x.bat.name), modelo: x.r.modelo, nombre: "batería " + x.bat.name }));
+    if (e.p.qty > 0) it.push({ marca: e.p.marca, modelo: e.p.modelo, nombre: "panel", tipo: "panel" });
+    e.invs.forEach(x => it.push({ marca: marcaDe(x.inv.name), modelo: x.r.modelo, nombre: "inversor " + x.inv.name, tipo: "inversor", id: x.inv.id }));
+    e.bats.forEach(x => it.push({ marca: marcaDe(x.bat.name), modelo: x.r.modelo || (x.bat.propio ? x.bat.name : ""), nombre: "batería " + x.bat.name, tipo: "bateria" }));
     return it;
   }
   // ¿Este documento corresponde a este equipo? Con modelo escrito se busca el modelo; sin modelo, la marca.
@@ -138,7 +148,8 @@
     return ks.some(porMarca);
   }
   const docsPara = (tipo, s) => { const it = itemsEquipo(s); return bibliotecaCompleta().filter(d => d.tipo === tipo && it.some(i => corresponde(d, i))); };
-  const sinDoc = (tipo, s) => itemsEquipo(s).filter(i => !bibliotecaCompleta().some(d => d.tipo === tipo && corresponde(d, i)));
+  // Las baterías no necesitan certificado de la CNE ni garantía en el expediente
+  const sinDoc = (tipo, s) => itemsEquipo(s).filter(i => (tipo === "ficha" || i.tipo !== "bateria") && !bibliotecaCompleta().some(d => d.tipo === tipo && corresponde(d, i)));
   const registroDe = (item) => { const d = bibliotecaCompleta().find(d => d.tipo === "cne" && d.registro && item.modelo && corresponde(d, item)); return d ? d.registro : "CNE"; };
 
   // Biblioteca de Freedom (sirve para todos los sometimientos)
@@ -151,7 +162,13 @@
   // Equipos
   // ---------------------------------------------------------------------
   const invDe = (r) => (typeof getInverter === "function" && r.invId) ? getInverter(r.invId) : null;
-  const batDe = (r) => (typeof getBattery === "function" && r.batId) ? getBattery(r.batId) : null;
+  // Batería: del catálogo o escrita a mano ("Soluna de 10k"). El nombre escrito es el que sale en los documentos.
+  function batDe(r) {
+    const cat = (typeof getBattery === "function" && r.batId && r.batId !== "otra") ? getBattery(r.batId) : null;
+    const nombre = String(r.nombre || "").trim();
+    if (nombre) return { id: cat ? cat.id : null, name: nombre, propio: true };
+    return cat;
+  }
   function marcaDe(nombre) { const w = String(nombre || "").trim().split(/\s+/)[0] || ""; return /^h[ií]brido$/i.test(w) ? "Solis" : w; }
   function kwhNombre(nombre) { const m = String(nombre || "").match(/(\d+(?:\.\d+)?)\s*K/i); return m ? Number(m[1]) : 0; }
   function resumenEquipos(s) {
@@ -171,75 +188,169 @@
   // ---------------------------------------------------------------------
   // Lectura automática (texto pegado, cédula y factura)
   // ---------------------------------------------------------------------
+  const sinAcento = (x) => String(x || "").normalize("NFD").replace(/[̀-ͯ]/g, "");
   const RX = {
-    email: /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/,
-    cedula: /\b(\d{3})[\s\-–.]?(\d{7})[\s\-–.]?(\d)\b/,
-    tel: /\b(?:\+?1[\s\-.]?)?\(?(809|829|849)\)?[\s\-.]?(\d{3})[\s\-.]?(\d{4})\b/g,
-    tarifa: /\b(BTS[\s\-]?[12]|BTD|BTH|MTD[\s\-]?[12]?|MTH)\b/i
+    email: /[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}/,
+    cedulaF: /(?<![\d-])(\d{3})\s*[-–.]\s*(\d{7})\s*[-–.]\s*(\d)(?![\d-])/,
+    cedula11: /(?<![\d-])(\d{3})(\d{7})(\d)(?![\d-])/,
+    tel: /(?<![\d-])(?:\+?1[\s\-.]?)?\(?(809|829|849)\)?[\s\-.]*(\d{3})[\s\-.]*(\d{4})(?![\d-])/g,
+    tarifa: /\b(BTS|BTD|BTH|MTD|MTH)\s*[-–]?\s*([12])?(?![A-Z0-9])/i
   };
   const fmtTel = (m) => `${m[1]}-${m[2]}-${m[3]}`;
   const fmtCed = (m) => `${m[1]}-${m[2]}-${m[3]}`;
-  function etiqueta(texto, nombres, patron) {
-    for (const n of nombres) {
-      const r = new RegExp(n + "\\s*(?:no\\.?|n[°º]\\.?|#|número|numero)?\\s*[:.\\-]*\\s*" + patron, "i");
-      const m = texto.match(r);
-      if (m) return m[1].trim();
+  const tarifaDe = (t) => { const m = String(t || "").match(RX.tarifa); return m ? (m[1].toUpperCase() + (m[2] ? "-" + m[2] : "")) : ""; };
+  // Limpia el texto (OCR o PDF): puntos de relleno → ":"; espacios raros
+  const limpiar = (t) => String(t || "").normalize("NFC").replace(/\r/g, "").replace(/[ \t]/g, " ").replace(/(\s*\.){3,}\s*:?/g, ": ").replace(/[ ]*:\s*:/g, ":");
+  // Valor después de una etiqueta en la misma línea (corta donde empieza otra columna: 3+ espacios)
+  function trasEtiqueta(t, etiquetas) {
+    for (const e of etiquetas) {
+      const r = new RegExp("(?:^|[^A-Za-zÁÉÍÓÚÑáéíóúñ])(?:" + e + ")\\s*[:=\\-–]+[ ]*([^\\n]*)", "im");
+      const m = t.match(r);
+      if (m) { const v = m[1].split(/\s{3,}/)[0].replace(/^[\s:.\-]+|[\s:.,;\-]+$/g, "").trim(); if (v) return v; }
     }
     return "";
   }
+  // Número o código después de una etiqueta (permite algo de texto en medio: "Contrato No.: 123")
+  function numeroTras(t, etiquetas, patron, hueco) {
+    for (const e of etiquetas) {
+      const r = new RegExp("(?:" + e + ")[^\\n\\d]{0," + (hueco || 22) + "}?" + patron, "i");
+      const m = t.match(r);
+      if (m) return m[1].replace(/[\s.]/g, "");
+    }
+    return "";
+  }
+  const PALABRAS_NO_NOMBRE = /calle|avenida|\bav\b|sector|residencial|municipio|provincia|c[eé]dula|contrato|medidor|tarifa|correo|tel[eé]fono|celular|direcci|whats|gmail|hotmail|outlook|santiago|santo domingo|rep[uú]blica|dominicana|hola|buen[oa]s|saludos|gracias|cliente|nombre|kwh|panel|inversor|bater/i;
+  function separarDireccion(dir, d) {
+    const partes = dir.split(/\s*,\s*/).map(x => x.trim()).filter(Boolean);
+    if (partes.length < 2) { if (!d.calle) d.calle = dir; return; }
+    const esProv = (x) => PROVINCIAS.some(p => sinAcento(p).toLowerCase() === sinAcento(x).toLowerCase().replace(/^prov(?:incia)?\.?\s+/, "").replace(/\s*(?:rd|r\.d\.|rep\.? dom\.?)$/, ""));
+    let prov = "";
+    if (esProv(partes[partes.length - 1])) prov = partes.pop();
+    if (!d.calle) d.calle = partes.shift();
+    if (partes.length && !d.sector) d.sector = partes.shift();
+    if (partes.length && !d.municipio) d.municipio = partes.join(", ");
+    if (prov && !d.provincia) d.provincia = PROVINCIAS.find(p => sinAcento(p).toLowerCase() === sinAcento(prov).toLowerCase().replace(/^prov(?:incia)?\.?\s+/, "").replace(/\s*(?:rd|r\.d\.|rep\.? dom\.?)$/, "")) || prov;
+    if (prov && !d.municipio && /^santiago$|^santo domingo$|^la vega$|^puerto plata$|^san francisco/i.test(prov)) { /* municipio vacío: se deja para que lo escriban */ }
+  }
   function analizarTexto(texto) {
     const d = {};
-    const t = String(texto || "");
-    const em = t.match(RX.email); if (em) d.email = em[0].toLowerCase();
-    const ce = t.match(RX.cedula); if (ce) d.cedula = fmtCed(ce);
-    const tels = [...t.matchAll(RX.tel)].map(fmtTel).filter((x, i, a) => a.indexOf(x) === i);
-    if (tels[0]) d.celular = tels[0];
-    if (tels[1]) d.telefono = tels[1];
-    const ta = t.match(RX.tarifa); if (ta) d.tarifa = ta[1].toUpperCase().replace(/\s/g, "").replace(/^BTS(\d)$/, "BTS-$1").replace(/^MTD(\d)$/, "MTD-$1");
-    const contrato = etiqueta(t, ["contrato", "nic", "suministro"], "(\\d{5,10})"); if (contrato) d.contrato = contrato;
-    const medidor = etiqueta(t, ["medidor", "n[uú]mero de medidor"], "([A-Z0-9]{5,14})"); if (medidor) d.medidor = medidor;
-    const lin = (n) => etiqueta(t, n, "([^\\n,;]{2,80})");
-    const nombre = lin(["nombre(?: completo)?", "cliente", "titular"]); if (nombre && !/\d{3}/.test(nombre)) d.nombre = nombre.replace(/\s+/g, " ");
-    const calle = lin(["direcci[oó]n", "calle"]); if (calle) d.calle = calle;
-    const sector = lin(["sector", "barrio", "residencial"]); if (sector) d.sector = sector;
-    const muni = lin(["municipio", "ciudad"]); if (muni) d.municipio = muni;
-    const prov = lin(["provincia"]); if (prov) d.provincia = prov;
-    if (!d.provincia) { const p = PROVINCIAS.find(p => new RegExp("\\b" + p + "\\b", "i").test(t)); if (p) d.provincia = p; }
+    let t = limpiar(texto);
+    const em = t.match(RX.email); if (em) { d.email = em[0].toLowerCase(); t = t.replace(em[0], " "); }
+    // Cédula / RNC
+    let ce = null;
+    const rCed = /(?:c[eé]dula|ced\.?|c\.\s?i\.?|identidad|documento)[^\n\d]{0,25}?(\d{3}[\s\-–.]*\d{7}[\s\-–.]*\d)(?!\d)/i;
+    const mc = t.match(rCed);
+    if (mc) ce = mc[1].replace(/\D/g, "").match(/(\d{3})(\d{7})(\d)/);
+    if (!ce) ce = t.match(RX.cedulaF);
+    if (!ce) { const m = t.match(RX.cedula11); if (m && !/^1(809|829|849)/.test(m[0])) ce = m; }
+    if (ce) { d.cedula = fmtCed(ce); t = t.replace(mc ? mc[1] : ce[0], " "); }
+    if (!d.cedula) { const rnc = numeroTras(t, ["rnc"], "(\\d[\\d\\s\\-]{7,12}\\d)"); if (rnc) { const x = rnc.replace(/\D/g, ""); if (x.length === 9) d.cedula = `${x[0]}-${x.slice(1, 3)}-${x.slice(3, 8)}-${x[8]}`; else if (x.length === 11) d.cedula = `${x.slice(0, 3)}-${x.slice(3, 10)}-${x[10]}`; } }
+    // Contrato y medidor (antes de los teléfonos, para no confundirlos)
+    const contrato = numeroTras(t, ["n[uú]mero de contrato", "no\\.? de contrato", "contrato", "\\bnic\\b", "suministro"], "(\\d{5,10})(?!\\d)");
+    if (contrato) d.contrato = contrato;
+    const medidor = numeroTras(t, ["n[uú]mero de medidor", "no\\.? de medidor", "medidor", "contador"], "([A-Z]{0,4}\\d[\\dA-Z\\-]{3,15})");
+    if (medidor) d.medidor = medidor.toUpperCase();
+    // Teléfonos: según la palabra que tengan delante
+    const tels = [...t.matchAll(RX.tel)];
+    const usados = new Set();
+    tels.forEach(m => {
+      const antes = t.slice(Math.max(0, m.index - 28), m.index).toLowerCase();
+      const n = fmtTel(m);
+      if (usados.has(n)) return;
+      if (/(cel|m[oó]vil|whats|\bwa\b|flota)[^\n]*$/.test(antes) && !d.celular) { d.celular = n; usados.add(n); }
+      else if (/(tel|casa|fijo|oficina|residencia|d[ií]a|noche)[^\n]*$/.test(antes) && !d.telefono) { d.telefono = n; usados.add(n); }
+    });
+    tels.map(fmtTel).filter(n => !usados.has(n)).forEach(n => { if (!d.celular) { d.celular = n; usados.add(n); } else if (!d.telefono && n !== d.celular) { d.telefono = n; usados.add(n); } });
+    const ta = tarifaDe(t); if (ta) d.tarifa = ta;
+    // Nombre
+    let nombre = trasEtiqueta(t, ["nombre(?:s)?(?: completo)?(?: del cliente)?", "cliente", "titular", "se[nñ]or(?:a)?", "sr\\.?", "sra\\.?"]);
+    if (!nombre) {
+      const l = t.split("\n").map(x => x.trim()).find(x => /^[A-Za-zÁÉÍÓÚÑÜáéíóúñü][A-Za-zÁÉÍÓÚÑÜáéíóúñü'.\s]+$/.test(x) && x.split(/\s+/).length >= 2 && x.split(/\s+/).length <= 6 && !PALABRAS_NO_NOMBRE.test(x));
+      if (l) nombre = l;
+    }
+    if (!nombre) { const m = t.match(/^\s*((?:[A-Za-zÁÉÍÓÚÑÜáéíóúñü]{2,}\s+){1,5}[A-Za-zÁÉÍÓÚÑÜáéíóúñü]{2,})\s*[,;:\-]?\s*(?=\d|\n|$)/); if (m && !PALABRAS_NO_NOMBRE.test(m[1])) nombre = m[1]; }
+    nombre = nombre.replace(/[\d,;:].*$/, "").replace(/\s+/g, " ").trim();
+    if (nombre && nombre.split(" ").length >= 2) d.nombre = nombre;
+    // Dirección
+    const sector = trasEtiqueta(t, ["sector", "barrio", "urbanizaci[oó]n", "urb\\.?", "residencial", "res\\."]); if (sector) d.sector = sector;
+    const muni = trasEtiqueta(t, ["municipio", "ciudad", "distrito municipal"]); if (muni) d.municipio = muni;
+    const prov = trasEtiqueta(t, ["provincia", "prov\\."]); if (prov) d.provincia = prov;
+    let dir = trasEtiqueta(t, ["direcci[oó]n(?: completa)?", "dir\\.?", "domicilio", "ubicaci[oó]n", "vive en", "reside en"]);
+    if (!dir) { const l = t.split("\n").map(x => x.trim()).find(x => /^(c\/|calle|av\.?|avenida|carretera|carr\.?|autopista|callej[oó]n|manzana|mz\.?)\s/i.test(x)); if (l) dir = l; }
+    if (dir) separarDireccion(dir, d);
+    if (!d.provincia) { const p = PROVINCIAS.slice().sort((a, b) => b.length - a.length).find(p => new RegExp("\\b" + sinAcento(p) + "\\b", "i").test(sinAcento(t))); if (p) d.provincia = p; }
     return d;
   }
-  // Cédula dominicana: número y nombre (líneas en mayúsculas que no son del formato de la tarjeta)
+  // Nombre en orden "nombres apellidos" a partir de "APELLIDOS, NOMBRES"
+  const ordenarNombre = (x) => { const p = String(x || "").split(","); return (p.length === 2 ? p[1].trim() + " " + p[0].trim() : x).replace(/\s+/g, " ").trim(); };
+  // Cédula dominicana: número y nombre. Se cruzan el frente (nombre con acentos) y la zona de lectura del reverso.
+  function parecido(a, b) {
+    a = sinAcento(a).toUpperCase(); b = sinAcento(b).toUpperCase();
+    if (Math.abs(a.length - b.length) > 2) return false;
+    const m = Array.from({ length: a.length + 1 }, (_, i) => [i]);
+    for (let j = 1; j <= b.length; j++) m[0][j] = j;
+    for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++) m[i][j] = Math.min(m[i - 1][j] + 1, m[i][j - 1] + 1, m[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    return m[a.length][b.length] <= Math.max(1, Math.floor(a.length / 5));
+  }
   function analizarCedula(texto) {
     const d = {};
-    const ce = texto.match(RX.cedula); if (ce) d.cedula = fmtCed(ce);
-    const NO = /REP[UÚ]BLICA|DOMINICANA|JUNTA|CENTRAL|ELECTORAL|C[EÉ]DULA|IDENTIDAD|NACIONALIDAD|SEXO|FECHA|NACIMIENTO|LUGAR|EXPIRA|VENCE|ESTADO|CIVIL|OCUPACI|SANGRE|FIRMA|COLEGIO|MUNICIPIO|SECTOR|DIRECCI|NOMBRES?|APELLIDOS?|DOMINICAN|EMISI|SOLTER|CASAD|MASCULINO|FEMENINO/i;
-    const lineas = texto.split(/\n/).map(l => l.replace(/[^A-Za-zÁÉÍÓÚÑÜáéíóúñü\s]/g, " ").replace(/\s+/g, " ").trim())
-      .filter(l => l.length >= 4 && /^[A-ZÁÉÍÓÚÑÜ\s]+$/.test(l) && !NO.test(l) && l.split(" ").every(w => w.length >= 2));
-    if (lineas.length) d.nombre = lineas.slice(0, 2).join(" ").replace(/\s+/g, " ");
+    const t = limpiar(texto).replace(/«/g, "<<").replace(/‹/g, "<");
+    const ce = t.match(RX.cedulaF) || t.match(RX.cedula11); if (ce) d.cedula = fmtCed(ce);
+    const plano = t.replace(/[ \t]/g, "").toUpperCase();
+    if (!d.cedula) { const m = plano.match(/[I1L]D[DO0][O0]M(\d{9})<?(\d)(\d)/); if (m) d.cedula = `${m[1].slice(0, 3)}-${m[1].slice(3)}${m[2]}-${m[3]}`; }
+    // Reverso: APELLIDOS<<NOMBRES
+    let mrz = null;
+    for (const l of plano.split("\n").filter(l => /<</.test(l) && !/^[I1L]D|^\d/.test(l))) {
+      const m = l.replace(/[^A-Z<]/g, "").match(/([A-Z]{2,}(?:<[A-Z]{2,})*)<<([A-Z]{2,}(?:<[A-Z]{2,})*)/);
+      if (m) { mrz = { apellidos: m[1].split("<"), nombres: m[2].split("<") }; break; }
+    }
+    // Frente: líneas en mayúsculas que parecen nombres
+    const NO = /REP[UÚ]BLICA|DOMINICANA|JUNTA|CENTRAL|ELECTORAL|C[EÉ]DULA|IDENTIDAD|NACIONALIDAD|SEXO|FECHA|NACIMIENTO|LUGAR|EXPIRA|VENCE|ESTADO|CIVIL|OCUPACI|SANGRE|FIRMA|MUNICIPIO|SECTOR|DIRECCI|NOMBRES?|APELLIDOS?|DOMINICAN|EMISI|SOLTER|CASAD|UNI[OÓ]N|MASCULINO|FEMENINO|PRIVADO|EMPLEAD|ESTUDIANTE|ESCUELA|COLEGIO|UBICACI|POSTAL|REGISTRO|ACTA|RESIDENCIA|PRESIDENTE|CASA|CALLE|ENERO|FEBRERO|MARZO|ABRIL|MAYO|JUNIO|JULIO|AGOSTO|SEPTIEMBRE|OCTUBRE|NOVIEMBRE|DICIEMBRE/i;
+    const cand = t.split(/\n/).filter(l => !l.includes("<")).map(l => l.replace(/[^A-Za-zÁÉÍÓÚÑÜáéíóúñü\s]/g, " ").replace(/\s+/g, " ").trim().split(" ").filter(w => w.length >= 3 || /^(DE|DEL|LA|LOS|LAS|Y)$/.test(w)).join(" "))
+      .filter(l => l.length >= 5 && /^[A-ZÁÉÍÓÚÑÜ\s]+$/.test(l) && !NO.test(l) && l.split(" ").length <= 4 && l.split(" ").every(w => /[AEIOUÁÉÍÓÚ]/.test(w) || w.length <= 3));
+    if (mrz) {
+      const pal = (l) => l.split(" ").filter(w => w.length >= 3);
+      const nom = cand.find(l => pal(l).some(w => mrz.nombres.some(x => parecido(w, x))));
+      const ape = cand.find(l => l !== nom && pal(l).some(w => mrz.apellidos.some(x => x.length >= 3 && parecido(w, x))));
+      if (nom && ape) d.nombre = nom + " " + ape;
+      else d.nombre = mrz.nombres.join(" ") + " " + mrz.apellidos.join(" ");
+    } else if (cand.length) d.nombre = cand.slice(0, 2).join(" ");
     return d;
   }
-  // Factura de Edenorte
+  // Factura de Edenorte (PDF o foto)
   function analizarFactura(texto) {
     const d = {};
-    const t = texto.replace(/\.{2,}/g, ":");
-    const c = t.match(/CONTRATO\s*[:.\-]*\s*(\d{5,10})/i); if (c) d.contrato = c[1];
-    const m = t.match(/Medidor\s*[:.\-]*\s*([A-Z0-9]{5,14})/i); if (m) d.medidor = m[1];
-    const ta = t.match(/TARIFA\s*[:.\-]*\s*([A-Z0-9\-]{3,8})/i); if (ta) d.tarifa = ta[1].toUpperCase();
-    const n = t.match(/(?:NOMBRE O RAZ[OÓ]N SOCIAL|TITULAR DE PAGO)\s*[:.\-]*\s*([A-ZÁÉÍÓÚÑ ,.]{5,60})/i); if (n) d.nombre = n[1].replace(/\s+/g, " ").trim();
-    const loc = t.match(/(?:Localidad\s*\/?\s*Barrio)\s*[:.\-]*\s*([A-ZÁÉÍÓÚÑ0-9 .]{3,40})/i); if (loc) d.sector = loc[1].trim();
-    const mu = t.match(/Municipio\s*[:.\-]*\s*([A-ZÁÉÍÓÚÑ .]{3,30})/i); if (mu) d.municipio = mu[1].trim();
-    const pr = t.match(/Provincia\s*[:.\-]*\s*([A-ZÁÉÍÓÚÑ .]{3,30})/i); if (pr) d.provincia = pr[1].trim();
-    const di = t.match(/Direcci[oó]n entrega factura\s*[:.\-]*\s*([A-ZÁÉÍÓÚÑ0-9 .,#]{3,60})/i); if (di) d.calle = di[1].trim();
-    const ce = t.match(/RNC Cliente\s*[:.\-]*\s*(\d{9,11})/i); if (ce && ce[1].length === 11) d.cedula = `${ce[1].slice(0, 3)}-${ce[1].slice(3, 10)}-${ce[1].slice(10)}`;
+    const t = limpiar(texto);
+    const corta = (v) => String(v || "").split(/\s{2,}|\b(?:ENCF|Potencia|C[oó]digo|Ref\.|Ruta|Itiner|Voltaje|CIRCUITO|APOYO|No\. Factura)\b/i)[0].replace(/\s+\S$/, "").replace(/^[\s:.\-]+|[\s:.,;\-]+$/g, "").trim();
+    const c = t.match(/CONTRATO[^\d\n]{0,12}(\d{6,9})(?!\d)/i) || t.match(/\bNIC[^\d\n]{0,12}(\d{6,9})(?!\d)/i); if (c) d.contrato = c[1];
+    let m = t.match(/Medidor[^\dA-Z\n]{0,25}([0-9][0-9A-Z]{5,12})/i) || t.match(/Activa\s*B\.?\s*T\.*\s*:?\s*(\d{6,10})/i);
+    if (m) d.medidor = m[1];
+    const ta = tarifaDe((t.match(/TAR[I1Il][FP]A[^\n]{0,40}/i) || [""])[0]) || tarifaDe(t); if (ta) d.tarifa = ta;
+    const n = t.match(/NOMBRE\s*O\s*RAZ[OÓ]N\s*SOCIAL\s*:?\s*([^\n]+)/i);
+    if (n) { const v = corta(n[1]).replace(/[\]\[|}{]+.*$/, "").replace(/[^A-ZÁÉÍÓÚÑÜa-záéíóúñü, .]/g, "").trim(); if (v.length > 4) d.nombre = ordenarNombre(v); }
+    // Valor de la etiqueta; si está vacío en esa línea, el de la línea siguiente (pasa en los PDF)
+    const val = (re) => {
+      const x = t.match(re); if (!x) return "";
+      let v = corta(x[1]); if (/[A-Z]{3}/i.test(v)) return v;
+      const sig = t.slice(x.index + x[0].length).split("\n")[1] || "";
+      return sig.includes(":") ? "" : corta(sig);
+    };
+    const loc = val(/Localidad\s*\/?\s*(?:Barri\w*)?\s*:?\s*([^\n]+)/i); if (loc && /[A-Z]{3}/i.test(loc)) d.sector = loc;
+    const mu = val(/Municip\w*\s*:?\s*([^\n]+)/i); if (mu && /[A-Z]{3}/i.test(mu)) d.municipio = mu;
+    const pr = val(/Provincia\w*\s*:?\s*([^\n]+)/i); if (pr && /[A-Z]{3}/i.test(pr)) d.provincia = pr;
+    const di = val(/DIRECCI[OÓ]N\s*SUMINISTRO\s*:?\s*([^\n]+)/i); if (di && /[A-Z]{3}/i.test(di)) d.calle = di.replace(/\s+\d$/, "");
+    const ce = t.match(/RNC\s*Cliente\s*:?\s*(\d{3}-?\d{7}-?\d|\d{9})/i);
+    if (ce) { const x = ce[1].replace(/\D/g, ""); if (x.length === 11) d.cedula = `${x.slice(0, 3)}-${x.slice(3, 10)}-${x[10]}`; }
     return d;
   }
   const MENORES = /^(de|del|la|las|los|el|y|e)$/;
   const titulo = (s) => String(s || "").toLowerCase().split(/(\s+)/).map((w, i) => i > 0 && MENORES.test(w) ? w : w.replace(/^(\p{L})/u, (m) => m.toUpperCase())).join("");
-  function aplicar(d, origen) {
+  function aplicar(d, origen, sobrescribir) {
     if (!actual) return [];
     const c = actual.cliente, su = actual.sum, puestos = [];
-    const pon = (obj, k, v, nombre) => { if (v && !obj[k]) { obj[k] = v; puestos.push(nombre); } };
+    const pon = (obj, k, v, nombre) => { if (v && (sobrescribir || !obj[k]) && obj[k] !== v) { obj[k] = v; puestos.push(nombre); } };
     pon(c, "nombre", d.nombre && d.nombre.toUpperCase(), "nombre");
-    pon(c, "cedula", d.cedula, "cédula");
+    pon(c, "cedula", d.cedula, actual.persona === "empresa" ? "RNC" : "cédula");
     pon(c, "celular", d.celular, "celular");
     pon(c, "telefono", d.telefono, "teléfono");
     pon(c, "email", d.email, "correo");
@@ -251,16 +362,78 @@
     pon(su, "medidor", d.medidor, "medidor");
     pon(su, "tarifa", d.tarifa, "tarifa");
     guardar();
-    showToast(puestos.length ? `${origen}: se llenó ${puestos.join(", ")}. Revísalo.` : `${origen}: no encontré datos nuevos (los campos ya llenos no se cambian).`, puestos.length ? "success" : "info");
+    showToast(puestos.length ? `${origen}: se llenó ${puestos.join(", ")}. Revísalo.` : (sobrescribir ? `${origen}: no encontré datos.` : `${origen}: no encontré datos nuevos (los campos ya llenos no se cambian).`), puestos.length ? "success" : "info");
     return puestos;
+  }
+  // Mejora la foto antes de leerla: más grande, en gris y con más contraste
+  async function prepararParaLeer(src) {
+    const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; });
+    // 1) Recorta el margen blanco (cédulas escaneadas en una hoja completa)
+    const W0 = img.naturalWidth, H0 = img.naturalHeight;
+    const c0 = document.createElement("canvas"); c0.width = W0; c0.height = H0;
+    const x0 = c0.getContext("2d"); x0.drawImage(img, 0, 0);
+    const d0 = x0.getImageData(0, 0, W0, H0).data;
+    let minX = W0, minY = H0, maxX = 0, maxY = 0;
+    for (let y = 0; y < H0; y += 2) for (let x = 0; x < W0; x += 2) {
+      const k = (y * W0 + x) * 4; if (0.3 * d0[k] + 0.59 * d0[k + 1] + 0.11 * d0[k + 2] < 215) { if (x < minX) minX = x; if (x > maxX) maxX = x; if (y < minY) minY = y; if (y > maxY) maxY = y; }
+    }
+    if (maxX <= minX || maxY <= minY) { minX = 0; minY = 0; maxX = W0 - 1; maxY = H0 - 1; }
+    const pad = 12; minX = Math.max(0, minX - pad); minY = Math.max(0, minY - pad); maxX = Math.min(W0 - 1, maxX + pad); maxY = Math.min(H0 - 1, maxY + pad);
+    const cw = maxX - minX + 1, ch = maxY - minY + 1;
+    // 2) Agranda, pasa a gris y sube el contraste
+    const sc = Math.max(1, Math.min(4, 2400 / cw));
+    const c = document.createElement("canvas"); c.width = Math.round(cw * sc); c.height = Math.round(ch * sc);
+    const cx = c.getContext("2d"); cx.imageSmoothingQuality = "high"; cx.drawImage(c0, minX, minY, cw, ch, 0, 0, c.width, c.height);
+    const px = cx.getImageData(0, 0, c.width, c.height), a = px.data;
+    const g = new Uint8ClampedArray(a.length / 4);
+    for (let i = 0, j = 0; i < a.length; i += 4, j++) g[j] = 0.3 * a[i] + 0.59 * a[i + 1] + 0.11 * a[i + 2];
+    const hist = new Array(256).fill(0); g.forEach(v => hist[v]++);
+    let min = 0, max = 255, acc = 0; const tot = g.length;
+    for (let v = 0; v < 256; v++) { acc += hist[v]; if (acc > tot * 0.02) { min = v; break; } }
+    acc = 0; for (let v = 255; v >= 0; v--) { acc += hist[v]; if (acc > tot * 0.02) { max = v; break; } }
+    const r = Math.max(1, max - min);
+    for (let i = 0, j = 0; i < a.length; i += 4, j++) { const v = Math.max(0, Math.min(255, (g[j] - min) * 255 / r)); a[i] = a[i + 1] = a[i + 2] = v; }
+    cx.putImageData(px, 0, 0);
+    return c.toDataURL("image/png");
   }
   async function ocr(imagenes) {
     if (!window.Tesseract) await cargarScript("https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js");
     const w = await window.Tesseract.createWorker("spa");
     let texto = "";
-    try { for (const src of imagenes) { const r = await w.recognize(src); texto += "\n" + r.data.text; } }
-    finally { await w.terminate(); }
+    try {
+      for (const src of imagenes) {
+        let s2 = src; try { s2 = await prepararParaLeer(src); } catch (e) { }
+        const r = await w.recognize(s2); texto += "\n" + r.data.text;
+      }
+    } finally { await w.terminate(); }
     return texto;
+  }
+  // Texto de un PDF (las facturas digitales traen el texto adentro: no hace falta leer la imagen)
+  async function textoPDF(file) {
+    try {
+      if (!window.pdfjsLib) return "";
+      const pdf = await window.pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
+      let out = "";
+      for (let i = 1; i <= Math.min(pdf.numPages, 3); i++) {
+        const pg = await pdf.getPage(i);
+        const tc = await pg.getTextContent();
+        const filas = [];
+        tc.items.forEach(it => {
+          if (!it.str || !it.str.trim()) return;
+          const y = it.transform[5], x = it.transform[4];
+          let f = filas.find(f => Math.abs(f.y - y) < 3);
+          if (!f) { f = { y, items: [] }; filas.push(f); }
+          f.items.push({ x, s: it.str, w: it.width || it.str.length * 4 });
+        });
+        filas.sort((a, b) => b.y - a.y).forEach(f => {
+          f.items.sort((a, b) => a.x - b.x);
+          let linea = "", fin = null;
+          f.items.forEach(it => { linea += fin === null ? it.s : (it.x - fin > 12 ? "    " : (it.x - fin > 1.5 ? " " : "")) + it.s; fin = it.x + it.w; });
+          out += linea + "\n";
+        });
+      }
+      return out;
+    } catch (e) { return ""; }
   }
   function cargarScript(src) {
     return new Promise((res, rej) => { const s = document.createElement("script"); s.src = src; s.onload = res; s.onerror = () => rej(new Error("No se pudo cargar el lector de texto")); document.head.appendChild(s); });
@@ -366,7 +539,8 @@
     if (e.p.qty > 0) li.push(`<b>${e.p.qty} Paneles Solares ${esc(e.p.marca)} ${esc(e.p.w)}W</b>, modelo ${falta(e.p.modelo, 16)}`);
     e.bats.forEach(x => {
       const n = Number(x.r.qty);
-      li.push(`<b>${n} ${n === 1 ? "Batería" : "Baterías"} de Litio ${esc(x.bat.name.replace(/\s+de\s+(?=\d)/i, " ").replace(/(\d+(?:\.\d+)?)\s*K\b/i, "$1 kWh"))}</b>${x.r.modelo ? `, modelo <b>${esc(x.r.modelo)}</b>` : ""}`);
+      const nb = x.bat.propio ? x.bat.name.replace(/^\p{Ll}/u, (c) => c.toUpperCase()) : x.bat.name.replace(/\s+de\s+(?=\d)/i, " ").replace(/(\d+(?:\.\d+)?)\s*K\b/i, "$1 kWh");
+      li.push(`<b>${n} ${n === 1 ? "Batería" : "Baterías"} de Litio ${esc(nb)}</b>`);
     });
     return li.length ? `<ul class="som-lista">${li.map(l => `<li>${l}</li>`).join("")}</ul>` : `<p class="som-falta-p">(Agrega los equipos en la sección Equipos)</p>`;
   }
@@ -453,7 +627,8 @@
     const out = [];
     for (const d of docs) {
       if (d.src) {
-        for (const src of d.src) {
+        for (const f of d.src) {
+          const src = d.fijo ? L + f : f;
           const dim = await medir(src);
           const a4 = Math.abs(dim[1] / dim[0] - 1.414) < 0.03;
           const [W, H] = SIZES[a4 ? "a4" : "letter"];
@@ -467,8 +642,15 @@
     const e = resumenEquipos(s);
     const F = window.FEGPropuesta && window.FEGPropuesta.fichasPaginas;
     if (!F) return [];
-    const fichas = await F({ panelQty: e.p.qty, panelW: e.p.w, marcaPanel: e.p.marca, inversores: e.invs.map(x => x.inv.id), baterias: e.bats.map(x => x.bat.id) });
-    return fichas.map(f => pag("letter", null, `<img src="${f.src}" alt="" style="position:absolute;left:${f.completa ? 0 : 24}pt;top:${f.completa ? 0 : 24}pt;width:${f.completa ? 612 : 564}pt;height:${f.completa ? 792 : 744}pt;object-fit:contain">`));
+    // Si subiste un datasheet propio para un equipo, se usa ese en vez del del sistema
+    const conPropia = (item) => bibliotecaCompleta().some(d => d.tipo === "ficha" && corresponde(d, item));
+    const it = itemsEquipo(s);
+    const panelPropio = it.some(i => i.tipo === "panel" && conPropia(i));
+    const fichas = await F({ panelQty: panelPropio ? 0 : e.p.qty, panelW: e.p.w, marcaPanel: e.p.marca,
+      inversores: e.invs.filter(x => !conPropia({ marca: marcaDe(x.inv.name), modelo: x.r.modelo })).map(x => x.inv.id),
+      baterias: e.bats.filter(x => x.bat.id && !conPropia({ marca: marcaDe(x.bat.name), modelo: x.r.modelo || (x.bat.propio ? x.bat.name : "") })).map(x => x.bat.id) });
+    const propias = await paginasLibreria("ficha", s);
+    return fichas.map(f => pag("letter", null, `<img src="${f.src}" alt="" style="position:absolute;left:${f.completa ? 0 : 24}pt;top:${f.completa ? 0 : 24}pt;width:${f.completa ? 612 : 564}pt;height:${f.completa ? 792 : 744}pt;object-fit:contain">`)).concat(propias);
   }
   async function paginasCodia() {
     const cod = biblio().codia;
@@ -501,7 +683,8 @@
     D.push({ key: "garantiaFab", nombre: "Garantía del fabricante", falta: faltaDoc("garantiaFab"), pags: () => paginasLibreria("garantiaFab", s) });
     D.push({ key: "cne", nombre: "Certificación de la CNE", falta: faltaDoc("cne"), pags: () => paginasLibreria("cne", s) });
     D.push({ key: "distribuidor", nombre: "Autorización del distribuidor (uso de certificación)", falta: [], pags: () => paginasLibreria("distribuidor", s) });
-    D.push({ key: "fichas", nombre: "Fichas técnicas", falta: [], pags: () => paginasFichas(s) });
+    const sinFicha = resumenEquipos(s).bats.filter(x => !x.bat.id && !bibliotecaCompleta().some(d => d.tipo === "ficha" && corresponde(d, { marca: marcaDe(x.bat.name), modelo: x.bat.name })));
+    D.push({ key: "fichas", nombre: "Fichas técnicas", falta: sinFicha.map(x => "subir el datasheet de " + x.bat.name), pags: () => paginasFichas(s) });
     D.push({ key: "codia", nombre: "Certificación del CODIA del ingeniero", falta: biblio().codia ? [] : ["subir la certificación vigente"], pags: () => paginasCodia() });
     D.push({ key: "planos", nombre: "Diagrama unifilar y de situación (planos)", falta: tiene("planos") ? [] : ["subir los planos"], pags: () => paginasArchivos(s.archivos.planos, { firma: true, margen: 0, a4: true }) });
     D.push({ key: "fotos", nombre: s.programa === "neta" ? "Imágenes de la ubicación del proyecto" : "Fachada donde se realizará la instalación", falta: tiene("fotos") ? [] : ["subir las fotos"], pags: () => paginasArchivos(s.archivos.fotos) });
@@ -654,10 +837,26 @@
     const l = actual.archivos[k] || [];
     return `<div style="margin-bottom:10px"><div class="som-lab" style="margin-bottom:4px">${titulo}</div>
       ${l.map((a, i) => `<div class="som-arch"><span>${esc(a.nombre)}${a.paginas > 1 ? ` (${a.paginas} pág.)` : ""}</span>
+        ${k === "cedula" || k === "factura" ? `<button type="button" class="som-btn cla" style="padding:3px 8px;font-size:11px" title="Vuelve a leer el archivo y reemplaza los datos" onclick="FEGSometimiento.leer('${k}', ${i})">Leer</button>` : ""}
         ${k === "planos" ? `<label style="font-size:11px;display:flex;align-items:center;gap:4px"><input type="checkbox" ${a.firma !== false ? "checked" : ""} onchange="FEGSometimiento.firma(${i}, this.checked)">firma</label>` : ""}
         <button type="button" class="som-x" style="position:static" onclick="FEGSometimiento.quitarArchivo('${k}', ${i})">×</button></div>`).join("")}
       <label class="som-btn cla" style="width:100%;margin-top:4px">+ Subir ${acepta === "image/*" ? "imagen" : "imagen o PDF"}<input type="file" accept="${acepta}" multiple style="display:none" onchange="FEGSometimiento.subir('${k}', this)"></label>
       ${nota ? `<p class="som-nota">${nota}</p>` : ""}</div>`;
+  }
+  // Botón para subir un datasheet que no está en el sistema (queda guardado para los próximos sometimientos)
+  function itemDeFila(cual, i) {
+    const e = actual.eq;
+    if (cual === "panel") return { marca: e.paneles.marca, modelo: e.paneles.modelo, nombre: `${e.paneles.marca} ${e.paneles.w}W`, tipo: "panel" };
+    if (cual === "inversor") { const r = e.inversores[i], inv = r && invDe(r); return { marca: inv ? marcaDe(inv.name) : "", modelo: r ? r.modelo : "", nombre: inv ? inv.name : "inversor", tipo: "inversor" }; }
+    const r = e.baterias[i], bat = r && batDe(r);
+    return { marca: bat ? marcaDe(bat.name) : "", modelo: (r && r.modelo) || (bat && bat.propio ? bat.name : ""), nombre: bat ? bat.name : "batería", tipo: "bateria" };
+  }
+  function btnFicha(cual, i) {
+    const it = itemDeFila(cual, i);
+    const d = it.modelo ? bibliotecaCompleta().find(x => x.tipo === "ficha" && corresponde(x, it)) : null;
+    return `<div style="display:flex;align-items:center;gap:8px;margin-top:2px">
+      <span style="flex:1;min-width:0;font-size:11px;color:${d ? "#3f7d43" : "#999"};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d ? "✓ Datasheet propio cargado" : "Datasheet: el del sistema"}</span>
+      <label class="som-btn cla" style="padding:5px 10px;font-size:11.5px">${d ? "Cambiar" : "+ Subir datasheet"}<input type="file" accept="image/*,application/pdf" style="display:none" onchange="FEGSometimiento.subirFicha('${cual}', ${i}, this)"></label></div>`;
   }
   function htmlLado() {
     const s = actual, c = s.cliente, su = s.sum, e = s.eq;
@@ -665,7 +864,7 @@
     const optsBat = typeof buildGroupedOptions === "function" ? buildGroupedOptions(settings.batteries, "") : "";
     const cot = typeof readQuotes === "function" ? readQuotes() : [];
     const certs = bibliotecaCompleta();
-    const TIPO_TXT = { cne: "CNE", distribuidor: "Distribuidor", garantiaFab: "Garantía" };
+    const TIPO_TXT = { cne: "CNE", distribuidor: "Distribuidor", garantiaFab: "Garantía", ficha: "Datasheet" };
     return `
     <details class="som-sec" open><summary>1. Tipo de sometimiento</summary><div class="in">
       ${seg("programa", s.programa, [["cero", "Inyección cero (Anexo B)"], ["neta", "Medición neta (Anexo A)"]])}
@@ -709,18 +908,22 @@
       <div class="som-eqrow"><div class="som-lab" style="font-weight:700;color:#2b2b2b">Paneles</div>
         <div class="som-2">${campo("eq.paneles.qty", "Cantidad", e.paneles.qty || "", 'type="number" min="0"')}${campo("eq.paneles.w", "Vatios (W)", e.paneles.w, 'type="number"')}</div>
         <div class="som-2">${campo("eq.paneles.marca", "Marca", e.paneles.marca, 'list="somMarcasPanel"')}${campo("eq.paneles.modelo", "Modelo exacto", e.paneles.modelo, 'placeholder="JKM635N-78HL4-BDV"')}</div>
-        <datalist id="somMarcasPanel"><option value="JINKO Solar"><option value="JA Solar"></datalist></div>
+        <datalist id="somMarcasPanel"><option value="JINKO Solar"><option value="JA Solar"></datalist>
+        ${btnFicha("panel", 0)}</div>
       ${e.inversores.map((r, i) => `<div class="som-eqrow"><button type="button" class="som-x" onclick="FEGSometimiento.quitarEq('inversores', ${i})">×</button>
         <div class="som-lab" style="font-weight:700;color:#2b2b2b">Inversor ${e.inversores.length > 1 ? i + 1 : ""}</div>
         <label class="som-lab">Equipo<select class="som-in" onchange="FEGSometimiento.set('eq.inversores.${i}.invId', this.value)"><option value="">Elegir…</option>${optsInv.replace(`value="${r.invId}"`, `value="${r.invId}" selected`)}</select></label>
         <div class="som-2">${campo(`eq.inversores.${i}.qty`, "Cantidad", r.qty, 'type="number" min="1"')}${campo(`eq.inversores.${i}.modelo`, "Modelo exacto", r.modelo, 'placeholder="SUN-12K-SG05LP2-US-SM3"')}</div>
         <div class="som-2"><label class="som-lab">Conexión<select class="som-in" onchange="FEGSometimiento.set('eq.inversores.${i}.fase', this.value)"><option value="mono" ${r.fase !== "tri" ? "selected" : ""}>Monofásica</option><option value="tri" ${r.fase === "tri" ? "selected" : ""}>Trifásica</option></select></label>
-        ${campo(`eq.inversores.${i}.corriente`, "Corriente nominal (A)", r.corriente || "", 'placeholder="automática"')}</div></div>`).join("")}
+        ${campo(`eq.inversores.${i}.corriente`, "Corriente nominal (A)", r.corriente || "", 'placeholder="automática"')}</div>
+        ${btnFicha("inversor", i)}</div>`).join("")}
       <button type="button" class="som-btn cla" style="width:100%;margin-bottom:8px" onclick="FEGSometimiento.agregarEq('inversores')">+ Agregar inversor</button>
       ${e.baterias.map((r, i) => `<div class="som-eqrow"><button type="button" class="som-x" onclick="FEGSometimiento.quitarEq('baterias', ${i})">×</button>
         <div class="som-lab" style="font-weight:700;color:#2b2b2b">Batería ${e.baterias.length > 1 ? i + 1 : ""}</div>
-        <label class="som-lab">Equipo<select class="som-in" onchange="FEGSometimiento.set('eq.baterias.${i}.batId', this.value)"><option value="">Elegir…</option>${optsBat.replace(`value="${r.batId}"`, `value="${r.batId}" selected`)}</select></label>
-        <div class="som-2">${campo(`eq.baterias.${i}.qty`, "Cantidad", r.qty, 'type="number" min="1"')}${campo(`eq.baterias.${i}.modelo`, "Modelo exacto", r.modelo, 'placeholder="Venus 16K Pack LV"')}</div></div>`).join("")}
+        <label class="som-lab">Equipo<select class="som-in" onchange="FEGSometimiento.set('eq.baterias.${i}.batId', this.value)"><option value="">Elegir…</option>${optsBat.replace(`value="${r.batId}"`, `value="${r.batId}" selected`)}<option value="otra" ${r.batId === "otra" ? "selected" : ""}>Otra (no está en el sistema)</option></select></label>
+        <div class="som-2">${campo(`eq.baterias.${i}.qty`, "Cantidad", r.qty, 'type="number" min="1"')}${campo(`eq.baterias.${i}.nombre`, r.batId === "otra" ? "Nombre de la batería" : "Nombre en los documentos", r.nombre || "", `placeholder="${esc(r.batId && r.batId !== "otra" && typeof getBattery === "function" && getBattery(r.batId) ? getBattery(r.batId).name : "Soluna de 10k")}"`)}</div>
+        <p class="som-nota" style="margin-top:-4px">No necesita modelo. Lo que escribas aquí es lo que sale en las cartas.</p>
+        ${btnFicha("bateria", i)}</div>`).join("")}
       <button type="button" class="som-btn cla" style="width:100%" onclick="FEGSometimiento.agregarEq('baterias')">+ Agregar batería</button>
     </div></details>
 
@@ -752,7 +955,10 @@
         <label class="som-btn cla">+ Certificado CNE<input type="file" accept="image/*,application/pdf" style="display:none" onchange="FEGSometimiento.subirCert('cne', this)"></label>
         <label class="som-btn cla">+ Carta distribuidor<input type="file" accept="image/*,application/pdf" style="display:none" onchange="FEGSometimiento.subirCert('distribuidor', this)"></label>
       </div>
-      <label class="som-btn cla" style="width:100%;margin-top:8px">+ Garantía del fabricante<input type="file" accept="image/*,application/pdf" style="display:none" onchange="FEGSometimiento.subirCert('garantiaFab', this)"></label>
+      <div class="som-2" style="margin-top:8px">
+        <label class="som-btn cla">+ Garantía fabricante<input type="file" accept="image/*,application/pdf" style="display:none" onchange="FEGSometimiento.subirCert('garantiaFab', this)"></label>
+        <label class="som-btn cla">+ Datasheet<input type="file" accept="image/*,application/pdf" style="display:none" onchange="FEGSometimiento.subirCert('ficha', this)"></label>
+      </div>
     </div></details>`;
   }
 
@@ -866,8 +1072,10 @@
   async function subirArchivos(k, files) {
     const A = arch(); if (!A) { showToast("Falta el generador de propuestas", "error"); return; }
     const nuevos = [];
+    let textoDigital = "";
     for (const f of files) {
-      const imgs = await A.aImagenes(f, k === "planos" ? 2200 : 1600, 12);
+      const imgs = await A.aImagenes(f, k === "planos" ? 2200 : (k === "cedula" ? 2000 : 1600), 12);
+      if ((k === "cedula" || k === "factura") && /pdf$/i.test(f.type || f.name)) textoDigital += "\n" + await textoPDF(f);
       const id = `somf_${actual.id}_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
       await A.put(id, { tipo: k, nombre: f.name, paginas: imgs });
       const a = { id, nombre: f.name, paginas: imgs.length };
@@ -877,19 +1085,27 @@
     await pintarEditor(true);
     // Lectura automática de la cédula y de la factura
     if (k === "cedula" || k === "factura") {
-      showToast(k === "cedula" ? "Leyendo la cédula…" : "Leyendo la factura…", "info");
-      try {
-        const texto = await ocr(nuevos.flatMap(x => x.imgs).slice(0, 3));
-        const d = k === "cedula" ? analizarCedula(texto) : Object.assign(analizarTexto(texto), analizarFactura(texto));
-        if (aplicar(d, k === "cedula" ? "Cédula" : "Factura").length) await pintarEditor(true);
-      } catch (e) { showToast("No se pudo leer el archivo automáticamente; escribe los datos a mano.", "error"); }
+      await leerDocumento(k, nuevos.flatMap(x => x.imgs), textoDigital, false);
     }
+  }
+  // Lee la cédula o la factura: primero el texto del PDF (si es digital); si no, la imagen
+  async function leerDocumento(k, imgs, textoDigital, sobrescribir) {
+    const origen = k === "cedula" ? "Cédula" : "Factura";
+    showToast(k === "cedula" ? "Leyendo la cédula…" : "Leyendo la factura…", "info");
+    try {
+      const analizar = (t) => k === "cedula" ? analizarCedula(t) : analizarFactura(t);
+      let d = textoDigital && textoDigital.replace(/\s/g, "").length > 60 ? analizar(textoDigital) : {};
+      const util = (x) => Object.keys(x).length >= (k === "cedula" ? 2 : 3);
+      if (!util(d) && imgs.length) d = Object.assign(analizar(await ocr(imgs.slice(0, 3))), d);
+      if (aplicar(d, origen, sobrescribir).length) await pintarEditor(true);
+    } catch (e) { showToast("No se pudo leer el archivo automáticamente; escribe los datos a mano.", "error"); }
   }
 
   window.FEGSometimiento = {
     async abrir() {
       if (!window.FEGPropuesta) { showToast("Falta la carpeta “propuesta”", "error"); return; }
       crear();
+      await buscarRuta();
       const o = $("somOverlay");
       o.style.display = "flex"; o.classList.remove("abre"); void o.offsetWidth; o.classList.add("abre");
       document.body.style.overflow = "hidden";
@@ -940,7 +1156,7 @@
     detectar() {
       const t = $("somPegar").value;
       if (!t.trim()) { showToast("Pega primero la información del cliente", "error"); return; }
-      aplicar(analizarTexto(t), "Texto"); pintarEditor(true);
+      aplicar(analizarTexto(t), "Texto", true); pintarEditor(true);
     },
     subir(k, input) {
       const files = [...(input.files || [])]; input.value = "";
@@ -951,6 +1167,12 @@
     quitarArchivo(k, i) {
       const a = actual.archivos[k][i]; if (!a) return;
       actual.archivos[k].splice(i, 1); arch() && arch().del(a.id); guardar(); pintarEditor(true);
+    },
+    async leer(k, i) {
+      const a = actual.archivos[k][i]; if (!a) return;
+      const data = await arch().get(a.id);
+      if (!data || !data.paginas) { showToast("No encuentro el archivo", "error"); return; }
+      await leerDocumento(k, data.paginas, "", true);
     },
     firma(i, on) { const a = actual.archivos.planos[i]; if (a) { a.firma = !!on; guardar(); pintarEditor(true); } },
     ver(k) { docActivo = k; pintarDocs(); $("somMain").scrollTop = 0; },
@@ -973,6 +1195,24 @@
       if (viejo && viejo.id) arch().del("codia_" + viejo.id);   // se elimina la anterior
       showToast("Certificación del CODIA actualizada", "success");
       pintarEditor(true);
+    },
+    async subirFicha(cual, i, input) {
+      const f = input.files && input.files[0]; input.value = ""; if (!f) return;
+      const it = itemDeFila(cual, i);
+      if (!it.modelo) { showToast(cual === "bateria" ? "Escribe primero el nombre de la batería" : "Escribe primero el modelo exacto del equipo", "error"); return; }
+      showToast("Subiendo el datasheet…", "info");
+      try {
+        const imgs = await arch().aImagenes(f, 1700, 8);
+        const id = String(Date.now());
+        await arch().put("cert_" + id, { tipo: "ficha", nombre: f.name, paginas: imgs });
+        // Si ya había uno propio para este equipo, se reemplaza
+        const viejo = biblio().certificados.find(x => x.tipo === "ficha" && corresponde(x, it));
+        if (viejo) { settings.certificados = biblio().certificados.filter(x => x !== viejo); arch().del("cert_" + viejo.id); }
+        biblio().certificados.push({ id, tipo: "ficha", nombre: "Datasheet " + (it.modelo || it.nombre), claves: it.modelo, paginas: imgs.length });
+        saveSettings();
+        showToast("Datasheet guardado. Saldrá en las fichas técnicas de este y de los próximos sometimientos con este equipo.", "success");
+        pintarEditor(true);
+      } catch (e) { showToast("No se pudo subir: " + (e.message || e), "error"); }
     },
     async subirCert(tipo, input) {
       const f = input.files && input.files[0]; input.value = ""; if (!f) return;
@@ -999,6 +1239,6 @@
       saveSettings(); pintarEditor(true);
     },
     // Para pruebas
-    _analizar: { texto: analizarTexto, cedula: analizarCedula, factura: analizarFactura }
+    _analizar: { texto: analizarTexto, cedula: analizarCedula, factura: analizarFactura, pdf: textoPDF }
   };
 })();
