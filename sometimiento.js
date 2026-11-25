@@ -475,6 +475,8 @@
     while (b && anchoTexto(b, size) > l2[2] && size > 7) { size -= 0.25; [a, b] = partir(size); }
     return T(l1[0], l1[1], a, { size }) + (b ? T(l2[0], l2[1], b, { size, max: l2[2] }) : "");
   }
+  // Casilla rellena (cuadro negro) en la posición exacta del cuadro del formulario
+  const CAJA = (x, y) => `<div class="som-caja" style="position:absolute;left:${x}pt;top:${y}pt;width:5.4pt;height:5.5pt;background:#111;-webkit-print-color-adjust:exact;print-color-adjust:exact"></div>`;
   const CHK = (x, y, s) => `<svg class="som-chk" style="left:${x - 1}pt;top:${y - (s || 9)}pt;width:${s || 9}pt;height:${s || 9}pt" viewBox="0 0 10 10"><path d="M1.2 5.4 4 8.2 9 1.6" fill="none" stroke="#111" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
   const BLANCO = (r) => `<div style="position:absolute;left:${r[0]}pt;top:${r[1]}pt;width:${r[2] - r[0]}pt;height:${r[3] - r[1]}pt;background:#fff"></div>`;
   const pag = (size, bg, html, extra) => Object.assign({ size, bg, html }, extra || {});
@@ -523,15 +525,16 @@
       T(142, 690, c.email, { size: 9.5, max: 126 }) + T(367, 690, c.cedula, { size: 9.5, max: 103 }) +
       T2(dirCliente, [139, 714.2, 340], [91, 735, 392], { size: 9.5 });
     // Tipo de cliente: se marca la segunda casilla de cada opción
-    const casillas = { residencial: [108, 65], comercial: [184.5, 65], industrial: [254.5, 65], agricola: [320.5, 65], educativa: [381, 65], medica: [108, 80] };
+    // Casillas del formulario (esquina superior izquierda, medidas sobre el escaneo). Se rellena la segunda de cada par.
+    const casillas = { residencial: [108.8, 61.2], comercial: [182.9, 60.6], industrial: [251.8, 59.6], agricola: [318.2, 58.7], educativa: [378.7, 58.2], medica: [109.0, 74.9] };
     const cc = casillas[s.tipoCliente] || casillas.residencial;
     const dir = direccion(s);
-    let p2 = CHK(cc[0], cc[1]) +
+    let p2 = CAJA(cc[0], cc[1]) +
       T2(dir, [179, 141.6, 322], [106, 162.6, 396], { size: 9.5 }) + T(202, 190.5, s.sum.contrato, { size: 10 }) + T(209, 215, s.sum.medidor, { size: 10 }) +
       T(407, 259.6, e.kwp ? nt(e.kwp) : "", { size: 10 }) + T(430, 372.6, e.kwp ? nt(e.kwp) : "", { size: 10 }) +
-      (s.compensa === "parte" ? CHK(172, 441) + T(200, 437.4, s.compensaPct || "", { size: 9.5 }) + CHK(220, 441) : CHK(114, 441)) +
-      (s.instalado ? CHK(414.5, 495) : CHK(382, 495)) +
-      CHK(114, 549.5) +
+      (s.compensa === "parte" ? CAJA(162.2, 439.3) + T(202, 443.4, s.compensaPct ? String(s.compensaPct).replace(/%/g, "") : "", { size: 9, max: 16 }) : CAJA(115.2, 439.7)) +
+      (s.instalado ? CAJA(416.2, 491.0) : CAJA(382.6, 491.5)) +
+      CAJA(116.6, 547.7) +
       T(352, 631, f, { size: 10 });
     return [pag("letter", SB + "anexoB-1.jpg", p1), pag("letter", SB + "anexoB-2.jpg", p2)];
   }
