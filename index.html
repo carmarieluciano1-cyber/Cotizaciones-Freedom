@@ -533,6 +533,8 @@
     body.feg-solo-lectura .feg-lectura-aviso { display: flex; }
 
     /* Usuarios */
+    .feg-aviso { margin-left: auto; margin-right: 10px; font-size: 11px; font-weight: 700; color: #2b2b2b; background: #ffab00; border-radius: 999px; padding: 2px 9px; }
+    .feg-aviso[hidden] { display: none; }
     .feg-opcion-fila { display: flex; align-items: center; gap: 16px; padding: 16px 20px; }
     .feg-opcion-fila .feg-opcion-titulo { margin-top: 0; font-size: 16px; }
     .feg-opcion-fila .feg-opcion-texto { margin-top: 2px; }
@@ -843,7 +845,15 @@
           </span>
           <span class="feg-opcion-titulo">Sometimientos</span>
           <span class="feg-opcion-texto">Documentos para la distribuidora. Abre uno trabajado o genera uno nuevo.</span>
-          <span class="feg-opcion-pie"><span id="portadaSomCount">0 trabajados</span><span class="feg-opcion-flecha" aria-hidden="true">→</span></span>
+          <span class="feg-opcion-pie"><span id="portadaSomCount">0 trabajados</span><span class="feg-aviso" id="portadaSomAviso" hidden></span><span class="feg-opcion-flecha" aria-hidden="true">→</span></span>
+        </button>
+        <button type="button" onclick="abrirSolicitudes()" class="feg-opcion group" data-modulo="solicitudes" hidden>
+          <span class="feg-opcion-icono" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h6a1 1 0 0 1 1 1v1H8V5a1 1 0 0 1 1-1z"/><path d="M16 5h1.5A1.5 1.5 0 0 1 19 6.5v13a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 5 19.5v-13A1.5 1.5 0 0 1 6.5 5H8"/><path d="m9 13 2 2 4-4"/></svg>
+          </span>
+          <span class="feg-opcion-titulo">Datos sometimientos</span>
+          <span class="feg-opcion-texto">Envía los datos técnicos del cliente al equipo de sometimientos y sigue en qué va cada uno.</span>
+          <span class="feg-opcion-pie"><span id="portadaSolCount">Enviar datos</span><span class="feg-aviso" id="portadaSolAviso" hidden></span><span class="feg-opcion-flecha" aria-hidden="true">→</span></span>
         </button>
         <button type="button" onclick="abrirUsuarios()" class="feg-opcion feg-opcion-fila group sm:col-span-2" data-modulo="usuarios" hidden>
           <span class="feg-opcion-icono" aria-hidden="true">
@@ -2496,6 +2506,7 @@
       editarPrecios: () => permiso("precios") === "editar",
       verSometimientos: () => permiso("sometimientos") !== "no",
       editarSometimientos: () => permiso("sometimientos") === "editar",
+      pedirSometimientos: () => ["todo", "propias"].includes(permiso("propuestas")) && permiso("sometimientos") === "no",
       usuarios: () => permiso("usuarios") === "si",
       algo: () => ["propuestas", "precios", "sometimientos"].some(k => permiso(k) !== "no") || permiso("usuarios") === "si"
     };
@@ -2674,8 +2685,9 @@
       b.classList.toggle("feg-solo-lectura", puede.verPropuestas() && !puede.crearPropuestas());
       document.querySelectorAll(".feg-portada-opciones [data-modulo]").forEach(el => {
         const m = el.dataset.modulo;
-        el.hidden = !(m === "propuestas" ? puede.verPropuestas() : m === "sometimientos" ? puede.verSometimientos() : puede.usuarios());
+        el.hidden = !(m === "propuestas" ? puede.verPropuestas() : m === "sometimientos" ? puede.verSometimientos() : m === "solicitudes" ? puede.pedirSometimientos() : puede.usuarios());
       });
+      setTimeout(() => { if (window.FEGSometimiento && FEGSometimiento.avisos) FEGSometimiento.avisos(); }, 300);
       const u = document.getElementById("fegUsuario");
       if (cloudOn() && PERFIL) {
         u.style.display = "";
@@ -2965,6 +2977,7 @@
       const op = document.querySelector(".feg-portada-opciones");
       if (op) { op.classList.remove("feg-cascada"); void op.offsetWidth; op.classList.add("feg-cascada"); setTimeout(() => op.classList.remove("feg-cascada"), 700); }
       actualizarPortada();
+      if (window.FEGSometimiento && FEGSometimiento.avisos) FEGSometimiento.avisos();
       window.scrollTo({ top: 0 });
     }
     function actualizarPortada() {
@@ -2977,6 +2990,11 @@
     }
     function volverAtras() {
       if (document.getElementById("editorView").style.display !== "none" && puede.verPropuestas()) showHome(); else showPortada();
+    }
+    function abrirSolicitudes() {
+      if (!puede.pedirSometimientos()) return;
+      if (window.FEGSometimiento && FEGSometimiento.abrirSolicitudes) FEGSometimiento.abrirSolicitudes();
+      else showToast("Falta el archivo sometimiento.js actualizado", "error");
     }
     function abrirSometimientos() {
       if (!puede.verSometimientos()) return;

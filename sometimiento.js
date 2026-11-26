@@ -805,7 +805,7 @@
     D.push({ key: "descripcion", nombre: "Carta de descripción del proyecto", falta: faltan([[s.sum.contrato, "contrato"], [s.sum.medidor, "medidor"], [s.sum.tarifa, "tarifa"]]).concat(modelos), pags: async () => [membrete(cartaDescripcion(s), "descripcion")] });
     D.push({ key: "autorizacion", nombre: "Carta de autorización del cliente", falta: datosCliente.concat(s.sum.tarifa ? [] : ["tarifa"]), pags: async () => [membrete(cartaAutorizacion(s), "autorizacion")] });
     D.push({ key: "cedula", nombre: s.persona === "empresa" ? "Cédula del representante" : "Cédula del cliente", falta: tiene("cedula") ? [] : ["subir la cédula"], pags: () => paginasCedula(s) });
-    if (s.programa === "neta" || tiene("factura")) D.push({ key: "factura", nombre: "Factura eléctrica de Edenorte", falta: tiene("factura") ? [] : ["subir la factura"], pags: () => paginasArchivos(s.archivos.factura) });
+    if (s.programa === "neta") D.push({ key: "factura", nombre: "Factura eléctrica de Edenorte", falta: tiene("factura") ? [] : ["subir la factura"], pags: () => paginasArchivos(s.archivos.factura) });
     D.push({ key: "garantia", nombre: "Carta de garantía de los equipos", falta: modelos, pags: async () => [membrete(cartaGarantia(s), "garantia")] });
     D.push({ key: "garantiaFab", nombre: "Garantía del fabricante", falta: faltaDoc("garantiaFab"), pags: () => paginasLibreria("garantiaFab", s) });
     D.push({ key: "cne", nombre: "Certificación de la CNE", falta: faltaDoc("cne"), pags: () => paginasLibreria("cne", s) });
@@ -894,7 +894,7 @@
 .som-eco-firma span{display:block;border-top:1px solid #111;margin-bottom:4pt}
 .som-firma-img{position:absolute;cursor:move;touch-action:none}
 .som-firma-img:hover{outline:1px dashed #ffab00}
-.som-lista-s{max-width:760px;margin:0 auto}
+.som-lista-s{max-width:980px;margin:0 auto}
 .som-fila{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #ececea;border-radius:14px;padding:12px 14px;margin-bottom:8px;cursor:pointer;transition:border-color 150ms var(--e)}
 .som-fila b{font-size:14px}.som-fila small{display:block;color:#888;font-size:11.5px;margin-top:2px}
 .som-chipp{font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:999px;background:#fff4d6;color:#8a5a00;border:1px solid #ffd98a}
@@ -940,6 +940,70 @@
 @media (hover:hover) and (pointer:fine){.som-navi:hover:not(.on){background:#f6f6f4}}
 @media (max-width:900px){.som-docsv{flex-direction:column}.som-nav{width:auto;border-right:0;border-bottom:1px solid #ececea;max-height:190px;padding-bottom:10px}.som-docsv .som-main{overflow:visible}.som-datos{columns:1}}
 @media (prefers-reduced-motion:reduce){#somOverlay,#somOverlay *{animation:none!important;transition:none!important}}
+.som-h2{font-family:Montserrat,Inter,sans-serif;font-weight:800;font-size:20px;margin:6px 0 4px}
+.som-intro{font-size:12.5px;color:#777;margin:0 0 14px;line-height:1.5}
+.som-vacio{background:#fff;border:1px dashed #dcdcd8;border-radius:14px;padding:22px;text-align:center;color:#888;font-size:12.5px}.som-vacio b{display:block;color:#2b2b2b;font-size:14px;margin-bottom:4px}
+.som-est{flex-shrink:0;font-size:10.5px;font-weight:700;padding:4px 9px;border-radius:999px;white-space:nowrap;border:1px solid transparent}
+.e-enviado{background:#eef2ff;color:#3446a8;border-color:#d5dcfb}.e-recibido{background:#ecf6ff;color:#1d5f94;border-color:#cfe6fa}
+.e-proceso{background:#fff4d6;color:#8a5a00;border-color:#ffd98a}.e-falta{background:#fdecea;color:#a3271a;border-color:#f6c9c3}
+.e-sometido{background:#f3edff;color:#5b3aa8;border-color:#e0d4fb}.e-aprobado{background:#e8f7ee;color:#1d6b3c;border-color:#c5ead3}
+.e-borrador,.e-ninguno{background:#f1f1ef;color:#77756f;border-color:#e3e3df}
+.sol-tabs{max-width:420px;margin:0 0 14px}.sol-tabs button{display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.sol-badge{background:#ffab00;color:#2b2b2b;border-radius:999px;font-size:10.5px;font-weight:800;padding:1px 7px}
+.sol-cuenta{color:#9a9a96;font-weight:600}
+.sol-punto{width:8px;height:8px;border-radius:8px;background:#ffab00;flex-shrink:0;box-shadow:0 0 0 3px rgba(255,171,0,.2)}
+.sol-hoja{max-width:820px;margin:0 auto}
+.sol-cab{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;margin-bottom:6px}
+.sol-item{display:flex;gap:14px;background:#fff;border:1px solid #ececea;border-radius:14px;padding:14px 16px;margin-bottom:10px}
+.sol-n{width:34px;height:34px;border-radius:50%;border:1.5px solid #e3e3df;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#555;flex-shrink:0;transition:background-color 200ms var(--e),border-color 200ms var(--e)}
+.sol-item.ok .sol-n{background:#ffab00;border-color:#ffab00;color:#2b2b2b}
+.sol-c{flex:1;min-width:0}.sol-c h3{font-family:Montserrat,Inter,sans-serif;font-size:14.5px;font-weight:700;margin:6px 0 10px}
+.sol-val{font-size:13px;color:#2b2b2b;font-weight:500;margin-top:3px;padding:6px 0;border-bottom:1px dashed #ececea}
+.sol-nada{color:#b3b3ae;font-weight:500;font-size:12px}
+.sol-archs{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 2px}
+.sol-mini{position:relative;width:76px;height:76px;border-radius:10px;overflow:hidden;background:#f1f1ef;border:1px solid #e3e3df;cursor:zoom-in;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#999}
+.sol-mini img{width:100%;height:100%;object-fit:cover}
+.sol-quitar{position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;font-size:13px;line-height:1;cursor:pointer}
+.sol-subir{width:76px;height:76px;border-radius:10px;border:1.5px dashed #d6d6d2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:10.5px;font-weight:600;color:#77756f;cursor:pointer;text-align:center;transition:border-color 150ms var(--e),background-color 150ms var(--e)}
+.sol-subir span{font-size:20px;line-height:1;color:#ffab00}
+.sol-eq{border:1px solid #ececea;border-radius:10px;padding:10px;margin-bottom:8px}.sol-eq>b{display:block;font-size:12px;margin-bottom:6px}
+.sol-eqfila{display:grid;grid-template-columns:1fr 70px 24px;gap:6px;align-items:center;margin-bottom:6px}.sol-eqfila .som-in{margin:0}
+.sol-lista{margin:0;padding-left:18px;font-size:13px;line-height:1.8}
+.sol-mapa{display:inline-block;font-size:12px;font-weight:700;color:#8a5a00;text-decoration:none;margin:2px 10px 4px 0}
+.sol-pie{display:flex;justify-content:flex-end;padding:6px 0 30px}
+.sol-falta{background:#fdecea;border:1px solid #f6c9c3;color:#8a2216;border-radius:12px;padding:10px 12px;font-size:13px;margin-bottom:12px}
+.sol-completo{background:#e8f7ee;border:1px solid #c5ead3;color:#1d6b3c;border-radius:10px;padding:8px 10px;font-size:12px;margin-bottom:10px}
+.sol-estado{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;background:#fff;border:1px solid #ececea;border-radius:14px;padding:12px 14px;margin-bottom:10px}
+.sol-sel{min-width:190px;font-weight:600}
+.sol-grupo{margin-bottom:16px}.sol-grupo>summary{list-style:none;cursor:pointer;display:flex;align-items:baseline;gap:8px;padding:4px 2px 10px}
+.sol-grupo>summary::-webkit-details-marker{display:none}
+.sol-gt{font-family:Montserrat,Inter,sans-serif;font-weight:800;font-size:15px}.sol-gn{font-size:11px;font-weight:800;background:#2b2b2b;color:#fff;border-radius:999px;padding:1px 8px}
+.sol-grupo>summary small{color:#9a9a96;font-size:11.5px}
+.sol-grupo>summary:after{content:"›";margin-left:auto;color:#aaa;transform:rotate(90deg);transition:transform 160ms var(--e)}.sol-grupo[open]>summary:after{transform:rotate(-90deg)}
+.sol-tareas{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px}
+.sol-tarea{all:unset;box-sizing:border-box;display:flex;flex-direction:column;gap:7px;background:#fff;border:1px solid #ececea;border-radius:16px;padding:14px 15px 12px;cursor:pointer;position:relative;box-shadow:0 1px 2px rgba(0,0,0,.03);transition:border-color 160ms var(--e),box-shadow 160ms var(--e),transform 160ms var(--e)}
+.sol-tarea.nueva{border-color:#ffd98a;box-shadow:0 0 0 3px rgba(255,171,0,.08)}
+.sol-tarea:active{transform:scale(.99)}
+.sol-tarea-top{display:flex;align-items:center;gap:6px}.sol-cuando{margin-left:auto;font-size:11px;color:#9a9a96}
+.sol-nueva{font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;background:#ffab00;color:#2b2b2b;border-radius:6px;padding:3px 7px}
+.sol-tarea-nom{font-size:14.5px;font-weight:700;color:#2b2b2b;line-height:1.25}
+.sol-tarea-sub{font-size:11.5px;color:#888;margin-top:-3px}
+.sol-prog{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;color:#77756f}
+.sol-barra{flex:1;height:6px;background:#f1f1ef;border-radius:6px;overflow:hidden}.sol-barra i{display:block;height:100%;background:linear-gradient(90deg,#ffbd1f,#ffab00);border-radius:6px}
+.sol-tarea-falta{font-size:11.5px;color:#b45309;line-height:1.4}.sol-tarea-ok{font-size:11.5px;color:#1d6b3c;font-weight:600}
+.sol-tarea-nota{font-size:11.5px;color:#8a2216;background:#fdf3f1;border-radius:8px;padding:5px 8px}
+.sol-tarea-pie{display:flex;align-items:center;gap:7px;font-size:11.5px;color:#555;padding-top:8px;border-top:1px solid #f3f3f1;margin-top:2px}
+.sol-av{width:22px;height:22px;border-radius:50%;background:#2b2b2b;color:#ffab00;font-size:9.5px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.sol-link{margin-left:auto;font-size:10.5px;font-weight:700;color:#8a5a00}
+@media (hover:hover) and (pointer:fine){.sol-tarea:hover{border-color:#ffcf4d;box-shadow:0 8px 24px -12px rgba(0,0,0,.18);transform:translateY(-1px)}}
+.sol-tag{display:inline-block;margin-left:8px;vertical-align:2px;font-family:Inter,sans-serif;font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;background:#fdecea;color:#a3271a;border:1px solid #f6c9c3}
+.sol-tag.opc{background:#f1f1ef;color:#8a8a86;border-color:#e3e3df}
+.sol-item.falta{border-color:#f3d6d1}
+.sol-adj{margin-top:8px;padding-top:8px;border-top:1px dashed #ececea}.sol-adj-t{display:block;font-size:11px;color:#9a9a96;font-weight:600}
+.sol-te-falta{background:#fff7e8;border:1px solid #ffd98a;color:#7a4e00;border-radius:12px;padding:10px 12px;font-size:13px;margin-bottom:12px}.sol-te-falta span{display:block;font-size:11.5px;color:#9a6a12;margin-top:3px}
+.som-top .sol-sel{width:auto;margin:0;padding:7px 9px;background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.18);min-width:160px}.som-top .sol-sel option{color:#2b2b2b}
+@media (hover:hover) and (pointer:fine){.sol-subir:hover{border-color:#ffab00;background:#fffaf0}.sol-mapa:hover{text-decoration:underline}}
+@media (max-width:600px){.sol-item{padding:12px;gap:10px}.sol-n{width:28px;height:28px;font-size:11px}.sol-cab{flex-direction:column}}
 #somPrint{display:none}
 @page sletter{size:letter;margin:0}
 @page sa4{size:A4;margin:0}
@@ -971,9 +1035,14 @@
       <div class="som-body" id="somBody"></div>`;
     document.body.appendChild(d);
     $("somVolver").onclick = () => {
+      const v = $("solVisor"); if (v) v.remove();
       if (actual) {
         const a = document.activeElement; if (a && a.closest && a.closest("#somOverlay") && a.blur) a.blur();   // guarda lo que se estaba escribiendo
         clearTimeout(tEscribir); guardar(true); actual = null; vista = "datos"; pintarLista();
+      } else if (solActual) {
+        const a = document.activeElement; if (a && a.blur) a.blur();
+        if (tSol) { clearTimeout(tSol); tSol = null; guardarSol(solActual); }
+        solActual = null; pintarLista();
       } else cerrar();
     };
     const p = document.createElement("div"); p.id = "somPrint"; document.body.appendChild(p);
@@ -982,22 +1051,17 @@
   }
 
   function pintarLista() {
-    docActivo = null;
+    docActivo = null; solActual = null;
+    if (modo === "vend") { pintarSolVend(); return; }
     $("somVolver").textContent = "← Inicio";
     $("somTitulo").textContent = "Sometimientos";
     $("somSub").textContent = "Documentos para la distribuidora";
-    $("somAcciones").innerHTML = puedeEditar() ? `<button type="button" class="som-btn nar" onclick="FEGSometimiento.nuevo()">+ Nuevo sometimiento</button>` : `<span class="som-chipp">Solo lectura</span>`;
-    const filas = lista.slice().sort((a, b) => (b.actualizado || "").localeCompare(a.actualizado || "")).map(s => {
-      const e = resumenEquipos(s);
-      return `<div class="som-fila" onclick="FEGSometimiento.abrirS('${esc(s.id)}')">
-        <div style="flex:1;min-width:0"><b>${esc(s.cliente.nombre || "Sin nombre")}</b>
-        <small>${s.programa === "neta" ? "Medición neta (Anexo A)" : "Inyección cero (Anexo B)"}${s.sum.contrato ? " • Contrato " + esc(s.sum.contrato) : ""}${e.kwp ? " • " + nt(e.kwp) + " kWp" : ""} • ${new Date(s.actualizado).toLocaleDateString("es-DO", { day: "numeric", month: "short", year: "numeric" })}${s.creadoNombre ? " • Por " + esc(s.creadoNombre) : ""}${s.modificadoNombre && s.modificadoNombre !== s.creadoNombre ? " (último cambio: " + esc(s.modificadoNombre) + ")" : ""}</small></div>
-        ${puedeEditar() ? `<button type="button" class="som-x" style="position:static" title="Eliminar" onclick="event.stopPropagation();FEGSometimiento.borrar('${esc(s.id)}')">×</button>` : ""}</div>`;
-    }).join("");
+    $("somAcciones").innerHTML = puedeEditar() ? (pestana === "som" ? `<button type="button" class="som-btn nar" onclick="FEGSometimiento.nuevo()">+ Nuevo sometimiento</button>` : "") : `<span class="som-chipp">Solo lectura</span>`;
     $("somBody").innerHTML = `<div class="som-main"><div class="som-lista-s">
-      <h2 style="font-family:Montserrat,Inter,sans-serif;font-weight:800;font-size:20px;margin:6px 0 4px">Sometimientos</h2>
-      <p style="font-size:12.5px;color:#777;margin:0 0 14px">Cada sometimiento guarda los datos del cliente, los equipos y los archivos. Los documentos se llenan solos con lo que vayas poniendo.</p>
-      ${filas || `<div class="som-fila" style="cursor:default;color:#888">Todavía no hay sometimientos. Toca “+ Nuevo sometimiento”.</div>`}
+      <h2 class="som-h2">Sometimientos</h2>
+      <p class="som-intro">${pestana === "solicitudes" ? "Aquí llegan los datos que envían los vendedores. Ábrelos, ponles el estado y crea el sometimiento con un toque." : "Cada sometimiento guarda los datos del cliente, los equipos y los archivos. Los documentos se llenan solos con lo que vayas poniendo."}</p>
+      ${pestanasSom()}
+      ${pestana === "solicitudes" ? htmlSolicitudes() : pintarSomTab()}
     </div></div>`;
   }
 
@@ -1149,7 +1213,7 @@
     $("somVolver").textContent = "← Sometimientos";
     $("somTitulo").textContent = "Sometimiento • " + (s.cliente.nombre || "Sin nombre");
     $("somSub").textContent = (s.programa === "neta" ? "Programa de medición neta (inyección a red)" : "Programa de medición neta — inyección cero") + (s.creadoNombre ? " • Trabajado por " + s.creadoNombre : "");
-    $("somAcciones").innerHTML = `<button type="button" class="som-btn nar" onclick="FEGSometimiento.abrirImpresion()">
+    $("somAcciones").innerHTML = (puedeEditar() ? `<select class="som-in sol-sel" title="Estado del sometimiento" onchange="FEGSometimiento.estadoSom(this.value)">${ESTADOS.filter(x => x[0] !== "enviado").map(([v, t]) => `<option value="${v}" ${(s.estado || "proceso") === v ? "selected" : ""}>${t}</option>`).join("")}</select>` : chipEstado(s.estado || "proceso")) + `<button type="button" class="som-btn nar" onclick="FEGSometimiento.abrirImpresion()">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6M6 18H4a1 1 0 0 1-1-1v-6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6a1 1 0 0 1-1 1h-2M7 14h10v7H7z"/></svg>Imprimir / Guardar PDF</button>`;
     if (!$("somVistaDatos")) {
       $("somBody").innerHTML = `
@@ -1160,7 +1224,7 @@
     }
     const cont = $("somVistaDatos"), y = cont.scrollTop;
     const abiertos = [...document.querySelectorAll("#somLado details")].map(d => d.open);
-    $("somLado").innerHTML = (puedeEditar() ? "" : `<div class="som-aviso som-span">Tu usuario puede ver e imprimir este sometimiento, pero no cambiarlo.</div>`) + htmlLado();
+    $("somLado").innerHTML = (puedeEditar() ? "" : `<div class="som-aviso som-span">Tu usuario puede ver e imprimir este sometimiento, pero no cambiarlo.</div>`) + htmlDeSolicitud(s) + htmlLado();
     if (!puedeEditar()) {
       $("somLado").querySelectorAll("input, select, textarea").forEach(el => el.disabled = true);
       $("somLado").querySelectorAll("button, label.som-btn").forEach(el => el.style.display = "none");
@@ -1322,6 +1386,7 @@
   function cerrar() {
     const o = $("somOverlay"); if (o) o.style.display = "none";
     if (typeof actualizarPortada === "function") actualizarPortada();
+    avisos();
     document.body.style.overflow = "";
     actual = null;
   }
@@ -1366,6 +1431,420 @@
     } catch (e) { showToast("No se pudo leer el archivo automáticamente; escribe los datos a mano.", "error"); }
   }
 
+  // =====================================================================
+  // Solicitudes de sometimiento: los vendedores envían los datos del cliente
+  // y el equipo de sometimientos los recibe, los trabaja y les pone el estado.
+  // =====================================================================
+  const ESTADOS = [["enviado", "Enviado"], ["recibido", "Recibido"], ["proceso", "En proceso"], ["falta", "Falta información"], ["sometido", "Sometido"], ["aprobado", "Aprobado"]];
+  const estadoTxt = (e) => (ESTADOS.find(x => x[0] === e) || ["", "Sin estado"])[1];
+  const chipEstado = (e, borrador) => borrador ? `<span class="som-est e-borrador">Borrador</span>` : `<span class="som-est e-${esc(e || "ninguno")}">${esc(estadoTxt(e))}</span>`;
+  const TIPOS_SOL = {
+    cedula: "Cédula del cliente", factura: "Factura eléctrica", numero: "Número de cliente", correo: "Correo del cliente",
+    direccion: "Ubicación del proyecto", ubicacion: "Imágenes de la ubicación", programacion: "Programación del sistema",
+    equipos: "Equipos", fichas: "Especificaciones de equipos", trafo: "Transformador", trafoubic: "Ubicación del transformador", adicionales: "Documentos adicionales"
+  };
+  const conSel = (html, sel) => sel ? html.replace(`value="${sel}"`, `value="${sel}" selected`) : html;
+  let modo = "som";          // "som" = equipo de sometimientos, "vend" = vendedor
+  let pestana = "solicitudes";
+  let sols = [];
+  let solActual = null;
+  let solArch = {};          // id de archivo -> páginas (imágenes)
+  let tSol = null;
+  const esVendedor = () => !!(window.FEG_PUEDE && window.FEG_PUEDE.verPropuestas() && !window.FEG_PUEDE.verSometimientos());
+
+  function solNueva() {
+    return {
+      id: "r" + Date.now() + Math.floor(Math.random() * 100), estado: "enviado", nota: "", som_id: null,
+      creado_nombre: yo() ? yo().nombre : "",
+      data: {
+        borrador: true, enviado: null, cotizacion: "",
+        cliente: { nombre: "", cedula: "", celular: "", email: "" },
+        nic: "", numeroCliente: "",
+        ubicacion: { calle: "", sector: "", municipio: "", provincia: "", mapa: "" },
+        programa: "cero", programacion: "",
+        eq: { paneles: { qty: 0, w: 650, marca: "JINKO Solar" }, inversores: [], baterias: [] },
+        especificaciones: "",
+        trafo: { potencia: "", ct: "", ubicacion: "", mapa: "" },
+        adicionales: "",
+        archivos: []
+      }
+    };
+  }
+  function solNorm(r) {
+    const b = solNueva();
+    r = Object.assign({}, b, r || {});
+    r.data = Object.assign({}, b.data, r.data || {});
+    ["cliente", "ubicacion", "trafo", "eq"].forEach(k => r.data[k] = Object.assign({}, b.data[k], r.data[k] || {}));
+    r.data.eq.paneles = Object.assign({}, b.data.eq.paneles, r.data.eq.paneles || {});
+    if (!Array.isArray(r.data.archivos)) r.data.archivos = [];
+    return r;
+  }
+  const fechaCortaDe = (t) => t ? new Date(t).toLocaleDateString("es-DO", { day: "numeric", month: "short", year: "numeric" }) : "";
+  async function cargarSols() {
+    if (!nubeOk()) { sols = []; return; }
+    try {
+      const rows = await cloudFetch("solicitudes_som?select=id,creado_por,creado_nombre,estado,nota,som_id,data,creado,actualizado&order=actualizado.desc");
+      sols = (rows || []).map(solNorm);
+    } catch (e) { sols = []; showToast("No se pudieron cargar las solicitudes", "error"); }
+  }
+  async function guardarSol(r, campos) {
+    if (!nubeOk()) { showToast("Sin conexión: no se pudo guardar", "error"); return false; }
+    r.actualizado = new Date().toISOString();
+    const body = campos || { data: r.data, estado: r.estado, nota: r.nota, som_id: r.som_id, actualizado: r.actualizado };
+    try {
+      await cloudFetch("solicitudes_som?id=eq." + encodeURIComponent(r.id), { method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify(body) });
+      const g = $("somGuardado"); if (g) g.textContent = "Guardado " + new Date().toLocaleTimeString("es-DO", { hour: "numeric", minute: "2-digit" });
+      return true;
+    } catch (e) { showToast("No se pudo guardar: " + (e.message || e), "error"); return false; }
+  }
+  async function cargarArchivosSol(r) {
+    const faltan = r.data.archivos.filter(a => !solArch[a.id]);
+    if (!faltan.length || !nubeOk()) return;
+    try {
+      const rows = await cloudFetch("solicitudes_som_archivos?solicitud_id=eq." + encodeURIComponent(r.id) + "&select=id,paginas");
+      (rows || []).forEach(x => solArch[x.id] = x.paginas || []);
+    } catch (e) { }
+  }
+  // Qué le falta a la solicitud (para avisar antes de enviar y para el equipo de sometimientos)
+  // Cada punto se da por bueno si está escrito o si subieron una foto/archivo con el dato
+  function puntosSol(r) {
+    const d = r.data, a = (t) => d.archivos.some(x => x.tipo === t);
+    return {
+      "01": a("cedula") || !!(d.cliente.nombre && d.cliente.cedula),
+      "02": a("factura") || !!d.nic,
+      "03": a("numero") || !!d.numeroCliente,
+      "04": a("correo") || !!d.cliente.email,
+      "05": a("direccion") || !!(d.ubicacion.calle || d.ubicacion.mapa),
+      "06": a("ubicacion"),
+      "08": a("equipos") || d.eq.paneles.qty > 0 || d.eq.inversores.length > 0,
+      "10": a("trafo"),
+      "11": a("trafoubic") || !!(d.trafo.ubicacion || d.trafo.mapa)
+    };
+  }
+  const NOMBRE_PUNTO = { "01": "cédula del cliente", "02": "factura o NIC", "03": "número de cliente", "04": "correo", "05": "ubicación del proyecto",
+    "06": "imágenes de la ubicación", "08": "equipos", "10": "fotos del transformador", "11": "ubicación del transformador" };
+  function faltantesSol(r) { const p = puntosSol(r); return Object.keys(p).filter(k => !p[k]).map(k => NOMBRE_PUNTO[k]); }
+  const solEditable = (r) => modo === "vend" ? (r.data.borrador || ["enviado", "falta"].includes(r.estado)) : false;
+
+  // ---------- Pantalla del vendedor ----------
+  function pintarSolVend() {
+    solActual = null;
+    $("somVolver").textContent = "← Inicio";
+    $("somTitulo").textContent = "Datos sometimientos";
+    $("somSub").textContent = "Envía los datos del cliente al equipo de sometimientos";
+    $("somAcciones").innerHTML = `<button type="button" class="som-btn nar" onclick="FEGSometimiento.solNueva()">+ Nueva solicitud</button>`;
+    const filas = sols.map(r => `<div class="som-fila" onclick="FEGSometimiento.solAbrir('${esc(r.id)}')">
+        <div style="flex:1;min-width:0"><b>${esc(r.data.cliente.nombre || "Sin nombre")}</b>
+        <small>${r.data.nic ? "NIC " + esc(r.data.nic) + " • " : ""}${r.data.borrador ? "Sin enviar" : "Enviada el " + fechaCortaDe(r.data.enviado || r.creado)}${r.actualizado && !r.data.borrador ? " • Actualizada " + fechaCortaDe(r.actualizado) : ""}</small>
+        ${r.estado === "falta" && r.nota ? `<small style="color:#b4321f;font-weight:600">Te piden: ${esc(r.nota)}</small>` : ""}
+        ${(() => { const f = faltantesSol(r); return f.length && ["enviado", "falta", "recibido", "proceso"].includes(r.estado) ? `<small style="color:#b45309">Falta: ${esc(f.join(", "))}</small>` : ""; })()}</div>
+        ${chipEstado(r.estado, r.data.borrador)}
+        ${r.data.borrador ? `<button type="button" class="som-x" style="position:static" title="Eliminar" onclick="event.stopPropagation();FEGSometimiento.solBorrar('${esc(r.id)}')">×</button>` : ""}</div>`).join("");
+    $("somBody").innerHTML = `<div class="som-main"><div class="som-lista-s">
+      <h2 class="som-h2">Datos sometimientos</h2>
+      <p class="som-intro">Llena los datos técnicos del cliente y envíalos. Aquí mismo ves en qué va cada sometimiento.</p>
+      ${filas || `<div class="som-vacio"><b>Todavía no has enviado solicitudes</b>Toca “+ Nueva solicitud” para mandar los datos de un cliente.</div>`}
+    </div></div>`;
+  }
+
+  // Formulario numerado (igual que la hoja “Datos para el sometimiento”)
+  function htmlArchSol(tipo, acepta, editable) {
+    const r = solActual, l = r.data.archivos.filter(a => a.tipo === tipo);
+    const mini = (a) => {
+      const p = solArch[a.id];
+      return `<div class="sol-mini" title="${esc(a.nombre)}" onclick="FEGSometimiento.solVer('${esc(a.id)}')">${p && p[0] ? `<img src="${p[0]}" alt="">` : `<span>${esc((a.nombre.split(".").pop() || "").toUpperCase())}</span>`}
+        ${editable ? `<button type="button" class="sol-quitar" title="Quitar" onclick="event.stopPropagation();FEGSometimiento.solQuitar('${esc(a.id)}')">×</button>` : ""}</div>`;
+    };
+    return `<div class="sol-archs">${l.map(mini).join("")}
+      ${editable ? `<label class="sol-subir"><span>+</span>Subir foto o archivo<input type="file" accept="image/*,application/pdf" multiple style="display:none" onchange="FEGSometimiento.solSubir('${tipo}', this)"></label>` : (l.length ? "" : `<span class="sol-nada">Sin archivos</span>`)}</div>`;
+  }
+  function solCampo(ruta, etiqueta, val, extra, editable) {
+    if (!editable) return `<div class="som-lab">${etiqueta}<div class="sol-val">${val ? esc(val) : `<span class="sol-nada">—</span>`}</div></div>`;
+    return `<label class="som-lab">${etiqueta}<input class="som-in" value="${esc(val)}" ${extra || ""} oninput="FEGSometimiento.solEscribir('${ruta}', this.value)"></label>`;
+  }
+  function solTexto(ruta, etiqueta, val, ph, editable) {
+    if (!editable) return `<div class="som-lab">${etiqueta}<div class="sol-val" style="white-space:pre-wrap">${val ? esc(val) : `<span class="sol-nada">—</span>`}</div></div>`;
+    return `<label class="som-lab">${etiqueta}<textarea class="som-in" rows="3" placeholder="${esc(ph || "")}" oninput="FEGSometimiento.solEscribir('${ruta}', this.value)">${esc(val)}</textarea></label>`;
+  }
+  const enlaceMapa = (u) => u ? `<a class="sol-mapa" href="${esc(/^https?:/i.test(u) ? u : "https://www.google.com/maps/search/" + encodeURIComponent(u))}" target="_blank" rel="noopener">Abrir en el mapa ↗</a>` : "";
+  function htmlFormSol(editable) {
+    const r = solActual, d = r.data, e = d.eq;
+    const optsInv = (sel) => conSel(typeof buildGroupedOptions === "function" ? buildGroupedOptions(settings.inverters, "") : "", sel);
+    const optsBat = (sel) => conSel((typeof buildGroupedOptions === "function" ? buildGroupedOptions(settings.batteries.filter(b => b.id !== "none"), "") : "")
+      + `<optgroup label="Otras baterías">${Object.values(BATERIAS_SOM).map(b => `<option value="${b.id}">${esc(b.name)}</option>`).join("")}</optgroup>`, sel);
+    const nomInv = (id) => { const x = typeof getInverter === "function" ? getInverter(id) : null; return x ? x.name : id; };
+    const nomBat = (id) => { const x = batDe({ batId: id }); return x ? x.name : id; };
+    const cot = editable && typeof readQuotes === "function" ? readQuotes() : [];
+    const P = puntosSol(r);
+    const item = (n, titulo, cuerpo, tipo) => {
+      const opc = !(n in P), ok = opc ? true : P[n];
+      const tag = opc ? `<span class="sol-tag opc">Opcional</span>` : ok ? "" : `<span class="sol-tag">Falta</span>`;
+      return `<section class="sol-item ${ok && !opc ? "ok" : ""} ${!ok ? "falta" : ""}"><div class="sol-n">${n}</div><div class="sol-c"><h3>${titulo}${tag}</h3>${cuerpo}
+        ${tipo ? `<div class="sol-adj">${editable ? `<span class="sol-adj-t">o sube una foto / archivo con el dato:</span>` : ""}${htmlArchSol(tipo, "", editable)}</div>` : ""}</div></section>`;
+    };
+    const tiene = (t) => d.archivos.some(a => a.tipo === t);
+    const equipos = editable ? `
+        ${cot.length ? `<label class="som-lab">Traer de una de mis cotizaciones<select class="som-in" onchange="FEGSometimiento.solDesdeCot(this.value); this.value=''"><option value="">Elegir cotización…</option>
+          ${cot.flatMap(q => q.options.map(o => `<option value="${esc(q.id)}|${esc(o.id)}">${esc((q.numero ? q.numero + " · " : "") + (q.clientName || "Sin nombre"))}${q.options.length > 1 ? " — " + esc(o.name) : ""}</option>`)).join("")}</select></label>` : ""}
+        <div class="sol-eq"><b>Paneles</b><div class="som-2" style="grid-template-columns:1fr 1fr 1.4fr">
+          ${solCampo("eq.paneles.qty", "Cantidad", e.paneles.qty || "", 'type="number" min="0"', true)}${solCampo("eq.paneles.w", "Potencia (W)", e.paneles.w || "", 'type="number" min="0"', true)}${solCampo("eq.paneles.marca", "Marca", e.paneles.marca, 'list="somMarcasPanel"', true)}</div>
+          <datalist id="somMarcasPanel"><option value="JINKO Solar"><option value="JA Solar"><option value="LONGi"><option value="YC Solar"></datalist></div>
+        <div class="sol-eq"><b>Inversores</b>
+          ${e.inversores.map((x, i) => `<div class="sol-eqfila"><select class="som-in" onchange="FEGSometimiento.solSet('eq.inversores.${i}.invId', this.value)">${optsInv(x.invId)}</select>
+            <input class="som-in" type="number" min="1" value="${esc(x.qty)}" oninput="FEGSometimiento.solEscribir('eq.inversores.${i}.qty', this.value)" title="Cantidad">
+            <button type="button" class="som-x" style="position:static" onclick="FEGSometimiento.solQuitarEq('inversores', ${i})">×</button></div>`).join("")}
+          <button type="button" class="som-btn cla" onclick="FEGSometimiento.solAgregarEq('inversores')">+ Agregar inversor</button></div>
+        <div class="sol-eq"><b>Baterías</b>
+          ${e.baterias.map((x, i) => `<div class="sol-eqfila"><select class="som-in" onchange="FEGSometimiento.solSet('eq.baterias.${i}.batId', this.value)">${optsBat(x.batId)}</select>
+            <input class="som-in" type="number" min="1" value="${esc(x.qty)}" oninput="FEGSometimiento.solEscribir('eq.baterias.${i}.qty', this.value)" title="Cantidad">
+            <button type="button" class="som-x" style="position:static" onclick="FEGSometimiento.solQuitarEq('baterias', ${i})">×</button></div>`).join("")}
+          <button type="button" class="som-btn cla" onclick="FEGSometimiento.solAgregarEq('baterias')">+ Agregar batería</button></div>`
+      : `<ul class="sol-lista">${e.paneles.qty > 0 ? `<li><b>${esc(e.paneles.qty)}</b> paneles ${esc(e.paneles.marca)} de ${esc(e.paneles.w)} W</li>` : ""}
+          ${e.inversores.map(x => `<li><b>${esc(x.qty)}</b> inversor ${esc(nomInv(x.invId))}</li>`).join("")}
+          ${e.baterias.map(x => `<li><b>${esc(x.qty)}</b> batería ${esc(nomBat(x.batId))}</li>`).join("")}
+          ${!(e.paneles.qty > 0) && !e.inversores.length && !e.baterias.length ? `<li class="sol-nada">Sin equipos</li>` : ""}</ul>`;
+    return `
+      ${item("01", "Cédula del cliente", `<div class="som-2">${solCampo("cliente.nombre", "Nombre completo", d.cliente.nombre, 'style="text-transform:uppercase"', editable)}${solCampo("cliente.cedula", "Número de cédula", d.cliente.cedula, 'placeholder="000-0000000-0"', editable)}</div>
+        ${solCampo("cliente.celular", "Teléfono / celular", d.cliente.celular, 'placeholder="809-000-0000"', editable)}`, "cedula")}
+      ${item("02", "Factura eléctrica o NIC", solCampo("nic", "NIC (contrato)", d.nic, 'inputmode="numeric"', editable), "factura")}
+      ${item("03", "Número de cliente", solCampo("numeroCliente", "Número de cliente", d.numeroCliente, 'inputmode="numeric"', editable), "numero")}
+      ${item("04", "Correo electrónico asociado", solCampo("cliente.email", "Correo", d.cliente.email, 'type="email" placeholder="cliente@correo.com"', editable), "correo")}
+      ${item("05", "Ubicación del proyecto", `<div class="som-2">${solCampo("ubicacion.calle", "Calle y número", d.ubicacion.calle, "", editable)}${solCampo("ubicacion.sector", "Sector", d.ubicacion.sector, "", editable)}</div>
+        <div class="som-2">${solCampo("ubicacion.municipio", "Municipio", d.ubicacion.municipio, "", editable)}${solCampo("ubicacion.provincia", "Provincia", d.ubicacion.provincia, "", editable)}</div>
+        ${solCampo("ubicacion.mapa", "Enlace de Google Maps (opcional)", d.ubicacion.mapa, 'placeholder="Pega aquí el enlace de la ubicación"', editable)}${editable ? "" : enlaceMapa(d.ubicacion.mapa)}`, "direccion")}
+      ${item("06", "Imágenes de la ubicación del proyecto", htmlArchSol("ubicacion", "", editable))}
+      ${item("07", "Programación del sistema", `${editable ? `<div class="som-seg">${[["cero", "Inyección cero"], ["neta", "Medición neta (inyecta a la red)"]].map(([v, t]) => `<button type="button" class="${d.programa === v ? "on" : ""}" onclick="FEGSometimiento.solSet('programa', '${v}')">${t}</button>`).join("")}</div>`
+        : `<div class="sol-val" style="margin-bottom:8px">${d.programa === "neta" ? "Medición neta (inyecta a la red)" : "Inyección cero"}</div>`}
+        ${solTexto("programacion", "Detalles de la programación", d.programacion, "Ej.: exportación limitada a 0 kW, horario de carga de baterías…", editable)}`, "programacion")}
+      ${item("08", "Cantidad de equipos instalados y capacidad de cada uno", equipos, "equipos")}
+      ${item("09", "Especificaciones de los equipos incluidos o excluidos del sometimiento", solTexto("especificaciones", "Especificaciones", d.especificaciones, "Ej.: se someten 16 paneles; 4 paneles quedan fuera porque son de autoconsumo…", editable), "fichas")}
+      ${item("10", "Fotos del transformador con su potencia y CT", `<div class="som-2">${solCampo("trafo.potencia", "Potencia (kVA)", d.trafo.potencia, 'placeholder="Ej.: 50 kVA"', editable)}${solCampo("trafo.ct", "CT (número del transformador)", d.trafo.ct, "", editable)}</div>${htmlArchSol("trafo", "", editable)}`)}
+      ${item("11", "Ubicación del transformador", `${solCampo("trafo.ubicacion", "Dónde está", d.trafo.ubicacion, 'placeholder="Ej.: poste frente a la casa, esquina…"', editable)}${solCampo("trafo.mapa", "Enlace de Google Maps (opcional)", d.trafo.mapa, "", editable)}${editable ? "" : enlaceMapa(d.trafo.mapa)}`, "trafoubic")}
+      ${item("12", "Requerimientos adicionales", solTexto("adicionales", "Carta de desautorización u otros documentos necesarios", d.adicionales, "Escribe aquí si hace falta algo más para completar el proceso", editable), "adicionales")}`;
+  }
+  async function pintarSolForm() {
+    const r = solActual, ed = solEditable(r);
+    $("somVolver").textContent = "← Mis solicitudes";
+    $("somTitulo").textContent = "Datos para el sometimiento • " + (r.data.cliente.nombre || "Nuevo cliente");
+    $("somSub").textContent = r.data.borrador ? "Sin enviar • se guarda solo mientras escribes" : "Estado: " + estadoTxt(r.estado);
+    $("somAcciones").innerHTML = ed ? `<button type="button" class="som-btn nar" onclick="FEGSometimiento.solEnviar()">${r.data.borrador ? "Enviar a sometimientos" : r.estado === "falta" ? "Reenviar con lo que faltaba" : "Guardar cambios"}</button>` : "";
+    const y = $("somBody").querySelector(".som-main") ? $("somBody").querySelector(".som-main").scrollTop : 0;
+    $("somBody").innerHTML = `<div class="som-main"><div class="sol-hoja">
+      <div class="sol-cab"><div><h2 class="som-h2">Datos para el sometimiento</h2>
+        <p class="som-intro">Para avanzar con el sometimiento, llena las siguientes informaciones técnicas. Lo que falte se puede completar después.</p></div>
+        <div style="text-align:right">${chipEstado(r.estado, r.data.borrador)}<div class="som-guardado" id="somGuardado" style="margin-top:6px"></div></div></div>
+      ${r.estado === "falta" && r.nota ? `<div class="sol-falta"><b>El equipo de sometimientos te pide:</b> ${esc(r.nota)}</div>` : ""}
+      ${ed ? (() => { const f = faltantesSol(r); return f.length ? `<div class="sol-te-falta"><b>Te falta:</b> ${esc(f.join(", "))}.<span>Puedes enviarlo así y completarlo después: escríbelo o sube una foto con el dato.</span></div>` : `<div class="sol-completo">Tiene todos los datos. Ya lo puedes enviar.</div>`; })() : ""}
+      ${!ed && !r.data.borrador ? `<div class="som-aviso">Ya el equipo de sometimientos está trabajando esta solicitud. Si necesitas cambiar algo, avísales.</div>` : ""}
+      ${htmlFormSol(ed)}
+      ${ed ? `<div class="sol-pie"><button type="button" class="som-btn nar" onclick="FEGSometimiento.solEnviar()">${r.data.borrador ? "Enviar a sometimientos" : r.estado === "falta" ? "Reenviar con lo que faltaba" : "Guardar cambios"}</button></div>` : ""}
+    </div></div>`;
+    $("somBody").querySelector(".som-main").scrollTop = y;
+    if (r.data.archivos.some(a => !solArch[a.id])) { await cargarArchivosSol(r); if (solActual === r) document.querySelectorAll(".sol-archs").length && refrescarMinis(); }
+  }
+  // Actualiza los números (naranja = listo) y las marcas de “Falta” mientras escribe
+  function marcarPuntos() {
+    if (!solActual) return; const P = puntosSol(solActual);
+    document.querySelectorAll(".sol-item").forEach(sec => {
+      const n = (sec.querySelector(".sol-n") || {}).textContent; if (!(n in P)) return;
+      sec.classList.toggle("ok", P[n]); sec.classList.toggle("falta", !P[n]);
+      const h = sec.querySelector("h3"); let t = h.querySelector(".sol-tag");
+      if (P[n] && t) t.remove(); else if (!P[n] && !t) h.insertAdjacentHTML("beforeend", `<span class="sol-tag">Falta</span>`);
+    });
+    const box = document.querySelector(".sol-te-falta, .sol-hoja > .sol-completo"); const f = faltantesSol(solActual);
+    if (box && modo === "vend") box.outerHTML = f.length ? `<div class="sol-te-falta"><b>Te falta:</b> ${esc(f.join(", "))}.<span>Puedes enviarlo así y completarlo después: escríbelo o sube una foto con el dato.</span></div>` : `<div class="sol-completo">Tiene todos los datos. Ya lo puedes enviar.</div>`;
+  }
+  function refrescarMinis() {
+    document.querySelectorAll(".sol-mini").forEach(el => {
+      const id = (el.getAttribute("onclick") || "").match(/solVer\('([^']+)'/); const p = id && solArch[id[1]];
+      if (p && p[0] && !el.querySelector("img")) { const s = el.querySelector("span"); if (s) s.remove(); el.insertAdjacentHTML("afterbegin", `<img src="${p[0]}" alt="">`); }
+    });
+  }
+
+  // ---------- Pantalla del equipo de sometimientos ----------
+  function pestanasSom() {
+    const nuevas = sols.filter(r => !r.data.borrador && r.estado === "enviado").length;
+    return `<div class="som-seg sol-tabs"><button type="button" class="${pestana === "solicitudes" ? "on" : ""}" onclick="FEGSometimiento.pestana('solicitudes')">Datos de clientes${nuevas ? ` <span class="sol-badge">${nuevas}</span>` : ""}</button>
+      <button type="button" class="${pestana === "som" ? "on" : ""}" onclick="FEGSometimiento.pestana('som')">Sometimientos <span class="sol-cuenta">${lista.length}</span></button></div>`;
+  }
+  // Las solicitudes se ven como tareas, agrupadas por lo que toca hacer con cada una
+  const inicialesDe = (n) => String(n || "?").trim().split(/\s+/).slice(0, 2).map(w => w[0] || "").join("").toUpperCase();
+  function haceCuanto(t) {
+    if (!t) return ""; const m = Math.round((Date.now() - new Date(t).getTime()) / 60000);
+    if (m < 60) return m <= 1 ? "hace un momento" : `hace ${m} min`;
+    const h = Math.round(m / 60); if (h < 24) return h === 1 ? "hace 1 hora" : `hace ${h} horas`;
+    const d = Math.round(h / 24); return d === 1 ? "ayer" : d < 7 ? `hace ${d} días` : fechaCortaDe(t);
+  }
+  function tarjetaSol(r) {
+    const P = puntosSol(r), tot = Object.keys(P).length, ok = Object.values(P).filter(Boolean).length, f = faltantesSol(r);
+    const nueva = r.estado === "enviado";
+    return `<button type="button" class="sol-tarea ${nueva ? "nueva" : ""}" onclick="FEGSometimiento.solAbrir('${esc(r.id)}')">
+      <div class="sol-tarea-top">${nueva ? `<span class="sol-nueva">Nueva</span>` : ""}${chipEstado(r.estado)}<span class="sol-cuando">${esc(haceCuanto(r.actualizado || r.data.enviado))}</span></div>
+      <b class="sol-tarea-nom">${esc(r.data.cliente.nombre || "Sin nombre")}</b>
+      <div class="sol-tarea-sub">${r.data.nic ? "NIC " + esc(r.data.nic) : "Sin NIC"}${r.data.ubicacion.municipio ? " • " + esc(r.data.ubicacion.municipio) : ""}${r.data.programa === "neta" ? " • Medición neta" : " • Inyección cero"}</div>
+      <div class="sol-prog"><div class="sol-barra"><i style="width:${Math.round(ok / tot * 100)}%"></i></div><span>${ok}/${tot} datos</span></div>
+      ${f.length ? `<div class="sol-tarea-falta">Falta: ${esc(f.join(", "))}</div>` : `<div class="sol-tarea-ok">Datos completos</div>`}
+      ${r.estado === "falta" && r.nota ? `<div class="sol-tarea-nota">“${esc(r.nota)}”</div>` : ""}
+      <div class="sol-tarea-pie"><span class="sol-av">${esc(inicialesDe(r.creado_nombre))}</span><span>${esc(r.creado_nombre || "—")}</span>${r.som_id ? `<span class="sol-link">Sometimiento creado</span>` : ""}</div>
+    </button>`;
+  }
+  function htmlSolicitudes() {
+    const vis = sols.filter(r => !r.data.borrador);
+    if (!vis.length) return `<div class="som-vacio"><b>No hay solicitudes todavía</b>Cuando un vendedor envíe los datos de un cliente, aparecen aquí como tareas.</div>`;
+    const grupos = [
+      ["Por revisar", "Llegaron de los vendedores", ["enviado", "recibido"]],
+      ["En trabajo", "Ya tienen sometimiento", ["proceso"]],
+      ["Esperando al vendedor", "Se le pidió información", ["falta"]],
+      ["Terminadas", "Sometidas o aprobadas", ["sometido", "aprobado"]]
+    ];
+    return grupos.map(([t, sub, est], gi) => {
+      const l = vis.filter(r => est.includes(r.estado)).sort((a, b) => (a.estado === "enviado" ? 0 : 1) - (b.estado === "enviado" ? 0 : 1) || (b.actualizado || "").localeCompare(a.actualizado || ""));
+      if (!l.length) return "";
+      return `<details class="sol-grupo" ${gi < 3 ? "open" : ""}><summary><span class="sol-gt">${t}</span><span class="sol-gn">${l.length}</span><small>${sub}</small></summary>
+        <div class="sol-tareas">${l.map(tarjetaSol).join("")}</div></details>`;
+    }).join("");
+  }
+  async function pintarSolDetalle() {
+    const r = solActual, ed = puedeEditar();
+    $("somVolver").textContent = "← Datos de clientes";
+    $("somTitulo").textContent = "Datos del cliente • " + (r.data.cliente.nombre || "Sin nombre");
+    $("somSub").textContent = "Enviado por " + (r.creado_nombre || "—") + " • " + fechaCortaDe(r.data.enviado || r.creado);
+    const s = r.som_id && lista.find(x => x.id === r.som_id);
+    $("somAcciones").innerHTML = ed ? (s ? `<button type="button" class="som-btn nar" onclick="FEGSometimiento.abrirS('${esc(s.id)}')">Abrir el sometimiento →</button>`
+      : `<button type="button" class="som-btn nar" onclick="FEGSometimiento.solCrearSom()">Crear sometimiento con estos datos</button>`) : "";
+    const f = faltantesSol(r);
+    $("somBody").innerHTML = `<div class="som-main"><div class="sol-hoja">
+      <div class="sol-estado">
+        <div><div class="som-lab" style="margin:0 0 4px">Estado</div>
+          ${ed ? `<select class="som-in sol-sel" onchange="FEGSometimiento.solEstado(this.value)">${ESTADOS.map(([v, t]) => `<option value="${v}" ${r.estado === v ? "selected" : ""}>${t}</option>`).join("")}</select>` : chipEstado(r.estado)}</div>
+        <div style="flex:1;min-width:220px"><div class="som-lab" style="margin:0 0 4px">Nota para el vendedor ${ed ? "(la ve en su pantalla)" : ""}</div>
+          ${ed ? `<input class="som-in" value="${esc(r.nota || "")}" placeholder="Ej.: falta la foto del transformador" onchange="FEGSometimiento.solNota(this.value)">` : `<div class="sol-val">${esc(r.nota || "—")}</div>`}</div>
+      </div>
+      ${f.length ? `<div class="som-aviso">Le falta: ${esc(f.join(", "))}.</div>` : `<div class="sol-completo">Tiene todos los datos.</div>`}
+      ${htmlFormSol(false)}
+    </div></div>`;
+    await cargarArchivosSol(r); if (solActual === r) refrescarMinis();
+  }
+  function pintarSomTab() {
+    const filas = lista.slice().sort((a, b) => (b.actualizado || "").localeCompare(a.actualizado || "")).map(s => {
+      const e = resumenEquipos(s);
+      return `<div class="som-fila" onclick="FEGSometimiento.abrirS('${esc(s.id)}')">
+        <div style="flex:1;min-width:0"><b>${esc(s.cliente.nombre || "Sin nombre")}</b>
+        <small>${s.programa === "neta" ? "Medición neta (Anexo A)" : "Inyección cero (Anexo B)"}${s.sum.contrato ? " • Contrato " + esc(s.sum.contrato) : ""}${e.kwp ? " • " + nt(e.kwp) + " kWp" : ""} • ${new Date(s.actualizado).toLocaleDateString("es-DO", { day: "numeric", month: "short", year: "numeric" })}${s.creadoNombre ? " • Por " + esc(s.creadoNombre) : ""}${s.modificadoNombre && s.modificadoNombre !== s.creadoNombre ? " (último cambio: " + esc(s.modificadoNombre) + ")" : ""}${s.vendedor ? " • Vendedor: " + esc(s.vendedor) : ""}</small></div>
+        ${chipEstado(s.estado || "proceso")}
+        ${puedeEditar() ? `<button type="button" class="som-x" style="position:static" title="Eliminar" onclick="event.stopPropagation();FEGSometimiento.borrar('${esc(s.id)}')">×</button>` : ""}</div>`;
+    }).join("");
+    return filas || `<div class="som-vacio"><b>Todavía no hay sometimientos</b>Toca “+ Nuevo sometimiento” o crea uno desde “Datos de clientes”.</div>`;
+  }
+  // Pasa los datos y los archivos de la solicitud a un sometimiento nuevo
+  async function crearSomDesdeSol(r) {
+    const A = arch(); if (!A) { showToast("Falta el generador de propuestas", "error"); return; }
+    showToast("Creando el sometimiento…", "info");
+    await cargarArchivosSol(r);
+    const d = r.data, s = nuevo();
+    s.programa = d.programa === "neta" ? "neta" : "cero";
+    Object.assign(s.cliente, { nombre: (d.cliente.nombre || "").toUpperCase(), cedula: d.cliente.cedula, celular: d.cliente.celular, email: d.cliente.email,
+      calle: d.ubicacion.calle, sector: d.ubicacion.sector, municipio: d.ubicacion.municipio, provincia: d.ubicacion.provincia });
+    s.sum.contrato = d.nic; s.sum.numeroCliente = d.numeroCliente;
+    s.eq = {
+      paneles: { qty: Number(d.eq.paneles.qty) || 0, marca: d.eq.paneles.marca || "JINKO Solar", w: Number(d.eq.paneles.w) || 650, modelo: "" },
+      inversores: d.eq.inversores.filter(x => x.invId).map(x => ({ invId: x.invId, qty: Number(x.qty) || 1, modelo: "", fase: "mono", corriente: "" })),
+      baterias: d.eq.baterias.filter(x => x.batId).map(x => ({ batId: x.batId, qty: Number(x.qty) || 1, modelo: "", nombre: "" }))
+    };
+    const destino = { cedula: "cedula", factura: "factura", ubicacion: "fotos" };
+    for (const a of d.archivos) {
+      const pags = solArch[a.id]; if (!pags || !pags.length) continue;
+      const k = destino[a.tipo] || "otros";
+      const id = `somf_${s.id}_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+      await A.put(id, { tipo: k, nombre: a.nombre, paginas: pags });
+      s.archivos[k].push({ id, nombre: (destino[a.tipo] ? "" : (TIPOS_SOL[a.tipo] || "Archivo") + " - ") + a.nombre, paginas: pags.length });
+    }
+    s.solicitudId = r.id; s.vendedor = r.creado_nombre || ""; s.estado = "proceso";
+    s.deSolicitud = { programacion: d.programacion, especificaciones: d.especificaciones, trafo: d.trafo, adicionales: d.adicionales, mapa: d.ubicacion.mapa, numeroCliente: d.numeroCliente };
+    actual = s; autoModelos(s); guardar(true);
+    r.estado = "proceso"; r.som_id = s.id;
+    await guardarSol(r, { estado: r.estado, som_id: r.som_id, actualizado: new Date().toISOString() });
+    docActivo = null; vista = "datos"; $("somBody").innerHTML = ""; pintarEditor();
+    showToast("Sometimiento creado con los datos del vendedor", "success");
+  }
+  // El estado del sometimiento también lo ve el vendedor
+  async function ponerEstadoSom(v) {
+    if (!actual || !puedeEditar()) return;
+    actual.estado = v; guardar(true);
+    if (actual.solicitudId && nubeOk()) {
+      const r = sols.find(x => x.id === actual.solicitudId); if (r) r.estado = v;
+      try { await cloudFetch("solicitudes_som?id=eq." + encodeURIComponent(actual.solicitudId), { method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ estado: v, actualizado: new Date().toISOString() }) }); } catch (e) { }
+    }
+    showToast("Estado: " + estadoTxt(v), "success");
+  }
+  function htmlDeSolicitud(s) {
+    const x = s.deSolicitud; if (!x) return "";
+    const l = [];
+    if (x.numeroCliente) l.push(["Número de cliente", x.numeroCliente]);
+    if (x.programacion) l.push(["Programación", x.programacion]);
+    if (x.especificaciones) l.push(["Equipos incluidos / excluidos", x.especificaciones]);
+    if (x.trafo && (x.trafo.potencia || x.trafo.ct)) l.push(["Transformador", [x.trafo.potencia, x.trafo.ct ? "CT " + x.trafo.ct : ""].filter(Boolean).join(" • ")]);
+    if (x.trafo && x.trafo.ubicacion) l.push(["Ubicación del transformador", x.trafo.ubicacion]);
+    if (x.adicionales) l.push(["Requerimientos adicionales", x.adicionales]);
+    const mapas = [x.mapa ? enlaceMapa(x.mapa).replace("Abrir en el mapa", "Ubicación del proyecto") : "", x.trafo && x.trafo.mapa ? enlaceMapa(x.trafo.mapa).replace("Abrir en el mapa", "Ubicación del transformador") : ""].filter(Boolean).join(" ");
+    if (!l.length && !mapas) return "";
+    return `<details class="som-sec som-span" open><summary>Lo que envió ${esc(s.vendedor || "el vendedor")}</summary><div class="in">
+      ${l.map(([k, v]) => `<div class="som-lab">${esc(k)}<div class="sol-val" style="white-space:pre-wrap">${esc(v)}</div></div>`).join("")}${mapas ? `<div>${mapas}</div>` : ""}</div></details>`;
+  }
+  // Aviso en la portada: solicitudes nuevas (equipo de sometimientos) o estado de las mías (vendedor)
+  async function avisos() {
+    if (!nubeOk() || !window.FEG_PUEDE) return;
+    try {
+      if (window.FEG_PUEDE.verSometimientos()) {
+        const rows = await cloudFetch("solicitudes_som?estado=eq.enviado&select=id,data->borrador");
+        const n = (rows || []).filter(x => x.borrador !== true).length;
+        const el = document.getElementById("portadaSomAviso");
+        if (el) { el.textContent = n ? (n === 1 ? "1 solicitud nueva" : n + " solicitudes nuevas") : ""; el.hidden = !n; }
+      } else if (esVendedor()) {
+        const rows = await cloudFetch("solicitudes_som?select=id,estado,data->borrador");
+        const env = (rows || []).filter(x => x.borrador !== true);
+        const el = document.getElementById("portadaSolCount");
+        if (el) el.textContent = env.length === 1 ? "1 enviada" : env.length + " enviadas";
+        const f = env.filter(x => x.estado === "falta").length;
+        const av = document.getElementById("portadaSolAviso");
+        if (av) { av.textContent = f ? (f === 1 ? "1 necesita información" : f + " necesitan información") : ""; av.hidden = !f; }
+      }
+    } catch (e) { }
+  }
+  function solSetRuta(r, ruta, v) {
+    const k = ruta.split("."); let o = r.data;
+    for (let i = 0; i < k.length - 1; i++) o = o[k[i]];
+    const u = k[k.length - 1];
+    o[u] = /qty|^w$/.test(u) ? (v === "" ? "" : Number(v)) : v;
+  }
+  function solGuardarPronto() {
+    clearTimeout(tSol); const r = solActual;
+    const g = $("somGuardado"); if (g) g.textContent = "Guardando…";
+    tSol = setTimeout(() => guardarSol(r), 700);
+  }
+  async function solSubirArchivos(tipo, files) {
+    const A = arch(), r = solActual;
+    if (!A) { showToast("Falta el generador de propuestas", "error"); return; }
+    for (const f of files) {
+      try {
+        const pags = await A.aImagenes(f, tipo === "cedula" || tipo === "factura" ? 1800 : 1600, 10);
+        const id = "ra" + Date.now() + Math.floor(Math.random() * 1000);
+        await cloudFetch("solicitudes_som_archivos", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify([{ id, solicitud_id: r.id, tipo, nombre: f.name, paginas: pags }]) });
+        solArch[id] = pags;
+        r.data.archivos.push({ id, tipo, nombre: f.name, paginas: pags.length });
+      } catch (e) { showToast("No se pudo subir " + f.name + ": " + (e.message || e), "error"); }
+    }
+    await guardarSol(r);
+    if (solActual === r) pintarSolForm();
+  }
+  function verPaginas(pags, titulo) {
+    const m = document.createElement("div"); m.className = "som-imp"; m.id = "solVisor";
+    m.innerHTML = `<div class="som-imp-caja"><div class="som-imp-cab"><b>${esc(titulo)}</b><button type="button" class="som-btn cla" onclick="document.getElementById('solVisor').remove()">Cerrar</button></div>
+      <div class="som-imp-cuerpo" style="text-align:center;background:#f5f5f3">${pags.map(p => `<img src="${p}" alt="" style="max-width:100%;margin:10px auto;display:block;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.1)">`).join("")}</div></div>`;
+    m.onclick = (e) => { if (e.target === m) m.remove(); };
+    $("somOverlay").appendChild(m);
+  }
+
   window.FEGSometimiento = {
     async abrir() {
       if (!window.FEGPropuesta) { showToast("Falta la carpeta “propuesta”", "error"); return; }
@@ -1375,9 +1854,113 @@
       o.style.display = "flex"; o.classList.remove("abre"); void o.offsetWidth; o.classList.add("abre");
       document.body.style.overflow = "hidden";
       if (window.FEG_PUEDE && !window.FEG_PUEDE.verSometimientos()) return;
+      modo = "som"; solActual = null;
       lista = leerLocal(); actual = null; pintarLista();
-      await Promise.all([sincronizar(), sincronizarBiblio()]); if (!actual) pintarLista();
+      await Promise.all([sincronizar(), sincronizarBiblio(), cargarSols()]);
+      if (!actual && !solActual) { if (pestana === "solicitudes" && !sols.some(r => !r.data.borrador) && lista.length) pestana = "som"; pintarLista(); }
+      avisos();
     },
+    // Vendedores: “Datos sometimientos”
+    async abrirSolicitudes() {
+      if (!window.FEGPropuesta) { showToast("Falta la carpeta “propuesta”", "error"); return; }
+      crear(); await buscarRuta();
+      const o = $("somOverlay");
+      o.style.display = "flex"; o.classList.remove("abre"); void o.offsetWidth; o.classList.add("abre");
+      document.body.style.overflow = "hidden";
+      modo = "vend"; actual = null; solActual = null; sols = [];
+      pintarSolVend();
+      $("somBody").querySelector(".som-lista-s").insertAdjacentHTML("beforeend", `<div class="som-cargando" id="solCargando">Cargando…</div>`);
+      await cargarSols(); if (!solActual && modo === "vend") pintarSolVend();
+    },
+    avisos,
+    pestana(p) { pestana = p === "som" ? "som" : "solicitudes"; pintarLista(); },
+    async solNueva() {
+      if (!nubeOk()) { showToast("Necesitas conexión para enviar solicitudes", "error"); return; }
+      const r = solNueva();
+      try {
+        await cloudFetch("solicitudes_som", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify([{ id: r.id, creado_nombre: r.creado_nombre, estado: "enviado", data: r.data }]) });
+      } catch (e) { showToast("No se pudo crear: " + (e.message || e), "error"); return; }
+      r.creado = r.actualizado = new Date().toISOString();
+      sols.unshift(r); solActual = r; pintarSolForm();
+    },
+    async solAbrir(id) {
+      const r = sols.find(x => x.id === id); if (!r) return;
+      solActual = r;
+      if (modo === "vend") { pintarSolForm(); return; }
+      if (r.estado === "enviado" && puedeEditar()) { r.estado = "recibido"; guardarSol(r, { estado: "recibido", actualizado: new Date().toISOString() }); }
+      pintarSolDetalle();
+    },
+    async solBorrar(id) {
+      const r = sols.find(x => x.id === id); if (!r) return;
+      if (!confirm(`¿Eliminar la solicitud de ${r.data.cliente.nombre || "este cliente"}?`)) return;
+      try { await cloudFetch("solicitudes_som?id=eq." + encodeURIComponent(id), { method: "DELETE", headers: { Prefer: "return=minimal" } }); } catch (e) { showToast("No se pudo eliminar", "error"); return; }
+      sols = sols.filter(x => x !== r); pintarLista();
+    },
+    solEscribir(ruta, v) { if (!solActual || !solEditable(solActual)) return; solSetRuta(solActual, ruta, ruta === "cliente.nombre" ? v.toUpperCase() : v); solGuardarPronto(); marcarPuntos(); },
+    solSet(ruta, v) { if (!solActual || !solEditable(solActual)) return; solSetRuta(solActual, ruta, v); solGuardarPronto(); pintarSolForm(); },
+    solAgregarEq(k) {
+      if (!solActual) return; const e = solActual.data.eq;
+      if (k === "inversores") e.inversores.push({ invId: (settings.inverters[0] || {}).id || "", qty: 1 });
+      else e.baterias.push({ batId: (settings.batteries.find(b => b.id !== "none") || {}).id || "", qty: 1 });
+      solGuardarPronto(); pintarSolForm();
+    },
+    solQuitarEq(k, i) { if (!solActual) return; solActual.data.eq[k].splice(i, 1); solGuardarPronto(); pintarSolForm(); },
+    solDesdeCot(v) {
+      if (!v || !solActual) return;
+      const [qid, oid] = v.split("|");
+      const q = readQuotes().find(x => x.id === qid); const o = q && q.options.find(x => x.id === oid); if (!o) return;
+      const d = solActual.data;
+      d.eq = {
+        paneles: { qty: parseInt(o.panelQty, 10) || 0, w: Number(o.panelW) || 650, marca: o.panelMarca || "JINKO Solar" },
+        inversores: (o.inverterRows || []).filter(r => r.invId && r.qty > 0).map(r => ({ invId: r.invId, qty: Number(r.qty) })),
+        baterias: o.batteryId && o.batteryId !== "none" && Number(o.batteryQty) > 0 ? [{ batId: o.batteryId, qty: Number(o.batteryQty) }] : []
+      };
+      if (o.modalidad === "ongrid") d.programa = "neta"; else if (o.modalidad === "hibrido") d.programa = "cero";
+      if (!d.cliente.nombre && q.clientName) d.cliente.nombre = q.clientName.toUpperCase();
+      const dq = q.datos || {}; if (!d.nic && dq.contrato) d.nic = dq.contrato;
+      d.cotizacion = q.numero || q.id;
+      solGuardarPronto(); pintarSolForm();
+      showToast("Equipos traídos de la cotización", "success");
+    },
+    solSubir(tipo, input) {
+      const files = [...(input.files || [])]; input.value = "";
+      if (!files.length || !solActual) return;
+      showToast(files.length > 1 ? `Subiendo ${files.length} archivos…` : "Subiendo el archivo…", "info");
+      solSubirArchivos(tipo, files);
+    },
+    async solQuitar(id) {
+      const r = solActual; if (!r) return;
+      r.data.archivos = r.data.archivos.filter(a => a.id !== id); delete solArch[id];
+      try { await cloudFetch("solicitudes_som_archivos?id=eq." + encodeURIComponent(id), { method: "DELETE", headers: { Prefer: "return=minimal" } }); } catch (e) { }
+      await guardarSol(r); pintarSolForm();
+    },
+    async solVer(id) {
+      const r = solActual; if (!r) return; const a = r.data.archivos.find(x => x.id === id); if (!a) return;
+      if (!solArch[id]) await cargarArchivosSol(r);
+      if (!solArch[id]) { showToast("No encuentro el archivo", "error"); return; }
+      verPaginas(solArch[id], (TIPOS_SOL[a.tipo] || "Archivo") + " • " + a.nombre);
+    },
+    async solEnviar() {
+      const r = solActual; if (!r) return;
+      const a = document.activeElement; if (a && a.blur) a.blur();
+      clearTimeout(tSol);
+      const f = faltantesSol(r);
+      const primero = r.data.borrador || r.estado === "falta";
+      r.data.borrador = false; if (!r.data.enviado) r.data.enviado = new Date().toISOString();
+      if (r.estado === "falta") r.estado = "enviado";
+      if (await guardarSol(r)) { showToast((primero ? "Enviado al equipo de sometimientos" : "Cambios guardados") + (f.length ? ". Te falta: " + f.join(", ") + " (puedes completarlo después)" : ""), "success"); solActual = null; pintarSolVend(); }
+    },
+    async solEstado(v) {
+      const r = solActual; if (!r || !puedeEditar()) return;
+      r.estado = v; await guardarSol(r, { estado: v, actualizado: new Date().toISOString() });
+      const s = r.som_id && lista.find(x => x.id === r.som_id);
+      if (s && v !== "enviado") { s.estado = v; s.actualizado = new Date().toISOString(); escribirLocal(); subirNube(s); }
+      showToast("Estado: " + estadoTxt(v), "success"); pintarSolDetalle();
+    },
+    async solNota(v) { const r = solActual; if (!r || !puedeEditar()) return; r.nota = v.trim(); await guardarSol(r, { nota: r.nota, actualizado: new Date().toISOString() }); showToast("Nota guardada", "success"); },
+    solCrearSom() { if (solActual && puedeEditar()) crearSomDesdeSol(solActual).catch(e => showToast(String(e.message || e), "error")); },
+    estadoSom(v) { ponerEstadoSom(v); },
+
     cerrar,
     nuevo() { if (!puedeEditar()) return; actual = nuevo(); docActivo = null; vista = "datos"; $("somBody").innerHTML = ""; guardar(true); pintarEditor(); },
     abrirS(id) { actual = normalizar(JSON.parse(JSON.stringify(lista.find(s => s.id === id)))); docActivo = null; vista = "datos"; $("somBody").innerHTML = ""; pintarEditor(); },
