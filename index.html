@@ -2334,8 +2334,16 @@
     // NAVEGACIÓN: INICIO (lista) ↔ EDITOR (pestañas)
     // =========================================================================
     // Antes de imprimir: la hoja visible se escala para que quepa completa en UNA hoja carta
+    // Nombre del PDF al guardar: CPQ-NOMBRE DEL CLIENTE
+    const nombreArchivoCPQ = () => {
+      const q = getCurrentProposal();
+      const n = ((q && q.clientName) || document.getElementById("clientName").value || "").trim();
+      return ("CPQ-" + (n || "COTIZACION")).replace(/[\\/:*?"<>|]+/g, " ").replace(/\s+/g, " ").trim();
+    };
+    let tituloAntesDeImprimir = null;
     window.addEventListener("beforeprint", () => {
-      if (document.body.classList.contains("pp-abierto")) return;
+      if (document.body.classList.contains("pp-abierto") || document.body.classList.contains("som-imprimiendo")) return;
+      if (document.getElementById("editorView").style.display !== "none") { if (tituloAntesDeImprimir === null) tituloAntesDeImprimir = document.title; document.title = nombreArchivoCPQ(); }
       const v = ["viewComercial", "viewContabilidad"].map(id => document.getElementById(id)).find(el => el && !el.classList.contains("hidden"));
       if (!v) return;
       document.body.classList.add("feg-imprimiendo");
@@ -2345,6 +2353,7 @@
       v.style.setProperty("--feg-escala", String(Math.min(1, 0.97 * disponible / Math.max(1, alto))));
     });
     window.addEventListener("afterprint", () => {
+      if (tituloAntesDeImprimir !== null) { const t = tituloAntesDeImprimir; tituloAntesDeImprimir = null; setTimeout(() => { document.title = t; }, 300); }
       document.body.classList.remove("feg-imprimiendo");
       document.querySelectorAll(".feg-hoja-impresa").forEach(el => { el.classList.remove("feg-hoja-impresa"); el.style.removeProperty("--feg-escala"); });
     });
@@ -3310,6 +3319,8 @@
       flushSave();
       switchTab("comercial");
       pintarHojaCotizacion();
+      if (tituloAntesDeImprimir === null) tituloAntesDeImprimir = document.title;
+      document.title = nombreArchivoCPQ();
       setTimeout(() => window.print(), 120);
     }
     function updateQuoteHeader() {

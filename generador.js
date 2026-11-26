@@ -957,7 +957,9 @@
     if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
     const t = document.title;
     const ctx = ultimoCtx;
-    if (ctx) document.title = `Propuesta ${ctx.prop.clientName || ""} - ${ctx.opt.name || ""}`.trim();
+    // Nombre del PDF al guardar: CPQ-NOMBRE DEL CLIENTE (si la propuesta tiene varias opciones, se agrega la opción)
+    if (ctx) document.title = ("CPQ-" + ((ctx.prop.clientName || "").trim() || "PROPUESTA") + ((ctx.prop.options || []).length > 1 ? " - " + (ctx.opt.name || "") : ""))
+      .replace(/[\\/:*?"<>|]+/g, " ").replace(/\s+/g, " ").trim();
     setTimeout(() => { window.print(); setTimeout(() => { document.title = t; }, 500); }, 60);
   }
   function togglePagina(id, on) { cambiarDoc(doc => { doc.pag[id] = !!on; }); dibujar(); }
