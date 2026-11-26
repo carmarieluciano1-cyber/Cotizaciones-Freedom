@@ -96,7 +96,7 @@
     } catch (e) { }
   }
   function guardar(inmediato) {
-    if (!actual) return;
+    if (!actual || !puedeEditar()) return;
     actual.actualizado = new Date().toISOString();
     const i = lista.findIndex(s => s.id === actual.id);
     if (i >= 0) lista[i] = actual; else lista.unshift(actual);
@@ -125,8 +125,8 @@
   const norm = (x) => String(x || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
   // Las palabras de un documento fijo se pueden cambiar; se guardan aparte
   function bibliotecaCompleta() {
-    const cambios = settings.biblioClaves || {};
-    const fijos = BIBLIO_FIJA.filter(x => !(settings.biblioOcultos || []).includes(x.id)).map(x => Object.assign({}, x, { fijo: true }, cambios[x.id] !== undefined ? { claves: cambios[x.id] } : {}));
+    const cambios = biblio().biblioClaves || {};
+    const fijos = BIBLIO_FIJA.filter(x => !(biblio().biblioOcultos || []).includes(x.id)).map(x => Object.assign({}, x, { fijo: true }, cambios[x.id] !== undefined ? { claves: cambios[x.id] } : {}));
     return fijos.concat(biblio().certificados);
   }
   function itemsEquipo(s) {
@@ -152,11 +152,39 @@
   const sinDoc = (tipo, s) => itemsEquipo(s).filter(i => (tipo === "ficha" || i.tipo !== "bateria") && !bibliotecaCompleta().some(d => d.tipo === tipo && corresponde(d, i)));
   const registroDe = (item) => { const d = bibliotecaCompleta().find(d => d.tipo === "cne" && d.registro && item.modelo && corresponde(d, item)); return d ? d.registro : "CNE"; };
 
-  // Biblioteca de Freedom (sirve para todos los sometimientos)
+  // Biblioteca de Freedom (sirve para todos los sometimientos). Se guarda aparte ("biblioteca"),
+  // así el equipo de sometimientos la puede cambiar sin tocar los precios.
+  const BIB_KEY = "feg_som_biblio";
+  let BIB = null;
   function biblio() {
-    if (!Array.isArray(settings.certificados)) settings.certificados = [];
-    return settings;
+    if (!BIB) {
+      try { BIB = JSON.parse(localStorage.getItem(BIB_KEY) || "null"); } catch (e) { BIB = null; }
+      if (!BIB) {
+        BIB = {};
+        ["certificados", "codia", "biblioClaves", "biblioOcultos"].forEach(k => { if (typeof settings !== "undefined" && settings[k] !== undefined) BIB[k] = JSON.parse(JSON.stringify(settings[k])); });
+      }
+    }
+    if (!Array.isArray(BIB.certificados)) BIB.certificados = [];
+    return BIB;
   }
+  function guardarBiblio() {
+    const b = biblio();
+    b.actualizado = new Date().toISOString();
+    try { localStorage.setItem(BIB_KEY, JSON.stringify(b)); } catch (e) { }
+    if (nubeOk() && puedeEditar()) cloudFetch("ajustes", { method: "POST", headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
+      body: JSON.stringify([{ id: "biblioteca", data: b, updated_at: b.actualizado }]) }).catch(() => { });
+  }
+  async function sincronizarBiblio() {
+    if (!nubeOk()) return;
+    try {
+      const rows = await cloudFetch("ajustes?id=eq.biblioteca&select=data");
+      const r = rows && rows[0] && rows[0].data, l = biblio();
+      if (r && (r.actualizado || "") > (l.actualizado || "")) { BIB = r; if (!Array.isArray(BIB.certificados)) BIB.certificados = []; try { localStorage.setItem(BIB_KEY, JSON.stringify(BIB)); } catch (e) { } }
+      else if (puedeEditar() && (!r || (l.actualizado || "") > (r.actualizado || "")) && (l.certificados.length || l.codia || l.biblioClaves || l.biblioOcultos)) guardarBiblio();
+    } catch (e) { }
+  }
+  // Permisos del usuario que entró (si no hay usuarios, se puede todo)
+  const puedeEditar = () => !window.FEG_PUEDE || window.FEG_PUEDE.editarSometimientos();
 
   // ---------------------------------------------------------------------
   // Equipos
@@ -843,13 +871,13 @@
     $("somVolver").textContent = "← Inicio";
     $("somTitulo").textContent = "Sometimientos";
     $("somSub").textContent = "Documentos para la distribuidora";
-    $("somAcciones").innerHTML = `<button type="button" class="som-btn nar" onclick="FEGSometimiento.nuevo()">+ Nuevo sometimiento</button>`;
+    $("somAcciones").innerHTML = puedeEditar() ? `<button type="button" class="som-btn nar" onclick="FEGSometimiento.nuevo()">+ Nuevo sometimiento</button>` : `<span class="som-chipp">Solo lectura</span>`;
     const filas = lista.slice().sort((a, b) => (b.actualizado || "").localeCompare(a.actualizado || "")).map(s => {
       const e = resumenEquipos(s);
       return `<div class="som-fila" onclick="FEGSometimiento.abrirS('${esc(s.id)}')">
         <div style="flex:1;min-width:0"><b>${esc(s.cliente.nombre || "Sin nombre")}</b>
         <small>${s.programa === "neta" ? "Medición neta (Anexo A)" : "Inyección cero (Anexo B)"}${s.sum.contrato ? " • Contrato " + esc(s.sum.contrato) : ""}${e.kwp ? " • " + nt(e.kwp) + " kWp" : ""} • ${new Date(s.actualizado).toLocaleDateString("es-DO", { day: "numeric", month: "short", year: "numeric" })}</small></div>
-        <button type="button" class="som-x" style="position:static" title="Eliminar" onclick="event.stopPropagation();FEGSometimiento.borrar('${esc(s.id)}')">×</button></div>`;
+        ${puedeEditar() ? `<button type="button" class="som-x" style="position:static" title="Eliminar" onclick="event.stopPropagation();FEGSometimiento.borrar('${esc(s.id)}')">×</button>` : ""}</div>`;
     }).join("");
     $("somBody").innerHTML = `<div class="som-main"><div class="som-lista-s">
       <h2 style="font-family:Montserrat,Inter,sans-serif;font-weight:800;font-size:20px;margin:6px 0 4px">Sometimientos</h2>
@@ -999,7 +1027,11 @@
     const yL = $("somLado") ? $("somLado").scrollTop : 0;
     const abiertos = [...document.querySelectorAll("#somLado details")].map(d => d.open);
     if (!$("somLado")) $("somBody").innerHTML = `<aside class="som-lado" id="somLado"></aside><div class="som-main" id="somMain"></div>`;
-    $("somLado").innerHTML = htmlLado();
+    $("somLado").innerHTML = (puedeEditar() ? "" : `<div class="som-aviso" style="margin-bottom:10px">Tu usuario puede ver e imprimir este sometimiento, pero no cambiarlo.</div>`) + htmlLado();
+    if (!puedeEditar()) {
+      $("somLado").querySelectorAll("input, select, textarea").forEach(el => el.disabled = true);
+      $("somLado").querySelectorAll("button, label.som-btn").forEach(el => el.style.display = "none");
+    }
     if (mantenerScroll && abiertos.length) document.querySelectorAll("#somLado details").forEach((d, i) => { if (abiertos[i] !== undefined) d.open = abiertos[i]; });
     $("somLado").scrollTop = yL;
     await pintarDocs();
@@ -1036,6 +1068,7 @@
     return `<div class="som-page ${p.size}" style="width:${W}pt;height:${H}pt">${p.bg ? `<img class="bg" src="${p.bg}" alt="">` : ""}${html}</div>`;
   }
   function activarEdicion() {
+    if (!puedeEditar()) return;
     document.querySelectorAll("#somPags .som-carta").forEach(el => {
       el.contentEditable = "true"; el.spellcheck = true;
       el.addEventListener("blur", () => { actual.edits[el.dataset.doc] = el.innerHTML; guardar(); });
@@ -1137,13 +1170,15 @@
       const o = $("somOverlay");
       o.style.display = "flex"; o.classList.remove("abre"); void o.offsetWidth; o.classList.add("abre");
       document.body.style.overflow = "hidden";
+      if (window.FEG_PUEDE && !window.FEG_PUEDE.verSometimientos()) return;
       lista = leerLocal(); actual = null; pintarLista();
-      await sincronizar(); if (!actual) pintarLista();
+      await Promise.all([sincronizar(), sincronizarBiblio()]); if (!actual) pintarLista();
     },
     cerrar,
-    nuevo() { actual = nuevo(); docActivo = null; $("somBody").innerHTML = ""; guardar(true); pintarEditor(); },
+    nuevo() { if (!puedeEditar()) return; actual = nuevo(); docActivo = null; $("somBody").innerHTML = ""; guardar(true); pintarEditor(); },
     abrirS(id) { actual = normalizar(JSON.parse(JSON.stringify(lista.find(s => s.id === id)))); docActivo = null; $("somBody").innerHTML = ""; pintarEditor(); },
     borrar(id) {
+      if (!puedeEditar()) return;
       const s = lista.find(x => x.id === id);
       if (!s || !confirm(`¿Eliminar el sometimiento de ${s.cliente.nombre || "este cliente"}? Se borran también sus archivos.`)) return;
       Object.values(s.archivos).flat().forEach(a => arch() && arch().del(a.id));
@@ -1218,8 +1253,8 @@
       const imgs = await arch().aImagenes(f, 1700, 4);
       const id = String(Date.now()), viejo = biblio().codia;
       await arch().put("codia_" + id, { tipo: "codia", nombre: f.name, paginas: imgs });
-      settings.codia = { id, nombre: f.name, fecha: new Date().toISOString(), paginas: imgs.length };
-      saveSettings();
+      biblio().codia = { id, nombre: f.name, fecha: new Date().toISOString(), paginas: imgs.length };
+      guardarBiblio();
       if (viejo && viejo.id) arch().del("codia_" + viejo.id);   // se elimina la anterior
       showToast("Certificación del CODIA actualizada", "success");
       pintarEditor(true);
@@ -1235,9 +1270,9 @@
         await arch().put("cert_" + id, { tipo: "ficha", nombre: f.name, paginas: imgs });
         // Si ya había uno propio para este equipo, se reemplaza
         const viejo = biblio().certificados.find(x => x.tipo === "ficha" && corresponde(x, it));
-        if (viejo) { settings.certificados = biblio().certificados.filter(x => x !== viejo); arch().del("cert_" + viejo.id); }
+        if (viejo) { biblio().certificados = biblio().certificados.filter(x => x !== viejo); arch().del("cert_" + viejo.id); }
         biblio().certificados.push({ id, tipo: "ficha", nombre: "Datasheet " + (it.modelo || it.nombre), claves: it.modelo, paginas: imgs.length });
-        saveSettings();
+        guardarBiblio();
         showToast("Datasheet guardado. Saldrá en las fichas técnicas de este y de los próximos sometimientos con este equipo.", "success");
         pintarEditor(true);
       } catch (e) { showToast("No se pudo subir: " + (e.message || e), "error"); }
@@ -1250,21 +1285,21 @@
       await arch().put("cert_" + id, { tipo, nombre: f.name, paginas: imgs });
       const guess = f.name.toLowerCase().match(/jinko|ja ?solar|deye|solis|soluna|pytes|must|growatt|huawei|longi/g) || [];
       biblio().certificados.push({ id, tipo, nombre: f.name.replace(/\.[^.]+$/, ""), claves: [...new Set(guess)].join(", "), paginas: imgs.length });
-      saveSettings();
+      guardarBiblio();
       showToast("Documento agregado. Revisa con qué equipos sale.", "success");
       pintarEditor(true);
     },
     claves(id, v) {
       const c = biblio().certificados.find(x => x.id === id);
-      if (c) c.claves = v; else { settings.biblioClaves = Object.assign({}, settings.biblioClaves, { [id]: v }); }
-      saveSettings(); pintarDocs();
+      if (c) c.claves = v; else { biblio().biblioClaves = Object.assign({}, biblio().biblioClaves, { [id]: v }); }
+      guardarBiblio(); pintarDocs();
     },
     borrarCert(id) {
       const c = bibliotecaCompleta().find(x => x.id === id);
       if (!c || !confirm(`¿Quitar “${c.nombre}” de la biblioteca?`)) return;
-      if (c.fijo) settings.biblioOcultos = [...new Set([...(settings.biblioOcultos || []), id])];
-      else { settings.certificados = biblio().certificados.filter(x => x.id !== id); arch().del("cert_" + id); }
-      saveSettings(); pintarEditor(true);
+      if (c.fijo) biblio().biblioOcultos = [...new Set([...(biblio().biblioOcultos || []), id])];
+      else { biblio().certificados = biblio().certificados.filter(x => x.id !== id); arch().del("cert_" + id); }
+      guardarBiblio(); pintarEditor(true);
     },
     // Para pruebas
     _analizar: { texto: analizarTexto, cedula: analizarCedula, factura: analizarFactura, pdf: textoPDF }

@@ -441,9 +441,167 @@
       .feg-num, .feg-tab-pill, #viewComercial.feg-entra > *, #viewContabilidad.feg-entra > *, #viewPrecios.feg-entra > * { animation: none !important; transition: none !important; }
       main button:active, header button:active { transform: none !important; }
     }
+
+    /* ===================== Acceso con usuario ===================== */
+    .feg-login { position: fixed; inset: 0; z-index: 95; display: flex; align-items: center; justify-content: center; padding: 20px; background: #f5f5f3; overflow-y: auto; }
+    html[data-tema="oscuro"] .feg-login { background: #121212; }
+    .feg-login-card { width: 100%; max-width: 880px; min-height: 480px; display: grid; grid-template-columns: 1.05fr 1fr; border-radius: 22px; overflow: hidden; background: #fff;
+      box-shadow: 0 30px 70px -30px rgba(0,0,0,.35), 0 0 0 1px rgba(0,0,0,.04); animation: feg-login-entra 520ms cubic-bezier(.23,1,.32,1) both; }
+    html[data-tema="oscuro"] .feg-login-card { background: #1c1c1c; box-shadow: 0 30px 70px -30px rgba(0,0,0,.9), 0 0 0 1px #2a2a2a; }
+    @keyframes feg-login-entra { from { opacity: 0; transform: translateY(14px) scale(.985); } }
+    .feg-login-lado { position: relative; overflow: hidden; isolation: isolate; color: #fff; padding: 40px 38px; display: flex; flex-direction: column; justify-content: space-between;
+      background: radial-gradient(120% 100% at 100% 0%, rgba(255,171,0,.22), rgba(255,171,0,0) 55%), linear-gradient(160deg, #2e2e2e, #1a1a1a); }
+    .feg-login-lado .f { position: absolute; right: -40px; bottom: -70px; width: 260px; height: 370px; color: #fff; opacity: .06; z-index: -1; animation: feg-f-flota 9s ease-in-out infinite alternate; }
+    .feg-login-lado .anillo { position: absolute; right: -70px; top: -70px; width: 220px; height: 220px; border-radius: 9999px; border: 1.5px solid rgba(255,171,0,.45); z-index: -1; animation: feg-gira 30s linear infinite; }
+    .feg-login-lado .anillo::after { content: ""; position: absolute; top: 50%; left: -5px; width: 8px; height: 8px; margin-top: -4px; border-radius: 9999px; background: #ffcf4d; box-shadow: 0 0 12px 3px rgba(255,171,0,.6); }
+    .feg-login-lado .barra { position: absolute; left: 0; bottom: 40px; width: 7px; height: 46px; background: #ffab00; border-radius: 0 3px 3px 0; }
+    .feg-login-lado .logo { width: 200px; height: 56px; }
+    .feg-login-lado h2 { font-family: Montserrat, Inter, sans-serif; font-weight: 900; font-size: 30px; line-height: 1.1; margin: 26px 0 8px; }
+    .feg-login-lado h2 span { color: #ffab00; }
+    .feg-login-lado p { font-size: 13px; color: rgba(255,255,255,.6); max-width: 280px; line-height: 1.5; }
+    .feg-login-lado .pie { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: rgba(255,255,255,.4); }
+    .feg-login-form { padding: 44px 40px; display: flex; flex-direction: column; justify-content: center; }
+    .feg-login-form h1 { font-family: Montserrat, Inter, sans-serif; font-size: 24px; font-weight: 800; color: #2b2b2b; }
+    .feg-login-form .sub { font-size: 13px; color: #8a8a86; margin: 4px 0 24px; }
+    html[data-tema="oscuro"] .feg-login-form h1 { color: #f2f2f0; }
+    .feg-campo { display: block; margin-bottom: 14px; }
+    .feg-campo span { display: block; font-size: 12px; font-weight: 600; color: #6b6b67; margin-bottom: 6px; }
+    html[data-tema="oscuro"] .feg-campo span { color: #a3a39e; }
+    .feg-campo .caja { position: relative; }
+    .feg-campo input, .feg-campo select { width: 100%; height: 44px; padding: 0 14px; border-radius: 12px; border: 1px solid #e3e3df; background: #fafaf8; font-size: 14px; color: #2b2b2b; outline: none;
+      transition: border-color 150ms cubic-bezier(.23,1,.32,1), box-shadow 150ms cubic-bezier(.23,1,.32,1), background-color 150ms ease; }
+    .feg-campo input:focus, .feg-campo select:focus { border-color: #ffab00; background: #fff; box-shadow: 0 0 0 4px rgba(255,171,0,.14); }
+    html[data-tema="oscuro"] .feg-campo input, html[data-tema="oscuro"] .feg-campo select { background: #252525; border-color: #383838; color: #f2f2f0; }
+    .feg-campo .ojo { position: absolute; right: 6px; top: 6px; height: 32px; padding: 0 10px; border-radius: 8px; font-size: 11.5px; font-weight: 600; color: #8a8a86; }
+    .feg-btn-principal { width: 100%; height: 46px; border-radius: 12px; background: #ffab00; color: #2b2b2b; font-weight: 800; font-size: 14px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      box-shadow: 0 1px 2px rgba(199,125,0,.3), inset 0 1px 0 rgba(255,255,255,.3); transition: background-color 150ms ease, transform 140ms cubic-bezier(.23,1,.32,1), opacity 150ms ease; }
+    .feg-btn-principal:active { transform: scale(.98); }
+    .feg-btn-principal:disabled { opacity: .7; cursor: default; }
+    @media (hover: hover) and (pointer: fine) { .feg-btn-principal:hover:not(:disabled) { background: #ffbd1f; } }
+    .feg-girando { width: 16px; height: 16px; border-radius: 9999px; border: 2px solid rgba(43,43,43,.25); border-top-color: #2b2b2b; animation: feg-gira 700ms linear infinite; }
+    .feg-login-error { min-height: 20px; font-size: 12.5px; font-weight: 600; color: #e11d48; margin: -2px 0 10px; }
+    .feg-login-error.sacude { animation: feg-sacude 380ms cubic-bezier(.36,.07,.19,.97); }
+    @keyframes feg-sacude { 20%, 60% { transform: translateX(-5px); } 40%, 80% { transform: translateX(5px); } }
+    html[data-tema="oscuro"] .feg-login-error { color: #fda4af; }
+    .feg-login-nota { font-size: 11.5px; color: #9b9b96; margin-top: 16px; text-align: center; }
+    .feg-login-aviso { text-align: center; }
+    .feg-login-aviso .ic { width: 52px; height: 52px; margin: 0 auto 14px; border-radius: 16px; background: rgba(255,171,0,.14); color: #c77d00; display: flex; align-items: center; justify-content: center; }
+    @media (max-width: 760px) {
+      .feg-login-card { grid-template-columns: 1fr; min-height: 0; }
+      .feg-login-lado { padding: 26px 24px 24px; }
+      .feg-login-lado h2 { font-size: 22px; margin: 16px 0 4px; }
+      .feg-login-lado p, .feg-login-lado .pie { display: none; }
+      .feg-login-lado .logo { width: 160px; height: 44px; }
+      .feg-login-form { padding: 28px 24px 30px; }
+    }
+    body.feg-bloqueado { overflow: hidden; }
+    body.feg-bloqueado > *:not(.feg-login):not(#fegFondo):not(#fegModal) { visibility: hidden; }
+
+    /* Menú del usuario (arriba a la derecha) */
+    .feg-usuario-btn { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 10px; background: #ffab00; color: #2b2b2b; font-size: 12px; font-weight: 800; letter-spacing: .02em;
+      transition: transform 150ms cubic-bezier(.23,1,.32,1), box-shadow 150ms ease; }
+    .feg-usuario-btn:active { transform: scale(.94); }
+    @media (hover: hover) and (pointer: fine) { .feg-usuario-btn:hover { box-shadow: 0 0 0 3px rgba(255,171,0,.3); } }
+    .feg-usuario .feg-tema-menu { width: 250px; }
+    .feg-usuario .cab { padding: 10px 10px 12px; border-bottom: 1px solid #f0f0ee; margin-bottom: 4px; }
+    html[data-tema="oscuro"] .feg-usuario .cab { border-color: #2e2e2e; }
+    .feg-usuario .cab b { display: block; font-size: 13.5px; }
+    .feg-usuario .cab small { display: block; font-size: 11.5px; color: #8a8a86; overflow: hidden; text-overflow: ellipsis; }
+    .feg-usuario .cab .rol { display: inline-block; margin-top: 7px; font-size: 10.5px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(255,171,0,.14); color: #a46500; }
+    html[data-tema="oscuro"] .feg-usuario .cab .rol { color: #ffcf4d; }
+    .feg-usuario .feg-tema-op.salir { color: #e11d48; }
+    html[data-tema="oscuro"] .feg-usuario .feg-tema-op.salir { color: #fda4af; }
+
+    /* Lo que se oculta según los permisos */
+    body.feg-no-crea .feg-solo-crea, body.feg-no-crea [onclick^="nuevaCotizacion"] { display: none !important; }
+    body.feg-sin-costos #tabBtnContabilidad, body.feg-sin-costos #tabBtnPrecios, body.feg-sin-costos [onclick="switchTab('precios')"],
+    body.feg-sin-costos #viewContabilidad, body.feg-sin-costos #viewPrecios { display: none !important; }
+    .feg-portada-opciones > [hidden] { display: none !important; }
+    .feg-lectura-aviso { display: none; }
+    body.feg-solo-lectura .feg-lectura-aviso { display: flex; }
+
+    /* Usuarios */
+    .feg-opcion-fila { display: flex; align-items: center; gap: 16px; padding: 16px 20px; }
+    .feg-opcion-fila .feg-opcion-titulo { margin-top: 0; font-size: 16px; }
+    .feg-opcion-fila .feg-opcion-texto { margin-top: 2px; }
+    .feg-opcion-fila .feg-opcion-flecha { margin-left: auto; }
+    .feg-us-fila { display: flex; align-items: center; gap: 12px; padding: 12px 4px; }
+    .feg-us-av { width: 38px; height: 38px; flex-shrink: 0; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; background: #2e2e2e; color: #ffab00; }
+    html[data-tema="oscuro"] .feg-us-av { background: #2c2c2c; box-shadow: inset 0 0 0 1px #3a3a3a; }
+    .feg-chip { display: inline-flex; align-items: center; gap: 4px; font-size: 10.5px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(255,171,0,.14); color: #a46500; white-space: nowrap; }
+    .feg-chip.gris { background: #f1f1ef; color: #75756f; }
+    html[data-tema="oscuro"] .feg-chip { color: #ffcf4d; }
+    html[data-tema="oscuro"] .feg-chip.gris { background: #2c2c2c; color: #9b9b96; }
+    .feg-us-editor { overflow: hidden; border-radius: 16px; background: #fafaf8; border: 1px solid #efefec; padding: 16px; margin: 4px 0 12px; animation: feg-entra 260ms cubic-bezier(.23,1,.32,1) both; }
+    html[data-tema="oscuro"] .feg-us-editor { background: #222; border-color: #2e2e2e; }
+    .feg-perfiles { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+    .feg-perfiles button { padding: 7px 12px; border-radius: 10px; font-size: 12px; font-weight: 600; border: 1.5px solid #e6e6e2; background: #fff; color: #555; transition: border-color 150ms ease, background-color 150ms ease, color 150ms ease, transform 140ms ease; }
+    .feg-perfiles button.on { border-color: #ffab00; background: #fff7e6; color: #2b2b2b; }
+    html[data-tema="oscuro"] .feg-perfiles button { background: #262626; border-color: #383838; color: #cfcfcb; }
+    html[data-tema="oscuro"] .feg-perfiles button.on { background: #2f2817; border-color: #ffab00; color: #fff; }
+    .feg-perm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; }
+    @media (max-width: 600px) { .feg-perm-grid { grid-template-columns: 1fr; } }
+    .feg-perm-grid .feg-campo { margin-bottom: 0; }
+    .feg-perm-grid .feg-campo input, .feg-perm-grid .feg-campo select { height: 40px; font-size: 13px; }
+
+    /* Ventana (modal) */
+    #fegModal { position: fixed; inset: 0; z-index: 99; display: none; align-items: center; justify-content: center; padding: 16px; background: rgba(15,15,15,.45); backdrop-filter: blur(2px); }
+    #fegModal.abierto { display: flex; animation: feg-fondo-entra 180ms ease both; }
+    @keyframes feg-fondo-entra { from { opacity: 0; } }
+    #fegModal .caja-modal { width: 100%; max-width: 420px; border-radius: 18px; background: #fff; padding: 22px; box-shadow: 0 30px 70px -20px rgba(0,0,0,.45); animation: feg-login-entra 260ms cubic-bezier(.23,1,.32,1) both; transform-origin: center; }
+    html[data-tema="oscuro"] #fegModal .caja-modal { background: #1f1f1f; box-shadow: 0 30px 70px -20px rgba(0,0,0,.9), 0 0 0 1px #2e2e2e; color: #ececea; }
+    #fegModal h3 { font-family: Montserrat, Inter, sans-serif; font-weight: 800; font-size: 17px; margin-bottom: 4px; }
+    #fegModal .sub { font-size: 12.5px; color: #8a8a86; margin-bottom: 16px; }
+    #fegModal .botones { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; }
+    .feg-btn-sec { height: 40px; padding: 0 16px; border-radius: 11px; font-size: 13px; font-weight: 700; background: #f1f1ef; color: #2b2b2b; transition: background-color 150ms ease, transform 140ms ease; }
+    .feg-btn-sec:active { transform: scale(.97); }
+    html[data-tema="oscuro"] .feg-btn-sec { background: #2c2c2c; color: #ececea; }
+    .feg-btn-ok { height: 40px; padding: 0 18px; border-radius: 11px; font-size: 13px; font-weight: 800; background: #ffab00; color: #2b2b2b; transition: background-color 150ms ease, transform 140ms ease; }
+    .feg-btn-ok:active { transform: scale(.97); }
+    .feg-credenciales { border-radius: 12px; background: #fafaf8; border: 1px dashed #e0e0dc; padding: 12px 14px; font-size: 13px; line-height: 1.7; word-break: break-all; }
+    html[data-tema="oscuro"] .feg-credenciales { background: #262626; border-color: #3a3a3a; }
+    @media (prefers-reduced-motion: reduce) { .feg-login-card, .feg-login-lado .f, .feg-login-lado .anillo, #fegModal .caja-modal, .feg-us-editor { animation: none !important; } }
   </style>
 </head>
 <body class="min-h-screen flex flex-col">
+  <!-- ===================== Entrada con usuario ===================== -->
+  <div id="fegLogin" class="feg-login" style="display:none">
+    <div class="feg-login-card">
+      <div class="feg-login-lado">
+        <div class="f" aria-hidden="true"><svg viewBox="0 0 100 140" fill="currentColor" style="width:100%;height:100%"><path d="M22 140V48C22 19 39 4 66 4H92V34H70C58 34 52 40 52 52V140Z"/><rect x="4" y="54" width="70" height="28" rx="2"/></svg></div>
+        <div class="anillo" aria-hidden="true"></div>
+        <div class="barra" aria-hidden="true"></div>
+        <div>
+          <div class="feg-logo logo" aria-label="Freedom Energy Group"></div>
+          <h2>Freedom <span>CPQ</span></h2>
+          <p>Configure · Price · Quote. Propuestas, cotizaciones y sometimientos en un solo lugar.</p>
+        </div>
+        <div class="pie">Freedom Energy Group</div>
+      </div>
+      <div class="feg-login-form">
+        <form id="fegLoginForm" onsubmit="enviarLogin(event)" autocomplete="on">
+          <h1>Bienvenido</h1>
+          <p class="sub">Entra con tu usuario para continuar.</p>
+          <label class="feg-campo"><span>Correo</span>
+            <input type="email" id="loginEmail" autocomplete="username" required placeholder="nombre@correo.com" /></label>
+          <label class="feg-campo"><span>Contraseña</span>
+            <div class="caja"><input type="password" id="loginClave" autocomplete="current-password" required placeholder="••••••••" style="padding-right:64px" />
+            <button type="button" class="ojo" onclick="verClave('loginClave', this)">Ver</button></div></label>
+          <div class="feg-login-error" id="loginError" role="alert"></div>
+          <button type="submit" class="feg-btn-principal" id="loginBtn">Entrar</button>
+          <p class="feg-login-nota">¿Olvidaste tu contraseña? Pídele a un administrador que te la cambie.</p>
+        </form>
+        <div id="fegLoginSinPermiso" class="feg-login-aviso" style="display:none">
+          <div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div>
+          <h1 style="font-size:20px">Todavía no tienes permisos</h1>
+          <p class="sub" id="sinPermisoTexto" style="margin:8px 0 20px">Tu usuario está creado, pero un administrador debe darte acceso a las secciones que vas a usar.</p>
+          <button type="button" class="feg-btn-sec" style="width:100%;height:44px" onclick="cerrarSesion()">Salir y entrar con otro usuario</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="fegModal" role="dialog" aria-modal="true" onclick="if (event.target === this) cerrarModal()"><div class="caja-modal" id="fegModalCaja"></div></div>
+
   <!-- Fondo decorativo de Freedom (no se imprime) -->
   <div id="fegFondo" aria-hidden="true">
     <div class="resplandor a"></div><div class="resplandor b"></div>
@@ -463,6 +621,15 @@
       </div>
 
       <div class="flex items-center gap-2 shrink-0">
+        <div class="feg-tema feg-usuario" id="fegUsuario" style="display:none">
+          <button type="button" class="feg-usuario-btn" onclick="abrirMenuUsuario(event)" title="Mi usuario" aria-haspopup="true"><span id="fegUsuarioIni">·</span></button>
+          <div class="feg-tema-menu" role="menu">
+            <div class="cab"><b id="fegUsuarioNombre"></b><small id="fegUsuarioCorreo"></small><span class="rol" id="fegUsuarioRol"></span></div>
+            <button type="button" class="feg-tema-op" id="fegMenuUsuarios" onclick="abrirUsuarios()"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18.5 20a6.5 6.5 0 0 0-3-5.5"/></svg></span><span>Usuarios<small>Crear y dar permisos</small></span></button>
+            <button type="button" class="feg-tema-op" onclick="cambiarMiClave()"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></span><span>Cambiar mi contraseña</span></button>
+            <button type="button" class="feg-tema-op salir" onclick="cerrarSesion()"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l-5-5 5-5M5 12h11"/></svg></span><span>Cerrar sesión</span></button>
+          </div>
+        </div>
         <div class="feg-tema" id="fegTema">
           <button type="button" class="feg-tema-btn" onclick="abrirTema(event)" title="Apariencia" aria-label="Cambiar apariencia" aria-haspopup="true">
             <svg id="fegTemaIcono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg>
@@ -559,7 +726,7 @@
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 feg-portada-opciones">
-        <button type="button" onclick="showHome()" class="feg-opcion group">
+        <button type="button" onclick="showHome()" class="feg-opcion group" data-modulo="propuestas">
           <span class="feg-opcion-icono" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M3 8h18M3 12h18M9 4v12M15 4v12M12 16v4M8 20h8"/></svg>
           </span>
@@ -567,7 +734,7 @@
           <span class="feg-opcion-texto">Cotizaciones y propuestas de sistemas solares. Abre una guardada o crea una nueva.</span>
           <span class="feg-opcion-pie"><span id="portadaCotCount">0 guardadas</span><span class="feg-opcion-flecha" aria-hidden="true">→</span></span>
         </button>
-        <button type="button" onclick="abrirSometimientos()" class="feg-opcion group">
+        <button type="button" onclick="abrirSometimientos()" class="feg-opcion group" data-modulo="sometimientos">
           <span class="feg-opcion-icono" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>
           </span>
@@ -575,6 +742,28 @@
           <span class="feg-opcion-texto">Documentos para la distribuidora. Abre uno trabajado o genera uno nuevo.</span>
           <span class="feg-opcion-pie"><span id="portadaSomCount">0 trabajados</span><span class="feg-opcion-flecha" aria-hidden="true">→</span></span>
         </button>
+        <button type="button" onclick="abrirUsuarios()" class="feg-opcion feg-opcion-fila group sm:col-span-2" data-modulo="usuarios" hidden>
+          <span class="feg-opcion-icono" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18.5 20a6.5 6.5 0 0 0-3-5.5"/></svg>
+          </span>
+          <span><span class="feg-opcion-titulo">Usuarios</span><span class="feg-opcion-texto">Crea usuarios del equipo y decide qué puede ver cada uno.</span></span>
+          <span class="feg-opcion-flecha" aria-hidden="true">→</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ===================== USUARIOS (solo administradores) ===================== -->
+    <div id="usuariosView" class="max-w-3xl mx-auto space-y-5 no-print" style="display:none">
+      <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 sm:p-6">
+        <div class="flex items-start justify-between gap-3 flex-wrap">
+          <div>
+            <h3 class="text-sm font-semibold text-slate-900 uppercase tracking-wider">Usuarios</h3>
+            <p class="text-xs text-slate-500 mt-1">Cada persona entra con su correo y solo ve lo que le permitas.</p>
+          </div>
+          <button type="button" onclick="editarUsuario(null)" class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-bold text-slate-900 bg-orange-500 hover:bg-orange-400 shadow-sm">+ Nuevo usuario</button>
+        </div>
+        <div id="usuariosNuevo"></div>
+        <div id="usuariosLista" class="mt-3 divide-y divide-slate-100"></div>
       </div>
     </div>
 
@@ -616,7 +805,7 @@
         <div id="savedQuotesList" class="mt-3 divide-y divide-slate-100"></div>
         <div class="mt-4 pt-3 border-t border-slate-100 flex gap-4 text-[11px]">
           <button type="button" onclick="exportQuotes()" class="text-slate-500 underline hover:text-slate-900">Exportar respaldo</button>
-          <label class="text-slate-500 underline hover:text-slate-900 cursor-pointer">Importar respaldo<input type="file" accept=".json,application/json" class="hidden" onchange="importQuotes(this)" /></label>
+          <label class="feg-solo-crea text-slate-500 underline hover:text-slate-900 cursor-pointer">Importar respaldo<input type="file" accept=".json,application/json" class="hidden" onchange="importQuotes(this)" /></label>
         </div>
       </div>
     </div>
@@ -2134,6 +2323,457 @@
       if (!el) return;
       el.classList.remove("feg-entra"); void el.offsetWidth; el.classList.add("feg-entra");
     }
+    // =========================================================================
+    // USUARIOS Y PERMISOS (Supabase Auth + permisos guardados en "profiles")
+    // =========================================================================
+    const SESION_KEY = "feg_sesion", PERFIL_KEY = "feg_perfil", USUARIO_LOCAL_KEY = "feg_usuario_local";
+    let SESION = null, PERFIL = null, PERFILES = {};
+    const PERMISOS_TODO = { propuestas: "todo", precios: "editar", sometimientos: "editar", usuarios: "si" };
+    const PERFILES_TIPO = {
+      admin:         { nombre: "Administrador", rol: "admin",        permisos: { propuestas: "todo", precios: "editar", sometimientos: "editar", usuarios: "si" } },
+      contabilidad:  { nombre: "Contabilidad",  rol: "contabilidad", permisos: { propuestas: "ver",  precios: "ver",    sometimientos: "ver",    usuarios: "no" } },
+      vendedor:      { nombre: "Vendedor",      rol: "cotizador",    permisos: { propuestas: "propias", precios: "no",  sometimientos: "no",     usuarios: "no" } },
+      sometimientos: { nombre: "Sometimientos", rol: "consulta",     permisos: { propuestas: "no",   precios: "no",     sometimientos: "editar", usuarios: "no" } }
+    };
+    const OPC_PERMISOS = {
+      propuestas: ["Propuestas", [["todo", "Ver y editar todas"], ["propias", "Solo las suyas"], ["ver", "Ver todas, sin editar"], ["no", "Sin acceso"]]],
+      precios: ["Costos, informe interno y precios", [["editar", "Ver y editar"], ["ver", "Solo ver"], ["no", "Sin acceso"]]],
+      sometimientos: ["Sometimientos", [["editar", "Ver y trabajar"], ["ver", "Solo ver e imprimir"], ["no", "Sin acceso"]]],
+      usuarios: ["Administrar usuarios", [["si", "Sí"], ["no", "No"]]]
+    };
+    function permiso(k) {
+      if (!cloudOn()) return PERMISOS_TODO[k];   // sin nube: todo en este equipo, sin usuarios
+      return (PERFIL && PERFIL.active !== false && PERFIL.permisos && PERFIL.permisos[k]) || "no";
+    }
+    const puede = {
+      verPropuestas: () => permiso("propuestas") !== "no",
+      crearPropuestas: () => ["todo", "propias"].includes(permiso("propuestas")),
+      verTodas: () => ["todo", "ver"].includes(permiso("propuestas")),
+      verCostos: () => permiso("precios") !== "no",
+      editarPrecios: () => permiso("precios") === "editar",
+      verSometimientos: () => permiso("sometimientos") !== "no",
+      editarSometimientos: () => permiso("sometimientos") === "editar",
+      usuarios: () => permiso("usuarios") === "si",
+      algo: () => ["propuestas", "precios", "sometimientos"].some(k => permiso(k) !== "no") || permiso("usuarios") === "si"
+    };
+    window.FEG_PERMISO = permiso;
+    window.FEG_PUEDE = puede;
+    function tipoDePerfil(p) {
+      p = p || {};
+      const k = Object.keys(PERFILES_TIPO).find(k => Object.keys(OPC_PERMISOS).every(c => (PERFILES_TIPO[k].permisos[c] || "no") === (p[c] || "no")));
+      return k || "personalizado";
+    }
+    const nombreTipo = (p) => { const k = tipoDePerfil(p); return k === "personalizado" ? (Object.values(p || {}).some(v => v && v !== "no") ? "Personalizado" : "Sin permisos") : PERFILES_TIPO[k].nombre; };
+    const iniciales = (n, e) => { const s = String(n || "").trim() || String(e || "").split("@")[0]; const p = s.split(/[\s._-]+/).filter(Boolean); return ((p[0] || "?")[0] + (p[1] ? p[1][0] : (p[0] || "")[1] || "")).toUpperCase(); };
+
+    // ---- Sesión ----
+    async function authPeticion(ruta, opciones) {
+      const res = await fetch(NUBE.url.replace(/\/$/, "") + "/auth/v1/" + ruta, Object.assign({}, opciones, {
+        headers: Object.assign({ apikey: NUBE.key, "Content-Type": "application/json" }, (opciones || {}).headers || {}) }));
+      let j = null; try { j = await res.json(); } catch (e) { }
+      if (!res.ok) {
+        const m = (j && (j.error_description || j.msg || j.message || j.error)) || ("Error " + res.status);
+        throw Object.assign(new Error(m), { status: res.status, codigo: j && (j.error_code || j.code) });
+      }
+      return j;
+    }
+    function guardarSesion(j) {
+      SESION = { access_token: j.access_token, refresh_token: j.refresh_token, expires_at: Math.floor(Date.now() / 1000) + (j.expires_in || 3600),
+        user: { id: j.user.id, email: j.user.email } };
+      lsSet(SESION_KEY, SESION);
+    }
+    let refrescando = null;
+    function refrescarSesion() {
+      if (!SESION || !SESION.refresh_token) return Promise.reject(Object.assign(new Error("Sin sesión"), { status: 401 }));
+      if (!refrescando) refrescando = authPeticion("token?grant_type=refresh_token", { method: "POST", body: JSON.stringify({ refresh_token: SESION.refresh_token }) })
+        .then(guardarSesion).finally(() => { refrescando = null; });
+      return refrescando;
+    }
+    async function tokenVigente() {
+      if (!SESION) return null;
+      if (SESION.expires_at - Date.now() / 1000 < 90) {
+        try { await refrescarSesion(); }
+        catch (e) { if (e.status && e.status >= 400 && e.status < 500) { sesionVencida(); throw e; } }   // sin internet: se sigue con lo que hay
+      }
+      return SESION && SESION.access_token;
+    }
+    function sesionVencida() {
+      SESION = null;
+      try { localStorage.removeItem(SESION_KEY); } catch (e) { }
+      mostrarLogin("Tu sesión venció. Vuelve a entrar.");
+    }
+
+    // ---- Pantalla de entrada ----
+    function mostrarLogin(mensaje) {
+      const L = document.getElementById("fegLogin");
+      document.getElementById("fegLoginForm").style.display = "";
+      document.getElementById("fegLoginSinPermiso").style.display = "none";
+      document.getElementById("loginError").textContent = mensaje || "";
+      L.style.display = "flex";
+      document.body.classList.add("feg-bloqueado");
+      const sesAnt = lsGet(SESION_KEY, null);
+      const em = document.getElementById("loginEmail");
+      if (!em.value) em.value = (sesAnt && sesAnt.user && sesAnt.user.email) || lsGet("feg_ultimo_correo", "") || "";
+      setTimeout(() => (em.value ? document.getElementById("loginClave") : em).focus(), 60);
+    }
+    function ocultarLogin() {
+      document.getElementById("fegLogin").style.display = "none";
+      document.body.classList.remove("feg-bloqueado");
+      document.getElementById("loginClave").value = "";
+    }
+    function mostrarSinPermisos() {
+      mostrarLogin();
+      document.getElementById("fegLoginForm").style.display = "none";
+      document.getElementById("fegLoginSinPermiso").style.display = "";
+      const n = (PERFIL && (PERFIL.full_name || PERFIL.email)) || "";
+      document.getElementById("sinPermisoTexto").textContent = (PERFIL && PERFIL.active === false)
+        ? `${n ? n + ", tu" : "Tu"} usuario está desactivado. Habla con un administrador.`
+        : `${n ? "Hola " + n + ". Tu" : "Tu"} usuario está creado, pero un administrador debe darte acceso a las secciones que vas a usar.`;
+    }
+    function verClave(id, btn) {
+      const i = document.getElementById(id); const ver = i.type === "password";
+      i.type = ver ? "text" : "password"; btn.textContent = ver ? "Ocultar" : "Ver";
+    }
+    async function enviarLogin(ev) {
+      ev.preventDefault();
+      const email = document.getElementById("loginEmail").value.trim().toLowerCase();
+      const clave = document.getElementById("loginClave").value;
+      const btn = document.getElementById("loginBtn"), err = document.getElementById("loginError");
+      err.textContent = ""; err.classList.remove("sacude");
+      btn.disabled = true; btn.innerHTML = '<span class="feg-girando"></span> Entrando…';
+      try {
+        const j = await authPeticion("token?grant_type=password", { method: "POST", body: JSON.stringify({ email, password: clave }) });
+        guardarSesion(j);
+        lsSet("feg_ultimo_correo", email);
+        await cargarPerfil();
+        prepararDatosLocales(SESION.user.id);
+        entrarApp(true);
+      } catch (e) {
+        const m = String(e.message || e);
+        err.textContent = /invalid login|invalid_credentials|invalid grant/i.test(m + " " + (e.codigo || "")) ? "Correo o contraseña incorrectos."
+          : /email not confirmed/i.test(m) ? "Ese usuario todavía no está confirmado."
+          : /failed to fetch|network/i.test(m) ? "No hay conexión a internet." : m;
+        void err.offsetWidth; err.classList.add("sacude");
+      } finally { btn.disabled = false; btn.textContent = "Entrar"; }
+    }
+    async function cargarPerfil() {
+      const rows = await cloudFetch(`profiles?id=eq.${SESION.user.id}&select=id,email,full_name,role,permisos,active`);
+      PERFIL = (rows && rows[0]) || { id: SESION.user.id, email: SESION.user.email, full_name: "", permisos: {}, active: true };
+      lsSet(PERFIL_KEY, PERFIL);
+      return PERFIL;
+    }
+    async function cargarPerfiles() {
+      if (!cloudOn() || !SESION || !(puede.verTodas() || puede.usuarios())) return;
+      try {
+        const rows = await cloudFetch("profiles?select=id,email,full_name,role,permisos,active&order=full_name");
+        PERFILES = {}; (rows || []).forEach(p => PERFILES[p.id] = p);
+        if (document.getElementById("homeView").style.display !== "none") renderSavedQuotes();
+      } catch (e) { }
+    }
+    // Si en esta computadora entra otra persona, se borra lo que quedó guardado del usuario anterior
+    function prepararDatosLocales(uid) {
+      const antes = lsGet(USUARIO_LOCAL_KEY, null);
+      if ((antes && antes !== uid) || (!antes && permiso("propuestas") !== "todo")) {
+        [QUOTES_KEY, PENDING_PUSH_KEY, PENDING_DEL_KEY, SYNCED_ONCE_KEY, AJUSTES_TS_KEY, "feg_sometimientos_v1", "feg_som_biblio"].forEach(k => { try { localStorage.removeItem(k); } catch (e) { } });
+        try { indexedDB.deleteDatabase("feg_archivos"); } catch (e) { }
+      }
+      lsSet(USUARIO_LOCAL_KEY, uid);
+    }
+    async function iniciarAcceso() {
+      if (!cloudOn()) { entrarApp(false); return; }
+      SESION = lsGet(SESION_KEY, null);
+      if (!SESION || !SESION.refresh_token || !SESION.user) { SESION = null; mostrarLogin(); return; }
+      PERFIL = lsGet(PERFIL_KEY, null);
+      if (PERFIL && PERFIL.id !== SESION.user.id) PERFIL = null;
+      try { await tokenVigente(); if (SESION) await cargarPerfil(); }
+      catch (e) {
+        if (!SESION) return;                       // la sesión venció: ya se mostró la entrada
+        if (!PERFIL) { mostrarLogin("No hay conexión. Intenta de nuevo."); return; }   // sin internet: se usan los permisos guardados
+      }
+      entrarApp(false);
+    }
+    function entrarApp(recienEntro) {
+      if (cloudOn() && !puede.algo()) { mostrarSinPermisos(); return; }
+      ocultarLogin();
+      aplicarPermisos();
+      showPortada();
+      if (recienEntro && PERFIL) showToast(`Hola${PERFIL.full_name ? ", " + PERFIL.full_name.split(" ")[0] : ""}`, "success");
+      cloudSync().finally(() => actualizarTasaPopular(false));
+      renderTasaPopular(tasaPopular ? "ok" : "buscando");
+      cargarPerfiles();
+      if (!entrarApp.listo) {
+        entrarApp.listo = true;
+        setInterval(() => { if (document.visibilityState === "visible") actualizarTasaPopular(false); }, 30 * 60000);
+        document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") cloudSync(); });
+        setInterval(() => { if (document.visibilityState === "visible") cloudSync(); }, 60000);
+        setInterval(() => { if (SESION) tokenVigente().catch(() => { }); }, 5 * 60000);
+      }
+    }
+    async function cerrarSesion() {
+      try { flushSave(); } catch (e) { }
+      const pend = lsGet(PENDING_PUSH_KEY, []);
+      if (pend.length && !confirm("Hay cambios que todavía no se subieron a la nube. Si sales ahora, podrían perderse. ¿Salir de todos modos?")) return;
+      const t = SESION && SESION.access_token;
+      SESION = null; PERFIL = null;
+      try { localStorage.removeItem(SESION_KEY); localStorage.removeItem(PERFIL_KEY); } catch (e) { }
+      if (t) { try { await authPeticion("logout", { method: "POST", headers: { Authorization: "Bearer " + t } }); } catch (e) { } }
+      location.reload();
+    }
+
+    // ---- Lo que se ve según los permisos ----
+    function aplicarPermisos() {
+      const b = document.body;
+      b.classList.toggle("feg-no-crea", !puede.crearPropuestas());
+      b.classList.toggle("feg-sin-costos", !puede.verCostos());
+      b.classList.toggle("feg-precios-lectura", puede.verCostos() && !puede.editarPrecios());
+      b.classList.toggle("feg-solo-lectura", puede.verPropuestas() && !puede.crearPropuestas());
+      document.querySelectorAll(".feg-portada-opciones [data-modulo]").forEach(el => {
+        const m = el.dataset.modulo;
+        el.hidden = !(m === "propuestas" ? puede.verPropuestas() : m === "sometimientos" ? puede.verSometimientos() : puede.usuarios());
+      });
+      const u = document.getElementById("fegUsuario");
+      if (cloudOn() && PERFIL) {
+        u.style.display = "";
+        document.getElementById("fegUsuarioIni").textContent = iniciales(PERFIL.full_name, PERFIL.email);
+        document.getElementById("fegUsuarioNombre").textContent = PERFIL.full_name || "Mi usuario";
+        document.getElementById("fegUsuarioCorreo").textContent = PERFIL.email || (SESION && SESION.user.email) || "";
+        document.getElementById("fegUsuarioRol").textContent = nombreTipo(PERFIL.permisos);
+        document.getElementById("fegMenuUsuarios").style.display = puede.usuarios() ? "" : "none";
+      } else u.style.display = "none";
+      vigilarSoloLectura();
+    }
+    // Quien solo puede mirar: los campos quedan bloqueados y se esconden los botones que cambian cosas
+    const PERMITIDOS_LECTURA = /switchTab|switchOption|FEGPropuesta|imprimir|print|showHome|showPortada|copiar|exportar|Exportar|volverAtras|toggleDetalle|mostrar|ver\(/;
+    function bloquear(cont) {
+      if (!cont) return;
+      cont.querySelectorAll("input, select, textarea").forEach(el => { if (!el.disabled) { el.disabled = true; el.dataset.fegBloq = "1"; } });
+      cont.querySelectorAll("button, label.cursor-pointer").forEach(el => {
+        const oc = el.getAttribute("onclick") || "";
+        if (el.tagName === "LABEL" || !PERMITIDOS_LECTURA.test(oc)) el.style.display = "none";
+      });
+    }
+    let obsLectura = null;
+    function vigilarSoloLectura() {
+      const aplicar = () => {
+        if (document.body.classList.contains("feg-solo-lectura")) {
+          const ed = document.getElementById("editorView");
+          ed.querySelectorAll("input, select, textarea").forEach(el => { if (!el.closest("#viewPrecios")) el.disabled = true; });
+          ed.querySelectorAll("button").forEach(el => {
+            if (el.closest("#viewPrecios")) return;
+            const oc = el.getAttribute("onclick") || "";
+            if (!PERMITIDOS_LECTURA.test(oc) && !el.closest(".feg-tabs")) el.style.display = "none";
+          });
+        }
+        if (puede.verCostos() && !puede.editarPrecios()) bloquear(document.getElementById("viewPrecios"));
+      };
+      aplicar();
+      if (!obsLectura && (document.body.classList.contains("feg-solo-lectura") || document.body.classList.contains("feg-precios-lectura"))) {
+        let t = null;
+        obsLectura = new MutationObserver(() => { clearTimeout(t); t = setTimeout(aplicar, 30); });
+        obsLectura.observe(document.getElementById("editorView"), { childList: true, subtree: true });
+      }
+    }
+
+    // ---- Menú del usuario ----
+    function abrirMenuUsuario(ev) { ev.stopPropagation(); document.getElementById("fegTema").classList.remove("abierto"); document.getElementById("fegUsuario").classList.toggle("abierto"); }
+    document.addEventListener("click", (e) => { const m = document.getElementById("fegUsuario"); if (m && !m.contains(e.target)) m.classList.remove("abierto"); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") { const m = document.getElementById("fegUsuario"); if (m) m.classList.remove("abierto"); cerrarModal(); } });
+
+    // ---- Ventanas ----
+    function abrirModal(html) {
+      document.getElementById("fegModalCaja").innerHTML = html;
+      const m = document.getElementById("fegModal"); m.classList.add("abierto");
+      document.getElementById("fegUsuario").classList.remove("abierto");
+      setTimeout(() => { const f = m.querySelector("input"); if (f) f.focus(); }, 60);
+    }
+    function cerrarModal() { const m = document.getElementById("fegModal"); if (m) m.classList.remove("abierto"); }
+    function claveAleatoria() {
+      const a = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
+      const r = new Uint32Array(10); crypto.getRandomValues(r);
+      return "Fe" + [...r].map(x => a[x % a.length]).join("") + "!";
+    }
+    function cambiarMiClave() {
+      abrirModal(`<h3>Cambiar mi contraseña</h3><p class="sub">Mínimo 8 caracteres.</p>
+        <label class="feg-campo"><span>Contraseña nueva</span><input type="password" id="mcN1" autocomplete="new-password"></label>
+        <label class="feg-campo"><span>Repítela</span><input type="password" id="mcN2" autocomplete="new-password"></label>
+        <div class="feg-login-error" id="mcErr"></div>
+        <div class="botones"><button type="button" class="feg-btn-sec" onclick="cerrarModal()">Cancelar</button><button type="button" class="feg-btn-ok" id="mcOk" onclick="guardarMiClave()">Guardar</button></div>`);
+    }
+    async function guardarMiClave() {
+      const a = document.getElementById("mcN1").value, b = document.getElementById("mcN2").value, err = document.getElementById("mcErr");
+      if (a.length < 8) { err.textContent = "Debe tener al menos 8 caracteres."; return; }
+      if (a !== b) { err.textContent = "Las dos contraseñas no son iguales."; return; }
+      const btn = document.getElementById("mcOk"); btn.disabled = true;
+      try {
+        await tokenVigente();
+        await authPeticion("user", { method: "PUT", headers: { Authorization: "Bearer " + SESION.access_token }, body: JSON.stringify({ password: a }) });
+        cerrarModal(); showToast("Contraseña cambiada", "success");
+      } catch (e) {
+        err.textContent = /same|different/i.test(e.message) ? "La contraseña nueva debe ser distinta a la anterior." : /reauth/i.test(e.message) ? "Por seguridad, sal y vuelve a entrar antes de cambiarla." : e.message;
+      } finally { btn.disabled = false; }
+    }
+
+    // ---- Administrar usuarios ----
+    async function funcionUsuarios(cuerpo) {
+      await tokenVigente();
+      const res = await fetch(NUBE.url.replace(/\/$/, "") + "/functions/v1/gestion-usuarios", {
+        method: "POST", headers: { apikey: NUBE.key, Authorization: "Bearer " + SESION.access_token, "Content-Type": "application/json" }, body: JSON.stringify(cuerpo) });
+      let j = null; try { j = await res.json(); } catch (e) { }
+      if (!res.ok || !j || j.error) throw new Error((j && j.error) || ("Error " + res.status));
+      return j;
+    }
+    function ocultarVistas() {
+      ["portadaView", "homeView", "editorView", "usuariosView"].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = "none"; });
+      document.getElementById("liveBar").style.display = "none";
+    }
+    async function abrirUsuarios() {
+      if (!puede.usuarios()) return;
+      document.getElementById("fegUsuario").classList.remove("abierto");
+      flushSave();
+      ocultarVistas();
+      const v = document.getElementById("usuariosView"); v.style.display = "";
+      animarEntrada(v);
+      document.getElementById("btnBackHome").style.display = "";
+      document.getElementById("btnBackHomeTxt").textContent = "Inicio";
+      document.getElementById("usuariosNuevo").innerHTML = "";
+      document.getElementById("usuariosLista").innerHTML = `<p class="py-4 text-xs text-slate-400">Cargando usuarios…</p>`;
+      window.scrollTo({ top: 0 });
+      await cargarPerfiles();
+      pintarUsuarios();
+    }
+    function pintarUsuarios() {
+      const lista = Object.values(PERFILES).sort((a, b) => (a.full_name || a.email || "").localeCompare(b.full_name || b.email || "", "es"));
+      const box = document.getElementById("usuariosLista");
+      if (!lista.length) { box.innerHTML = `<p class="py-4 text-xs text-slate-400">No se pudieron cargar los usuarios.</p>`; return; }
+      box.innerHTML = lista.map(p => {
+        const yo = SESION && p.id === SESION.user.id;
+        return `<div data-uid="${p.id}">
+          <div class="feg-us-fila">
+            <div class="feg-us-av" style="${p.active === false ? "opacity:.45" : ""}">${escapeHtml(iniciales(p.full_name, p.email))}</div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-semibold text-slate-900 truncate">${escapeHtml(p.full_name || "(sin nombre)")}${yo ? ' <span class="feg-chip gris">Tú</span>' : ""}</p>
+              <p class="text-[11.5px] text-slate-500 truncate">${escapeHtml(p.email || "")}</p>
+            </div>
+            <span class="feg-chip ${p.active === false || nombreTipo(p.permisos) === "Sin permisos" ? "gris" : ""}">${p.active === false ? "Desactivado" : escapeHtml(nombreTipo(p.permisos))}</span>
+            <button type="button" onclick="editarUsuario('${p.id}')" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200">Permisos</button>
+          </div>
+          <div class="feg-us-slot"></div>
+        </div>`;
+      }).join("");
+    }
+    function htmlEditorUsuario(p, nuevo) {
+      const perms = Object.assign({ propuestas: "no", precios: "no", sometimientos: "no", usuarios: "no" }, (p && p.permisos) || {});
+      const tipo = tipoDePerfil(perms);
+      const yo = !nuevo && SESION && p.id === SESION.user.id;
+      const sel = (k) => `<label class="feg-campo"><span>${OPC_PERMISOS[k][0]}</span><select data-perm="${k}" onchange="marcarPerfil(this)" ${yo && k === "usuarios" ? "disabled" : ""}>
+        ${OPC_PERMISOS[k][1].map(([v, t]) => `<option value="${v}" ${perms[k] === v ? "selected" : ""}>${t}</option>`).join("")}</select></label>`;
+      return `<div class="feg-us-editor" data-id="${nuevo ? "" : p.id}">
+        <div class="feg-perm-grid" style="margin-bottom:12px">
+          <label class="feg-campo"><span>Nombre</span><input data-f="nombre" value="${escapeHtml((p && p.full_name) || "")}" placeholder="Nombre y apellido"></label>
+          ${nuevo ? `<label class="feg-campo"><span>Correo</span><input data-f="email" type="email" placeholder="nombre@correo.com" autocomplete="off"></label>
+          <label class="feg-campo"><span>Contraseña inicial</span><div class="caja"><input data-f="clave" type="text" value="${claveAleatoria()}" autocomplete="off" style="padding-right:84px">
+            <button type="button" class="ojo" onclick="this.previousElementSibling.value = claveAleatoria()">Otra</button></div></label>` :
+          `<label class="feg-campo"><span>Estado</span><select data-f="activo" ${yo ? "disabled" : ""}><option value="1" ${p.active !== false ? "selected" : ""}>Activo (puede entrar)</option><option value="0" ${p.active === false ? "selected" : ""}>Desactivado (no puede entrar)</option></select></label>`}
+        </div>
+        <div class="text-[12px] font-semibold text-slate-600" style="margin-bottom:6px">Perfil</div>
+        <div class="feg-perfiles">
+          ${Object.entries(PERFILES_TIPO).map(([k, t]) => `<button type="button" data-tipo="${k}" class="${tipo === k ? "on" : ""}" onclick="ponerPerfil(this, '${k}')" ${yo && k !== "admin" ? "disabled style='opacity:.45'" : ""}>${t.nombre}</button>`).join("")}
+          <button type="button" data-tipo="personalizado" class="${tipo === "personalizado" ? "on" : ""}" onclick="ponerPerfil(this, 'personalizado')">A la medida</button>
+        </div>
+        <div class="feg-perm-grid">${Object.keys(OPC_PERMISOS).map(sel).join("")}</div>
+        <div class="feg-login-error" data-f="error" style="margin-top:10px"></div>
+        <div class="flex flex-wrap items-center gap-2" style="margin-top:4px">
+          ${nuevo ? "" : `<button type="button" class="feg-btn-sec" onclick="claveDeUsuario('${p.id}')">Cambiar contraseña</button>
+            ${yo ? "" : `<button type="button" class="feg-btn-sec" style="color:#e11d48" onclick="eliminarUsuario('${p.id}')">Eliminar</button>`}`}
+          <span style="flex:1"></span>
+          <button type="button" class="feg-btn-sec" onclick="cerrarEditorUsuario(this)">Cancelar</button>
+          <button type="button" class="feg-btn-ok" onclick="guardarUsuario(this, ${nuevo ? "true" : "false"})">${nuevo ? "Crear usuario" : "Guardar"}</button>
+        </div>
+      </div>`;
+    }
+    function editarUsuario(id) {
+      document.querySelectorAll("#usuariosView .feg-us-editor").forEach(e => e.remove());
+      if (!id) {
+        const box = document.getElementById("usuariosNuevo");
+        box.innerHTML = `<div style="margin-top:14px">${htmlEditorUsuario({ permisos: PERFILES_TIPO.vendedor.permisos }, true)}</div>`;
+        box.querySelector('[data-f="nombre"]').focus();
+        return;
+      }
+      const fila = document.querySelector(`#usuariosLista [data-uid="${id}"] .feg-us-slot`);
+      if (fila) { fila.innerHTML = htmlEditorUsuario(PERFILES[id], false); }
+    }
+    function cerrarEditorUsuario(btn) { btn.closest(".feg-us-editor").remove(); }
+    function ponerPerfil(btn, tipo) {
+      const ed = btn.closest(".feg-us-editor");
+      ed.querySelectorAll(".feg-perfiles button").forEach(b => b.classList.toggle("on", b === btn));
+      if (tipo === "personalizado") return;
+      const p = PERFILES_TIPO[tipo].permisos;
+      ed.querySelectorAll("[data-perm]").forEach(s => { if (!s.disabled) s.value = p[s.dataset.perm]; });
+    }
+    function marcarPerfil(sel) {
+      const ed = sel.closest(".feg-us-editor"); const p = {};
+      ed.querySelectorAll("[data-perm]").forEach(s => p[s.dataset.perm] = s.value);
+      const t = tipoDePerfil(p);
+      ed.querySelectorAll(".feg-perfiles button").forEach(b => b.classList.toggle("on", b.dataset.tipo === t));
+    }
+    async function guardarUsuario(btn, nuevo) {
+      const ed = btn.closest(".feg-us-editor"), err = ed.querySelector('[data-f="error"]');
+      const val = (f) => { const el = ed.querySelector(`[data-f="${f}"]`); return el ? el.value.trim() : ""; };
+      const permisos = {}; ed.querySelectorAll("[data-perm]").forEach(s => permisos[s.dataset.perm] = s.value);
+      const tipo = tipoDePerfil(permisos);
+      const rol = tipo === "personalizado" ? (permisos.usuarios === "si" ? "admin" : "consulta") : PERFILES_TIPO[tipo].rol;
+      err.textContent = "";
+      btn.disabled = true; const txt = btn.textContent; btn.innerHTML = '<span class="feg-girando"></span>';
+      try {
+        if (nuevo) {
+          const email = val("email").toLowerCase(), clave = val("clave"), nombre = val("nombre");
+          if (!nombre) throw new Error("Escribe el nombre.");
+          if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw new Error("Escribe un correo válido.");
+          if (clave.length < 8) throw new Error("La contraseña debe tener al menos 8 caracteres.");
+          await funcionUsuarios({ accion: "crear", email, password: clave, nombre, permisos, rol });
+          document.getElementById("usuariosNuevo").innerHTML = "";
+          await cargarPerfiles(); pintarUsuarios();
+          mostrarCredenciales(nombre, email, clave);
+        } else {
+          const id = ed.dataset.id;
+          const cambio = { full_name: val("nombre"), permisos, role: rol };
+          const act = ed.querySelector('[data-f="activo"]'); if (act && !act.disabled) cambio.active = act.value === "1";
+          await cloudFetch(`profiles?id=eq.${id}`, { method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify(cambio) });
+          await cargarPerfiles(); pintarUsuarios();
+          if (SESION && id === SESION.user.id) { await cargarPerfil(); aplicarPermisos(); }
+          showToast("Permisos guardados", "success");
+        }
+      } catch (e) { err.textContent = String(e.message || e); btn.disabled = false; btn.textContent = txt; }
+    }
+    function mostrarCredenciales(nombre, email, clave) {
+      const texto = `Freedom CPQ\nUsuario: ${email}\nContraseña: ${clave}\nEntra a la plataforma y cambia tu contraseña desde el menú de tu usuario.`;
+      abrirModal(`<h3>Usuario creado</h3><p class="sub">Comparte estos datos con ${escapeHtml(nombre)}. Después podrá cambiar su contraseña.</p>
+        <div class="feg-credenciales"><b>Usuario:</b> ${escapeHtml(email)}<br><b>Contraseña:</b> ${escapeHtml(clave)}</div>
+        <div class="botones"><button type="button" class="feg-btn-sec" onclick='navigator.clipboard.writeText(${JSON.stringify(texto)}).then(() => showToast("Copiado", "success"))'>Copiar</button>
+        <button type="button" class="feg-btn-ok" onclick="cerrarModal()">Listo</button></div>`);
+    }
+    function claveDeUsuario(id) {
+      const p = PERFILES[id] || {};
+      abrirModal(`<h3>Cambiar contraseña</h3><p class="sub">${escapeHtml(p.full_name || p.email || "")}. Mínimo 8 caracteres.</p>
+        <label class="feg-campo"><span>Contraseña nueva</span><div class="caja"><input id="ucN" type="text" value="${claveAleatoria()}" autocomplete="off" style="padding-right:84px">
+          <button type="button" class="ojo" onclick="document.getElementById('ucN').value = claveAleatoria()">Otra</button></div></label>
+        <div class="feg-login-error" id="ucErr"></div>
+        <div class="botones"><button type="button" class="feg-btn-sec" onclick="cerrarModal()">Cancelar</button><button type="button" class="feg-btn-ok" id="ucOk" onclick="guardarClaveDeUsuario('${id}')">Guardar</button></div>`);
+    }
+    async function guardarClaveDeUsuario(id) {
+      const c = document.getElementById("ucN").value.trim(), err = document.getElementById("ucErr"), btn = document.getElementById("ucOk");
+      if (c.length < 8) { err.textContent = "Debe tener al menos 8 caracteres."; return; }
+      btn.disabled = true;
+      try { await funcionUsuarios({ accion: "clave", id, password: c }); const p = PERFILES[id] || {}; mostrarCredenciales(p.full_name || p.email, p.email, c); }
+      catch (e) { err.textContent = String(e.message || e); btn.disabled = false; }
+    }
+    async function eliminarUsuario(id) {
+      const p = PERFILES[id] || {};
+      if (!confirm(`¿Eliminar el usuario de ${p.full_name || p.email}? Ya no podrá entrar. Sus cotizaciones se quedan guardadas.`)) return;
+      try { await funcionUsuarios({ accion: "eliminar", id }); await cargarPerfiles(); pintarUsuarios(); showToast("Usuario eliminado", "success"); }
+      catch (e) { showToast(String(e.message || e), "error"); }
+    }
+
     // ===================== Apariencia =====================
     const ICONO_TEMA = {
       claro: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
@@ -2166,6 +2806,7 @@
     function showPortada() {
       flushSave();
       document.getElementById("portadaView").style.display = "";
+      document.getElementById("usuariosView").style.display = "none";
       document.getElementById("homeView").style.display = "none";
       document.getElementById("editorView").style.display = "none";
       document.getElementById("liveBar").style.display = "none";
@@ -2187,15 +2828,18 @@
       if (b) b.textContent = ns === 1 ? "1 trabajado" : `${ns} trabajados`;
     }
     function volverAtras() {
-      if (document.getElementById("editorView").style.display !== "none") showHome(); else showPortada();
+      if (document.getElementById("editorView").style.display !== "none" && puede.verPropuestas()) showHome(); else showPortada();
     }
     function abrirSometimientos() {
+      if (!puede.verSometimientos()) return;
       if (window.FEGSometimiento) FEGSometimiento.abrir();
       else showToast("Falta el archivo propuesta/sometimiento.js", "error");
     }
     function showHome() {
+      if (!puede.verPropuestas()) { showPortada(); return; }
       flushSave();
       document.getElementById("portadaView").style.display = "none";
+      document.getElementById("usuariosView").style.display = "none";
       document.getElementById("homeView").style.display = "";
       animarEntrada(document.getElementById("homeView"));
       const hero = document.getElementById("fegHero");
@@ -2213,6 +2857,7 @@
     }
     function showEditor() {
       document.getElementById("portadaView").style.display = "none";
+      document.getElementById("usuariosView").style.display = "none";
       document.getElementById("homeView").style.display = "none";
       document.getElementById("editorView").style.display = "";
       animarEntrada(document.getElementById("editorView"));
@@ -2324,6 +2969,7 @@
     }
 
     function guardarCotizacion(manual) {
+      if (!puede.crearPropuestas()) { if (manual) showToast("Tu usuario solo puede ver las cotizaciones", "info"); return false; }
       const snap = snapshotQuote();
       if (!snap.clientName.trim() && !snap.projectName.trim()) {
         if (manual) showToast("Escribe el nombre del cliente para guardar", "error");
@@ -2579,6 +3225,7 @@
     }
 
     function eliminarCotizacion(id) {
+      if (!puede.crearPropuestas()) return;
       const list = readQuotes();
       const q = list.find(x => x.id === id);
       if (!q || !confirm(`¿Eliminar la propuesta de "${q.clientName || "(sin cliente)"}" con sus ${q.options.length} opción(es)? No se puede deshacer.`)) return;
@@ -2625,11 +3272,11 @@
           <button type="button" onclick="abrirCotizacion('${q.id}')" class="flex-1 min-w-0 text-left">
             <p class="text-sm sm:text-xs font-semibold text-slate-800 truncate">${escapeHtml(q.clientName || "(sin cliente)")}
               <span class="ml-1 px-1.5 py-0.5 rounded bg-slate-100 text-[10px] font-medium text-slate-600">${q.options.length} ${q.options.length === 1 ? "opción" : "opciones"}</span></p>
-            <p class="text-[11px] text-slate-500 truncate">${q.options.length > 1 ? escapeHtml(q.options.map(o => o.name).join(" • ")) : `${escapeHtml(first.projectName || "")}${first.projectName ? " • " : ""}${fmtKwp(first.potenciaKw)} kWp`} • ${fmtFecha(q.updatedAt)}</p>
+            <p class="text-[11px] text-slate-500 truncate">${q.options.length > 1 ? escapeHtml(q.options.map(o => o.name).join(" • ")) : `${escapeHtml(first.projectName || "")}${first.projectName ? " • " : ""}${fmtKwp(first.potenciaKw)} kWp`} • ${fmtFecha(q.updatedAt)}${puede.verTodas() && q._dueno && PERFILES[q._dueno] ? ` • <span class="text-slate-600">${escapeHtml(PERFILES[q._dueno].full_name || PERFILES[q._dueno].email)}</span>` : ""}</p>
           </button>
           <div class="flex flex-wrap sm:justify-end gap-1">${tiposHtml}</div>
           </div>
-          <button type="button" onclick="eliminarCotizacion('${q.id}')" title="Eliminar" class="text-slate-300 hover:text-rose-600 font-bold px-1">&times;</button>
+          <button type="button" onclick="eliminarCotizacion('${q.id}')" title="Eliminar" class="feg-solo-crea text-slate-300 hover:text-rose-600 font-bold px-1">&times;</button>
         </div>`;
       }).join("");
     }
@@ -2642,6 +3289,7 @@
       document.body.appendChild(a); a.click(); a.remove();
     }
     function importQuotes(input) {
+      if (!puede.crearPropuestas()) return;
       const file = input.files && input.files[0];
       if (!file) return;
       const reader = new FileReader();
@@ -2729,6 +3377,7 @@
     const isMobile = () => window.matchMedia("(max-width: 1023px)").matches;
     let currentTab = "comercial";
     function switchTab(tab) {
+      if ((tab === "contabilidad" || tab === "precios") && !puede.verCostos()) tab = "comercial";
       if (tab === "datos" && !isMobile()) tab = "comercial";   // en computadora los datos siempre se ven a la izquierda
       currentTab = tab;
       const base = "flex-1 py-2 px-2 lg:py-2.5 lg:px-4 rounded-xl text-xs lg:text-sm transition-colors flex items-center justify-center";
@@ -3217,6 +3866,7 @@
     }
 
     function setSetting(path, raw, kind) {
+      if (!puede.editarPrecios()) { showToast("Tu usuario solo puede ver los precios", "info"); renderSettings(); return; }
       const keys = path.split(".");
       let obj = settings;
       for (let i = 0; i < keys.length - 1; i++) obj = obj[keys[i]];
@@ -3350,11 +4000,18 @@
 
     function cloudHeaders(extra) {
       const hd = Object.assign({ apikey: NUBE.key, "Content-Type": "application/json" }, extra || {});
-      if (NUBE.key.startsWith("eyJ")) hd.Authorization = "Bearer " + NUBE.key;   // llave anon clásica (JWT)
+      if (SESION && SESION.access_token) hd.Authorization = "Bearer " + SESION.access_token;   // usuario que entró
+      else if (NUBE.key.startsWith("eyJ")) hd.Authorization = "Bearer " + NUBE.key;   // llave anon clásica (JWT)
       return hd;
     }
-    async function cloudFetch(path, opts) {
+    async function cloudFetch(path, opts, reintento) {
+      if (!SESION) throw new Error("Falta iniciar sesión");
+      await tokenVigente();
       const res = await fetch(NUBE.url.replace(/\/$/, "") + "/rest/v1/" + path, Object.assign({}, opts, { headers: cloudHeaders((opts || {}).headers) }));
+      if (res.status === 401 && !reintento) {
+        try { await refrescarSesion(); } catch (e) { sesionVencida(); throw new Error("La sesión venció"); }
+        return cloudFetch(path, opts, true);
+      }
       if (!res.ok) throw new Error(res.status + " " + (await res.text()).slice(0, 200));
       return res.status === 204 ? null : res.json().catch(() => null);
     }
@@ -3398,7 +4055,7 @@
 
     // Trae la nube y la combina con lo de este equipo (gana la versión más reciente)
     async function syncQuotes() {
-      const remote = await cloudFetch("propuestas?select=id,data,updated_at");
+      const remote = await cloudFetch("propuestas?select=id,data,updated_at,creado_por");
       const local = readQuotes();
       const pPush = pendSet(PENDING_PUSH_KEY), pDel = pendSet(PENDING_DEL_KEY);
       const firstTime = !lsGet(SYNCED_ONCE_KEY, false);
@@ -3406,7 +4063,7 @@
       const result = [], toPush = [];
       (remote || []).forEach(row => {
         if (pDel.has(row.id)) return;
-        const r = migrateQuote(Object.assign({}, row.data, { id: row.id }));
+        const r = migrateQuote(Object.assign({}, row.data, { id: row.id, _dueno: row.creado_por || null }));
         const l = localMap.get(row.id);
         if (l && (l.updatedAt || "") > (r.updatedAt || "")) { result.push(l); toPush.push(l); }
         else result.push(r);
@@ -3427,7 +4084,7 @@
       ajustesTimer = setTimeout(pushAjustes, 1000);
     }
     async function pushAjustes() {
-      if (!cloudOn()) return;
+      if (!cloudOn() || !SESION || !puede.editarPrecios()) return;
       const ts = lsGet(AJUSTES_TS_KEY, new Date().toISOString());
       try {
         await cloudFetch("ajustes", { method: "POST", headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
@@ -3439,7 +4096,7 @@
       const rows = await cloudFetch("ajustes?id=eq.principal&select=data,updated_at");
       const row = rows && rows[0];
       const localTs = lsGet(AJUSTES_TS_KEY, "");
-      if (row && row.data && (row.data.updatedAt || "") > localTs) {
+      if (row && row.data && ((row.data.updatedAt || "") > localTs || (!puede.editarPrecios() && row.data.updatedAt && row.data.updatedAt !== localTs))) {
         applyingCloud = true;
         try {
           localStorage.setItem(SETTINGS_KEY, JSON.stringify(row.data.settings || {}));
@@ -3458,6 +4115,7 @@
 
     async function cloudSync() {
       if (!cloudOn()) { setCloudStatus("off"); return; }
+      if (!SESION) return;
       if (syncing) return;
       syncing = true;
       setCloudStatus("sync");
@@ -3565,12 +4223,7 @@
       loadParams();
       refreshSelects();
       nuevaCotizacion(true);
-      showPortada();
-      cloudSync().finally(() => actualizarTasaPopular(false));
-      renderTasaPopular(tasaPopular ? "ok" : "buscando");
-      setInterval(() => { if (document.visibilityState === "visible") actualizarTasaPopular(false); }, 30 * 60000);
-      document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") cloudSync(); });
-      setInterval(() => { if (document.visibilityState === "visible") cloudSync(); }, 60000);
+      iniciarAcceso();
     });
   </script>
   <!-- Generador de propuestas (carpeta "propuesta") -->
