@@ -561,6 +561,23 @@
     .feg-credenciales { border-radius: 12px; background: #fafaf8; border: 1px dashed #e0e0dc; padding: 12px 14px; font-size: 13px; line-height: 1.7; word-break: break-all; }
     html[data-tema="oscuro"] .feg-credenciales { background: #262626; border-color: #3a3a3a; }
     @media (prefers-reduced-motion: reduce) { .feg-login-card, .feg-login-lado .f, .feg-login-lado .anillo, #fegModal .caja-modal, .feg-us-editor { animation: none !important; } }
+
+    /* ===================== Hoja de cotización (encabezado con número y vendedor) ===================== */
+    .feg-hoja-enc { position: relative; overflow: hidden; border-radius: 1rem; background: #2b2b2b; color: #fff; padding: 16px 22px; display: flex; align-items: center; justify-content: space-between; gap: 16px; isolation: isolate; }
+    .feg-hoja-enc::after { content: ""; position: absolute; right: 0; top: 0; bottom: 0; width: 34%; z-index: -1; background: linear-gradient(115deg, rgba(255,171,0,0) 0%, rgba(255,171,0,.22) 100%); clip-path: polygon(30% 0, 100% 0, 100% 100%, 0 100%); }
+    .feg-hoja-enc::before { content: ""; position: absolute; left: 0; top: 50%; width: 5px; height: 34px; margin-top: -17px; background: #ffab00; border-radius: 0 3px 3px 0; }
+    .feg-hoja-enc .logo { width: 150px; height: 42px; flex-shrink: 0; }
+    .feg-hoja-enc .der { text-align: right; }
+    .feg-hoja-enc .fecha { font-size: 11px; color: rgba(255,255,255,.6); letter-spacing: .02em; }
+    .feg-hoja-enc .num { font-family: Montserrat, Inter, sans-serif; font-weight: 900; font-size: 20px; line-height: 1.15; margin-top: 2px; }
+    .feg-hoja-enc .num span { color: #ffab00; }
+    .feg-hoja-enc .por { font-size: 11.5px; color: rgba(255,255,255,.8); margin-top: 3px; }
+    .feg-hoja-enc .por b { color: #fff; font-weight: 700; }
+    html[data-tema="oscuro"] .feg-hoja-enc { box-shadow: 0 0 0 1px #2c2c2c; }
+    @media (max-width: 520px) { .feg-hoja-enc { flex-direction: column; align-items: flex-start; } .feg-hoja-enc .der { text-align: left; } .feg-hoja-enc .logo { width: 128px; height: 36px; } }
+    body.feg-sin-propuesta [onclick^="FEGPropuesta.abrir"] { display: none !important; }
+    .feg-num-chip { display: inline-block; margin-right: 6px; padding: 1px 6px; border-radius: 6px; font-size: 10px; font-weight: 800; letter-spacing: .02em; background: #2b2b2b; color: #ffab00; vertical-align: 1px; }
+    html[data-tema="oscuro"] .feg-num-chip { background: #2f2f2f; box-shadow: inset 0 0 0 1px #3d3d3d; }
   </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -800,7 +817,7 @@
         <div class="flex items-center justify-between gap-3">
           <h3 class="text-sm font-semibold text-slate-900 uppercase tracking-wider">Cotizaciones guardadas (<span id="savedCount">0</span>)</h3>
         </div>
-        <input type="text" id="savedSearch" placeholder="Buscar por cliente o proyecto…" oninput="renderSavedQuotes()"
+        <input type="text" id="savedSearch" placeholder="Buscar por cliente, proyecto o número…" oninput="renderSavedQuotes()"
           class="w-full mt-4 px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-slate-400" />
         <div id="savedQuotesList" class="mt-3 divide-y divide-slate-100"></div>
         <div class="mt-4 pt-3 border-t border-slate-100 flex gap-4 text-[11px]">
@@ -847,6 +864,11 @@
             class="mt-4 w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-slate-900 bg-orange-500 hover:bg-orange-400 shadow-sm transition-colors">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6M7 3h7l5 5v13a1 1 0 01-1 1H7a1 1 0 01-1-1V4a1 1 0 011-1z"/></svg>
             Generar propuesta (PDF) de esta opción
+          </button>
+          <button type="button" onclick="imprimirHojaCotizacion()" title="Imprime la hoja de cotización (Propuesta al Cliente) en una sola página"
+            class="mt-2 w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white bg-slate-900 hover:bg-slate-800 shadow-sm transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 9V3h12v6M6 18H4a1 1 0 01-1-1v-6a2 2 0 012-2h14a2 2 0 012 2v6a1 1 0 01-1 1h-2M7 14h10v7H7z"/></svg>
+            Imprimir hoja de cotización
           </button>
 
         </div>
@@ -1052,6 +1074,15 @@
         <!-- PESTAÑA A: PROPUESTA COMERCIAL (VISTA CLIENTE)                        -->
         <!-- ===================================================================== -->
         <div id="viewComercial" class="space-y-5">
+          <!-- Encabezado de la hoja de cotización: fecha, número y quién la trabajó -->
+          <div id="hojaCotEnc" class="feg-hoja-enc">
+            <div class="feg-logo logo" aria-label="Freedom Energy Group"></div>
+            <div class="der">
+              <div class="fecha" id="hojaFecha"></div>
+              <div class="num">Cotización <span id="hojaNumero">—</span></div>
+              <div class="por">Preparada por <b id="hojaVendedor">—</b></div>
+            </div>
+          </div>
           
           <!-- Encabezado Ejecutivo Comercial -->
           <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 print-shadow-none">
@@ -2349,6 +2380,7 @@
       verPropuestas: () => permiso("propuestas") !== "no",
       crearPropuestas: () => ["todo", "propias"].includes(permiso("propuestas")),
       verTodas: () => ["todo", "ver"].includes(permiso("propuestas")),
+      propuestaCompleta: () => ["todo", "ver"].includes(permiso("propuestas")),
       verCostos: () => permiso("precios") !== "no",
       editarPrecios: () => permiso("precios") === "editar",
       verSometimientos: () => permiso("sometimientos") !== "no",
@@ -2465,7 +2497,7 @@
     async function cargarPerfiles() {
       if (!cloudOn() || !SESION || !(puede.verTodas() || puede.usuarios())) return;
       try {
-        const rows = await cloudFetch("profiles?select=id,email,full_name,role,permisos,active&order=full_name");
+        const rows = await cloudFetch("profiles?select=id,email,full_name,role,permisos,active,iniciales&order=full_name");
         PERFILES = {}; (rows || []).forEach(p => PERFILES[p.id] = p);
         if (document.getElementById("homeView").style.display !== "none") renderSavedQuotes();
       } catch (e) { }
@@ -2524,6 +2556,8 @@
     function aplicarPermisos() {
       const b = document.body;
       b.classList.toggle("feg-no-crea", !puede.crearPropuestas());
+      b.classList.toggle("feg-sin-propuesta", !puede.propuestaCompleta());
+      window.FEG_USUARIO = SESION ? { id: SESION.user.id, nombre: (PERFIL && PERFIL.full_name) || (PERFIL && PERFIL.email) || SESION.user.email } : null;
       b.classList.toggle("feg-sin-costos", !puede.verCostos());
       b.classList.toggle("feg-precios-lectura", puede.verCostos() && !puede.editarPrecios());
       b.classList.toggle("feg-solo-lectura", puede.verPropuestas() && !puede.crearPropuestas());
@@ -2670,6 +2704,7 @@
       return `<div class="feg-us-editor" data-id="${nuevo ? "" : p.id}">
         <div class="feg-perm-grid" style="margin-bottom:12px">
           <label class="feg-campo"><span>Nombre</span><input data-f="nombre" value="${escapeHtml((p && p.full_name) || "")}" placeholder="Nombre y apellido"></label>
+          <label class="feg-campo"><span>Iniciales para el número de cotización</span><input data-f="iniciales" maxlength="4" value="${escapeHtml((p && p.iniciales) || "")}" placeholder="Automáticas (ej. ${escapeHtml(iniciales((p && p.full_name) || "Pedro Vendedor", ""))})" style="text-transform:uppercase"></label>
           ${nuevo ? `<label class="feg-campo"><span>Correo</span><input data-f="email" type="email" placeholder="nombre@correo.com" autocomplete="off"></label>
           <label class="feg-campo"><span>Contraseña inicial</span><div class="caja"><input data-f="clave" type="text" value="${claveAleatoria()}" autocomplete="off" style="padding-right:84px">
             <button type="button" class="ojo" onclick="this.previousElementSibling.value = claveAleatoria()">Otra</button></div></label>` :
@@ -2730,13 +2765,15 @@
           if (!nombre) throw new Error("Escribe el nombre.");
           if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw new Error("Escribe un correo válido.");
           if (clave.length < 8) throw new Error("La contraseña debe tener al menos 8 caracteres.");
-          await funcionUsuarios({ accion: "crear", email, password: clave, nombre, permisos, rol });
+          const r = await funcionUsuarios({ accion: "crear", email, password: clave, nombre, permisos, rol });
+          const ini = val("iniciales").toUpperCase().replace(/[^A-Z0-9]/g, "");
+          if (ini && r && r.id) await cloudFetch(`profiles?id=eq.${r.id}`, { method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ iniciales: ini }) }).catch(() => { });
           document.getElementById("usuariosNuevo").innerHTML = "";
           await cargarPerfiles(); pintarUsuarios();
           mostrarCredenciales(nombre, email, clave);
         } else {
           const id = ed.dataset.id;
-          const cambio = { full_name: val("nombre"), permisos, role: rol };
+          const cambio = { full_name: val("nombre"), permisos, role: rol, iniciales: val("iniciales").toUpperCase().replace(/[^A-Z0-9]/g, "") || null };
           const act = ed.querySelector('[data-f="activo"]'); if (act && !act.disabled) cambio.active = act.value === "1";
           await cloudFetch(`profiles?id=eq.${id}`, { method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify(cambio) });
           await cargarPerfiles(); pintarUsuarios();
@@ -2980,8 +3017,10 @@
       let prop = currentQuoteId ? list.find(x => x.id === currentQuoteId) : null;
       if (!prop) {
         prop = { id: "q_" + Date.now(), createdAt: now, options: [] };
+        if (SESION) { prop.creadoPor = SESION.user.id; prop.creadoNombre = (PERFIL && PERFIL.full_name) || SESION.user.email; }
         list.unshift(prop);
         currentQuoteId = prop.id;
+        setTimeout(() => asignarNumero(prop.id), 300);
       }
       const { clientName, ...optData } = snap;
       prop.clientName = clientName;
@@ -3239,7 +3278,42 @@
       catch (e) { return ""; }
     }
 
+    // Encabezado de la hoja: fecha arriba, número (PV-0001) y quién la trabajó
+    const fechaLargaHoja = (iso) => { const d = iso ? new Date(iso) : new Date(); return d.toLocaleDateString("es-DO", { day: "numeric", month: "long", year: "numeric" }); };
+    function pintarHojaCotizacion() {
+      const q = getCurrentProposal();
+      const nombre = (q && (q.creadoNombre || (q._dueno && PERFILES[q._dueno] && (PERFILES[q._dueno].full_name || PERFILES[q._dueno].email))))
+        || (!q && PERFIL && (PERFIL.full_name || PERFIL.email)) || "Freedom Energy Group";
+      document.getElementById("hojaFecha").textContent = fechaLargaHoja(q && q.createdAt);
+      document.getElementById("hojaNumero").textContent = (q && q.numero) || (q ? "en proceso" : "nueva");
+      document.getElementById("hojaVendedor").textContent = nombre;
+    }
+    // Pide a la nube el siguiente número de este vendedor (PV-0001, PV-0002…)
+    const numerando = new Set();
+    async function asignarNumero(id) {
+      if (!cloudOn() || !SESION || !puede.crearPropuestas() || numerando.has(id)) return;
+      const q = readQuotes().find(x => x.id === id);
+      if (!q || q.numero || q.creadoPor !== SESION.user.id) return;
+      numerando.add(id);
+      try {
+        const n = await cloudFetch("rpc/siguiente_numero_cotizacion", { method: "POST", body: "{}" });
+        if (!n || typeof n !== "string") return;
+        const list = readQuotes(); const q2 = list.find(x => x.id === id);
+        if (!q2 || q2.numero) return;
+        q2.numero = n;
+        writeQuotes(list);
+        if (currentQuoteId === id) { pintarHojaCotizacion(); updateQuoteHeader(); }
+        if (document.getElementById("homeView").style.display !== "none") renderSavedQuotes();
+      } catch (e) { } finally { numerando.delete(id); }
+    }
+    function imprimirHojaCotizacion() {
+      flushSave();
+      switchTab("comercial");
+      pintarHojaCotizacion();
+      setTimeout(() => window.print(), 120);
+    }
     function updateQuoteHeader() {
+      pintarHojaCotizacion();
       const t = document.getElementById("quoteTitle");
       const s = document.getElementById("quoteStatus");
       const q = getCurrentProposal();
@@ -3256,7 +3330,7 @@
       const all = readQuotes().sort((a, b) => (b.updatedAt || "").localeCompare(a.updatedAt || ""));
       document.getElementById("savedCount").textContent = all.length;
       const term = (document.getElementById("savedSearch").value || "").toLowerCase().trim();
-      const list = term ? all.filter(q => `${q.clientName} ${q.options.map(o => `${o.name} ${o.projectName}`).join(" ")}`.toLowerCase().includes(term)) : all;
+      const list = term ? all.filter(q => `${q.numero || ""} ${q.creadoNombre || ""} ${q.clientName} ${q.options.map(o => `${o.name} ${o.projectName}`).join(" ")}`.toLowerCase().includes(term)) : all;
       const box = document.getElementById("savedQuotesList");
       if (!all.length) { box.innerHTML = `<p class="py-3 text-[11px] text-slate-400">Todavía no hay cotizaciones guardadas.</p>`; return; }
       if (!list.length) { box.innerHTML = `<p class="py-3 text-[11px] text-slate-400">Ninguna coincide con la búsqueda.</p>`; return; }
@@ -3270,9 +3344,9 @@
         <div class="py-3 flex items-start sm:items-center gap-3">
           <div class="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3">
           <button type="button" onclick="abrirCotizacion('${q.id}')" class="flex-1 min-w-0 text-left">
-            <p class="text-sm sm:text-xs font-semibold text-slate-800 truncate">${escapeHtml(q.clientName || "(sin cliente)")}
+            <p class="text-sm sm:text-xs font-semibold text-slate-800 truncate">${q.numero ? `<span class="feg-num-chip">${escapeHtml(q.numero)}</span>` : ""}${escapeHtml(q.clientName || "(sin cliente)")}
               <span class="ml-1 px-1.5 py-0.5 rounded bg-slate-100 text-[10px] font-medium text-slate-600">${q.options.length} ${q.options.length === 1 ? "opción" : "opciones"}</span></p>
-            <p class="text-[11px] text-slate-500 truncate">${q.options.length > 1 ? escapeHtml(q.options.map(o => o.name).join(" • ")) : `${escapeHtml(first.projectName || "")}${first.projectName ? " • " : ""}${fmtKwp(first.potenciaKw)} kWp`} • ${fmtFecha(q.updatedAt)}${puede.verTodas() && q._dueno && PERFILES[q._dueno] ? ` • <span class="text-slate-600">${escapeHtml(PERFILES[q._dueno].full_name || PERFILES[q._dueno].email)}</span>` : ""}</p>
+            <p class="text-[11px] text-slate-500 truncate">${q.options.length > 1 ? escapeHtml(q.options.map(o => o.name).join(" • ")) : `${escapeHtml(first.projectName || "")}${first.projectName ? " • " : ""}${fmtKwp(first.potenciaKw)} kWp`} • ${fmtFecha(q.updatedAt)}${puede.verTodas() && (q.creadoNombre || (q._dueno && PERFILES[q._dueno])) ? ` • <span class="text-slate-600">${escapeHtml(q.creadoNombre || PERFILES[q._dueno].full_name || PERFILES[q._dueno].email)}</span>` : ""}</p>
           </button>
           <div class="flex flex-wrap sm:justify-end gap-1">${tiposHtml}</div>
           </div>
@@ -4123,6 +4197,7 @@
         await syncAjustes();
         await syncQuotes();
         setCloudStatus("ok");
+        readQuotes().filter(q => !q.numero && SESION && q.creadoPor === SESION.user.id).forEach(q => asignarNumero(q.id));
         if (document.getElementById("homeView").style.display !== "none") renderSavedQuotes();
         if (document.getElementById("portadaView").style.display !== "none") actualizarPortada();
       } catch (e) {

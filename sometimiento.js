@@ -45,9 +45,11 @@
   // ---------------------------------------------------------------------
   // Datos
   // ---------------------------------------------------------------------
+  const yo = () => window.FEG_USUARIO || null;
   function nuevo() {
     return {
       id: "s" + Date.now(), creado: new Date().toISOString(), actualizado: new Date().toISOString(),
+      creadoPor: yo() ? yo().id : "", creadoNombre: yo() ? yo().nombre : "",
       programa: "cero", tipoCliente: "residencial", persona: "fisica",
       cliente: { nombre: "", cedula: "", telefono: "", celular: "", email: "", calle: "", sector: "", municipio: "", provincia: "" },
       sum: { contrato: "", medidor: "", tarifa: "", direccion: "" },
@@ -59,6 +61,7 @@
   }
   function normalizar(s) {
     const b = nuevo();
+    b.creadoPor = ""; b.creadoNombre = "";   // los viejos no tienen autor: no se le pone el de quien lo abre
     s = Object.assign(b, s || {});
     s.cliente = Object.assign(nuevo().cliente, s.cliente || {});
     s.sum = Object.assign(nuevo().sum, s.sum || {});
@@ -98,6 +101,7 @@
   function guardar(inmediato) {
     if (!actual || !puedeEditar()) return;
     actual.actualizado = new Date().toISOString();
+    if (yo()) { actual.modificadoNombre = yo().nombre; if (!actual.creadoNombre) actual.creadoNombre = yo().nombre; }
     const i = lista.findIndex(s => s.id === actual.id);
     if (i >= 0) lista[i] = actual; else lista.unshift(actual);
     escribirLocal();
@@ -876,7 +880,7 @@
       const e = resumenEquipos(s);
       return `<div class="som-fila" onclick="FEGSometimiento.abrirS('${esc(s.id)}')">
         <div style="flex:1;min-width:0"><b>${esc(s.cliente.nombre || "Sin nombre")}</b>
-        <small>${s.programa === "neta" ? "Medición neta (Anexo A)" : "Inyección cero (Anexo B)"}${s.sum.contrato ? " • Contrato " + esc(s.sum.contrato) : ""}${e.kwp ? " • " + nt(e.kwp) + " kWp" : ""} • ${new Date(s.actualizado).toLocaleDateString("es-DO", { day: "numeric", month: "short", year: "numeric" })}</small></div>
+        <small>${s.programa === "neta" ? "Medición neta (Anexo A)" : "Inyección cero (Anexo B)"}${s.sum.contrato ? " • Contrato " + esc(s.sum.contrato) : ""}${e.kwp ? " • " + nt(e.kwp) + " kWp" : ""} • ${new Date(s.actualizado).toLocaleDateString("es-DO", { day: "numeric", month: "short", year: "numeric" })}${s.creadoNombre ? " • Por " + esc(s.creadoNombre) : ""}${s.modificadoNombre && s.modificadoNombre !== s.creadoNombre ? " (último cambio: " + esc(s.modificadoNombre) + ")" : ""}</small></div>
         ${puedeEditar() ? `<button type="button" class="som-x" style="position:static" title="Eliminar" onclick="event.stopPropagation();FEGSometimiento.borrar('${esc(s.id)}')">×</button>` : ""}</div>`;
     }).join("");
     $("somBody").innerHTML = `<div class="som-main"><div class="som-lista-s">
@@ -1022,7 +1026,7 @@
     const s = actual;
     $("somVolver").textContent = "← Sometimientos";
     $("somTitulo").textContent = "Sometimiento • " + (s.cliente.nombre || "Sin nombre");
-    $("somSub").textContent = s.programa === "neta" ? "Programa de medición neta (inyección a red)" : "Programa de medición neta — inyección cero";
+    $("somSub").textContent = (s.programa === "neta" ? "Programa de medición neta (inyección a red)" : "Programa de medición neta — inyección cero") + (s.creadoNombre ? " • Trabajado por " + s.creadoNombre : "");
     $("somAcciones").innerHTML = `<button type="button" class="som-btn nar" onclick="FEGSometimiento.imprimirSel()">Imprimir seleccionados</button>`;
     const yL = $("somLado") ? $("somLado").scrollTop : 0;
     const abiertos = [...document.querySelectorAll("#somLado details")].map(d => d.open);
