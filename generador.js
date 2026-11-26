@@ -370,6 +370,13 @@
     const cands = settings.fichas.filter(f => f.siempre === "panel" && String(f.marca || "").toLowerCase() === marca);
     if (!cands.length) return null;
     const dist = (f) => W < f.wMin ? f.wMin - W : W > f.wMax ? W - f.wMax : 0;
+    // Si se conoce el modelo exacto (ej. JKM650N-66QL6-BDV), se prefiere la ficha de esa serie (66QL6)
+    const mod = String(ctx.modeloPanel || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+    if (mod) {
+      const serie = (f) => String(f.id).toUpperCase().replace(/^[A-Z]+-?/, "").replace(/[^A-Z0-9]/g, "");
+      const porSerie = cands.filter(f => serie(f).length >= 3 && mod.includes(serie(f)) && dist(f) === 0);
+      if (porSerie.length) return porSerie[0].id;
+    }
     return cands.slice().sort((a, b) => dist(a) - dist(b))[0].id;
   }
   function fichaAuto(f, ctx) {
@@ -1166,7 +1173,7 @@
     // Páginas de fichas técnicas (paneles, inversores y baterías) según los equipos elegidos
     async fichasPaginas(o) {
       biblio();
-      const ctx = { panelQty: o.panelQty || 0, panelW: o.panelW || 0, marcaPanel: o.marcaPanel || MARCAS_PANEL[0], equipos: new Set([...(o.inversores || []), ...(o.baterias || [])]), doc: { fichas: {} } };
+      const ctx = { panelQty: o.panelQty || 0, panelW: o.panelW || 0, marcaPanel: o.marcaPanel || MARCAS_PANEL[0], modeloPanel: o.modeloPanel || "", equipos: new Set([...(o.inversores || []), ...(o.baterias || [])]), doc: { fichas: {} } };
       ctx.fichaPanel = fichaPanelId(ctx);
       const out = [];
       for (const f of settings.fichas.filter(x => (x.cat || 6) <= 3 || (x.cat === 6 && (x.equipos || []).length)).filter(x => fichaAuto(x, ctx)).sort((a, b) => (a.cat || 6) - (b.cat || 6))) {

@@ -38,6 +38,10 @@
   const nt = (v) => { const x = Math.round((Number(v) || 0) * 100) / 100; return x.toLocaleString("en-US", { maximumFractionDigits: 2 }); };
 
   let lista = [];
+  let vista = "datos", tEscribir = null;
+  function marcarGuardado() { const g = $("somGuardado"); if (g) { g.textContent = "Guardado " + new Date().toLocaleTimeString("es-DO", { hour: "numeric", minute: "2-digit" }); } }
+  // Si se cierra o se recarga la página, se guarda lo último
+  window.addEventListener("pagehide", () => { try { if (actual && puedeEditar()) { clearTimeout(tEscribir); actual.actualizado = new Date().toISOString(); const i = lista.findIndex(x => x.id === actual.id); if (i >= 0) lista[i] = actual; else lista.unshift(actual); escribirLocal(); subirNube(actual); } } catch (e) { } });
   let actual = null;
   let docActivo = null;
   let tGuardar = null;
@@ -105,24 +109,31 @@
     const i = lista.findIndex(s => s.id === actual.id);
     if (i >= 0) lista[i] = actual; else lista.unshift(actual);
     escribirLocal();
+    marcarGuardado();
     clearTimeout(tGuardar);
     const s = actual;
     tGuardar = setTimeout(() => subirNube(s), inmediato ? 0 : 1200);
   }
 
   // Biblioteca fija: certificados de la CNE, cartas de distribuidores y garantías de fábrica
+  // Cada certificado de la CNE dice qué equipos cubre (marca y capacidad). Así el sistema encuentra solo
+  // el certificado y la carta del distribuidor con la marca y los kW / W del equipo, aunque no se escriba el modelo.
+  const E = (t, marca, cap, modelo) => ({ t, marca, cap, modelo });
+  const EQ_187 = [E("inv", "SOLIS", 30, "S6-EH3P30K-H-LV"), E("inv", "SOLIS", 20, "S5-GC20K-LV"), E("inv", "SOLIS", 16, "S6-EH2P16K03-SV-YD-L-US"),
+    E("inv", "ION", 8, "ION-LV-8K-US"), E("inv", "ION", 12, "ION-LV-12K-US"),
+    E("panel", "JA SOLAR", 710, "JAM66D46-710/LB"), E("panel", "JA SOLAR", 620, "JAM66D45-620/LB"), E("panel", "JA SOLAR", 450, "JAM54D40-450/LB"), E("panel", "JA SOLAR", 615, "JAM66D45-615/LB")];
+  const EQ_176 = [E("inv", "ION", 8, "ION-LV-US-8K PRO"), E("inv", "ION", 12, "ION-LV-US-12K PRO"), E("inv", "ION", 16, "ION-LV-US-16K"),
+    E("panel", "JA SOLAR", 630, "JAM66D45-630/LB"), E("panel", "LONGI", 635, "LR8-66HGD-635M"), E("panel", "JA SOLAR", 640, "JAM66D45-640/LB"),
+    E("panel", "JA SOLAR", 460, "JAM54D41-460/LB"), E("panel", "JA SOLAR", 730, "JAM66D46-730/LB"), E("panel", "YC SOLAR", 620, "YC620NDF66G12R/2")];
+  const EQ_170 = [E("panel", "JINKO", 635, "JKM635N-78HL4-BDV"), E("panel", "JINKO", 640, "JKM640N-66QL6-BDV"), E("panel", "JINKO", 645, "JKM645N-66QL6-BDV"), E("panel", "JINKO", 650, "JKM650N-66QL6-BDV")];
+  const listaEq = (eq) => eq.map(e => e.modelo).join(", ");
   const BIBLIO_FIJA = [
-    { id: "f-cne-187", tipo: "cne", nombre: "CNE-DE-CMN-187-2025 (Solis, ION, JA Solar)", registro: "CNE-DE-CMN-187-2025", src: ["cne-187.jpg"],
-      claves: "S6-EH3P30K-H-LV, S5-GC20K-LV, S6-EH2P16K03-SV-YD-L-US, ION-LV-8K-US, ION-LV-12K-US, JAM66D46-710/LB, JAM66D45-620/LB, JAM54D40-450/LB, JAM66D45-615/LB, SOLIS, ION, JA SOLAR" },
-    { id: "f-cne-176", tipo: "cne", nombre: "CNE-GE-CMN-176-2026 (ION, JA Solar, LONGi, YC Solar)", registro: "CNE-GE-CMN-176-2026", src: ["cne-176.jpg"],
-      claves: "ION-LV-US-8K PRO, ION-LV-US-12K PRO, ION-LV-US-16K, JAM66D45-630/LB, LR8-66HGD-635M, JAM66D45-640/LB, JAM54D41-460/LB, JAM66D46-730/LB, YC620NDF66G12R/2, ION, JA SOLAR, LONGI, YC SOLAR" },
-    { id: "f-cne-170", tipo: "cne", nombre: "CNE-GE-CMN-170-2026 (JINKO Tiger Neo)", registro: "CNE-GE-CMN-170-2026", src: ["cne-170.jpg"],
-      claves: "JKM635N-78HL4-BDV, JKM640N-66QL6-BDV, JKM645N-66QL6-BDV, JKM650N-66QL6-BDV, JINKO" },
-    { id: "f-carta-170", tipo: "distribuidor", nombre: "Sistemi di Energie Rinnovabili — uso del CNE-GE-CMN-170-2026", src: ["carta-170.jpg"],
-      claves: "JKM635N-78HL4-BDV, JKM640N-66QL6-BDV, JKM645N-66QL6-BDV, JKM650N-66QL6-BDV, JINKO" },
-    { id: "f-carta-176", tipo: "distribuidor", nombre: "Santana German Supply — uso del CNE 176-2026 y 099-2026", src: ["carta-176-099.jpg"],
-      claves: "ION-LV-US-8K PRO, ION-LV-US-12K PRO, ION-LV-US-16K, JAM66D45-630/LB, LR8-66HGD-635M, JAM66D45-640/LB, JAM54D41-460/LB, JAM66D46-730/LB, YC620NDF66G12R/2, ION, JA SOLAR, LONGI, YC SOLAR" },
-    { id: "f-carta-047", tipo: "distribuidor", nombre: "Santana German Supply — uso del CNE 047-2026, 009-2025 y 153-2025", src: ["carta-047-009-153.jpg"], claves: "" },
+    { id: "f-cne-170", tipo: "cne", prioridad: 2026.07, nombre: "CNE-GE-CMN-170-2026 (JINKO Tiger Neo 635–650 W)", registro: "CNE-GE-CMN-170-2026", src: ["cne-170.jpg"], equipos: EQ_170, claves: listaEq(EQ_170) },
+    { id: "f-cne-176", tipo: "cne", prioridad: 2026.07, nombre: "CNE-GE-CMN-176-2026 (ION, JA Solar, LONGi, YC Solar)", registro: "CNE-GE-CMN-176-2026", src: ["cne-176.jpg"], equipos: EQ_176, claves: listaEq(EQ_176) },
+    { id: "f-cne-187", tipo: "cne", prioridad: 2025.09, nombre: "CNE-DE-CMN-187-2025 (Solis, ION, JA Solar)", registro: "CNE-DE-CMN-187-2025", src: ["cne-187.jpg"], equipos: EQ_187, claves: listaEq(EQ_187) },
+    { id: "f-carta-170", tipo: "distribuidor", nombre: "Sistemi di Energie Rinnovabili — uso del CNE-GE-CMN-170-2026", src: ["carta-170.jpg"], de: ["f-cne-170"], claves: "" },
+    { id: "f-carta-176", tipo: "distribuidor", nombre: "Santana German Supply — uso del CNE 176-2026 y 099-2026", src: ["carta-176-099.jpg"], de: ["f-cne-176"], claves: "" },
+    { id: "f-carta-047", tipo: "distribuidor", nombre: "Santana German Supply — uso del CNE 047-2026, 009-2025 y 153-2025", src: ["carta-047-009-153.jpg"], de: [], claves: "" },
     { id: "f-gar-jinko", tipo: "garantiaFab", nombre: "Garantía limitada JINKO (módulos bifaciales)", src: [1, 2, 3, 4, 5, 6, 7, 8].map(n => "gar-jinko-" + n + ".jpg"), claves: "JINKO, JKM" },
     { id: "f-gar-solis", tipo: "garantiaFab", nombre: "Garantía limitada Solis (5 años)", src: [1, 2, 3, 4, 5].map(n => "gar-solis-" + n + ".jpg"), claves: "SOLIS" }
   ];
@@ -136,8 +147,8 @@
   function itemsEquipo(s) {
     const e = resumenEquipos(s);
     const it = [];
-    if (e.p.qty > 0) it.push({ marca: e.p.marca, modelo: e.p.modelo, nombre: "panel", tipo: "panel" });
-    e.invs.forEach(x => it.push({ marca: marcaDe(x.inv.name), modelo: x.r.modelo, nombre: "inversor " + x.inv.name, tipo: "inversor", id: x.inv.id }));
+    if (e.p.qty > 0) it.push({ marca: e.p.marca, modelo: e.p.modelo, nombre: `panel ${e.p.marca} ${e.p.w}W`, tipo: "panel", tipoEq: "panel", cap: Number(e.p.w) || 0 });
+    e.invs.forEach(x => it.push({ marca: marcaDe(x.inv.name), modelo: x.r.modelo, nombre: `inversor ${marcaDe(x.inv.name).toUpperCase()} ${nt(x.inv.kw)}kW`, tipo: "inversor", tipoEq: "inv", cap: Number(x.inv.kw) || 0, id: x.inv.id }));
     e.bats.forEach(x => it.push({ marca: marcaDe(x.bat.name), modelo: x.r.modelo || (x.bat.propio ? x.bat.name : ""), nombre: "batería " + x.bat.name, tipo: "bateria" }));
     return it;
   }
@@ -151,10 +162,56 @@
     if (m) return ks.some(k => k.length >= 5 && (m.includes(k) || k.includes(m)));
     return ks.some(porMarca);
   }
-  const docsPara = (tipo, s) => { const it = itemsEquipo(s); return bibliotecaCompleta().filter(d => d.tipo === tipo && it.some(i => corresponde(d, i))); };
+  // ¿Un equipo del certificado es el mismo del sometimiento? Con modelo escrito se compara el modelo; si no, marca + capacidad.
+  function equipoCoincide(eq, item) {
+    if (!item.tipoEq || eq.t !== item.tipoEq) return false;
+    const mb = norm(eq.marca), ib = norm(item.marca);
+    if (!ib || !(ib.includes(mb) || mb.includes(ib))) return false;
+    const m = norm(item.modelo), em = norm(eq.modelo);
+    if (m) return m.includes(em) || em.includes(m);
+    return Math.abs((Number(eq.cap) || 0) - (Number(item.cap) || 0)) < 0.01;
+  }
+  // El mejor certificado de la CNE para un equipo (si hay varios, el más reciente)
+  function certDe(item) {
+    const lib = bibliotecaCompleta();
+    const fijos = lib.filter(d => d.tipo === "cne" && d.equipos && d.equipos.some(eq => equipoCoincide(eq, item))).sort((a, b) => (b.prioridad || 0) - (a.prioridad || 0));
+    if (fijos[0]) return fijos[0];
+    return lib.find(d => d.tipo === "cne" && !d.equipos && corresponde(d, item)) || null;
+  }
+  // Modelo exacto que aparece en el certificado (para sugerirlo cuando no se escribió)
+  function modeloCertificado(item) {
+    const c = certDe(item); if (!c || !c.equipos) return "";
+    const eq = c.equipos.find(eq => equipoCoincide(eq, Object.assign({}, item, { modelo: "" })));
+    return eq ? eq.modelo : "";
+  }
+  // Si el equipo está en un certificado de la CNE y no se escribió el modelo, se pone el del certificado.
+  // Si después cambian la marca o la capacidad, el modelo puesto así se vuelve a calcular.
+  function autoModelos(s) {
+    let cambio = false;
+    const p = s.eq.paneles;
+    if (!p.modelo || p.modeloAuto) {
+      const m = (Number(p.qty) > 0) ? modeloCertificado({ marca: p.marca, modelo: "", tipoEq: "panel", cap: Number(p.w) }) : "";
+      if (m !== (p.modeloAuto ? p.modelo : "")) { p.modelo = m; p.modeloAuto = !!m; cambio = true; }
+    }
+    s.eq.inversores.forEach(r => {
+      const inv = invDe(r); if (!inv || (r.modelo && !r.modeloAuto)) return;
+      const m = modeloCertificado({ marca: marcaDe(inv.name), modelo: "", tipoEq: "inv", cap: Number(inv.kw) });
+      if (m !== (r.modeloAuto ? r.modelo : "")) { r.modelo = m; r.modeloAuto = !!m; cambio = true; }
+    });
+    return cambio;
+  }
+  const docsPara = (tipo, s) => {
+    const it = itemsEquipo(s), lib = bibliotecaCompleta();
+    if (tipo === "cne") { const ids = new Set(it.map(certDe).filter(Boolean).map(d => d.id)); return lib.filter(d => ids.has(d.id)); }
+    if (tipo === "distribuidor") {
+      const certs = new Set(it.map(certDe).filter(Boolean).map(d => d.id));
+      return lib.filter(d => d.tipo === "distribuidor" && ((d.de && d.de.some(x => certs.has(x))) || (!d.de && it.some(i => corresponde(d, i)))));
+    }
+    return lib.filter(d => d.tipo === tipo && it.some(i => corresponde(d, i)));
+  };
   // Las baterías no necesitan certificado de la CNE ni garantía en el expediente
-  const sinDoc = (tipo, s) => itemsEquipo(s).filter(i => (tipo === "ficha" || i.tipo !== "bateria") && !bibliotecaCompleta().some(d => d.tipo === tipo && corresponde(d, i)));
-  const registroDe = (item) => { const d = bibliotecaCompleta().find(d => d.tipo === "cne" && d.registro && item.modelo && corresponde(d, item)); return d ? d.registro : "CNE"; };
+  const sinDoc = (tipo, s) => itemsEquipo(s).filter(i => (tipo === "ficha" || i.tipo !== "bateria") && (tipo === "cne" ? !certDe(i) : !bibliotecaCompleta().some(d => d.tipo === tipo && corresponde(d, i))));
+  const registroDe = (item) => { const d = certDe(item); return d && d.registro ? d.registro : "CNE"; };
 
   // Biblioteca de Freedom (sirve para todos los sometimientos). Se guarda aparte ("biblioteca"),
   // así el equipo de sometimientos la puede cambiar sin tocar los precios.
@@ -195,7 +252,12 @@
   // ---------------------------------------------------------------------
   const invDe = (r) => (typeof getInverter === "function" && r.invId) ? getInverter(r.invId) : null;
   // Batería: del catálogo o escrita a mano ("Soluna de 10k"). El nombre escrito es el que sale en los documentos.
+  // Baterías que solo se usan en sometimientos (no están en el cotizador ni llevan precio)
+  const BATERIAS_SOM = {
+    som_sol10: { id: "som_sol10", name: "Soluna 10K Pack LV", kwh: 10.24, ficha: "soluna10", paginas: 2, extra: true }
+  };
   function batDe(r) {
+    if (BATERIAS_SOM[r.batId]) { const b = BATERIAS_SOM[r.batId]; const n = String(r.nombre || "").trim(); return Object.assign({}, b, n ? { name: n, propio: true } : {}); }
     const cat = (typeof getBattery === "function" && r.batId && r.batId !== "otra") ? getBattery(r.batId) : null;
     const nombre = String(r.nombre || "").trim();
     if (nombre) return { id: cat ? cat.id : null, name: nombre, propio: true };
@@ -531,9 +593,9 @@
     const kw = x ? Number(x.inv.kw) : 0;
     const corriente = x ? (x.r.corriente || n1(kw * 1000 / (tri ? 208 * Math.sqrt(3) : 240))) : "";
     const comp = [];
-    if (e.p.qty > 0) comp.push([`${e.p.qty} Paneles solares ${e.p.marca} ${e.p.w}W${e.p.modelo ? " (" + e.p.modelo + ")" : ""}`, registroDe({ marca: e.p.marca, modelo: e.p.modelo })]);
-    e.invs.forEach(i => comp.push([`${i.r.qty} Inversor${i.r.qty > 1 ? "es" : ""} ${marcaDe(i.inv.name).toUpperCase()} ${nt(i.inv.kw)}kW${i.r.modelo ? " (" + i.r.modelo + ")" : ""}`, registroDe({ marca: marcaDe(i.inv.name), modelo: i.r.modelo })]));
-    e.bats.forEach(b => comp.push([`${b.r.qty} Batería${b.r.qty > 1 ? "s" : ""} de litio ${b.bat.name}${b.r.modelo ? " (" + b.r.modelo + ")" : ""}`, registroDe({ marca: marcaDe(b.bat.name), modelo: b.r.modelo })]));
+    if (e.p.qty > 0) comp.push([`${e.p.qty} Paneles solares ${e.p.marca} ${e.p.w}W${e.p.modelo ? " (" + e.p.modelo + ")" : ""}`, registroDe({ marca: e.p.marca, modelo: e.p.modelo, tipoEq: "panel", cap: Number(e.p.w) })]);
+    e.invs.forEach(i => comp.push([`${i.r.qty} Inversor${i.r.qty > 1 ? "es" : ""} ${marcaDe(i.inv.name).toUpperCase()} ${nt(i.inv.kw)}kW${i.r.modelo ? " (" + i.r.modelo + ")" : ""}`, registroDe({ marca: marcaDe(i.inv.name), modelo: i.r.modelo, tipoEq: "inv", cap: Number(i.inv.kw) })]));
+    e.bats.forEach(b => comp.push([`${b.r.qty} Batería${b.r.qty > 1 ? "s" : ""} de litio ${b.bat.name}${b.r.modelo ? " (" + b.r.modelo + ")" : ""}`, "—"]));
     const p1 = T(100.8, 198.5, f, { size: 9 }) +
       T(106, 431.8, c.nombre, { max: 430 }) + T(126, 445.2, c.telefono, { max: 124 }) + T(102, 457.8, c.celular, { max: 146 }) +
       T(96.5, 471.3, c.email, { max: 240 }) + T(449, 471.3, c.cedula, { max: 92 }) + T(110, 484.6, [c.calle, c.sector, c.municipio, c.provincia].filter(Boolean).join(", "), { max: 428 }) +
@@ -706,10 +768,15 @@
     const conPropia = (item) => bibliotecaCompleta().some(d => d.tipo === "ficha" && corresponde(d, item));
     const it = itemsEquipo(s);
     const panelPropio = it.some(i => i.tipo === "panel" && conPropia(i));
-    const fichas = await F({ panelQty: panelPropio ? 0 : e.p.qty, panelW: e.p.w, marcaPanel: e.p.marca,
+    const fichas = await F({ panelQty: panelPropio ? 0 : e.p.qty, panelW: e.p.w, marcaPanel: e.p.marca, modeloPanel: e.p.modelo,
       inversores: e.invs.filter(x => !conPropia({ marca: marcaDe(x.inv.name), modelo: x.r.modelo })).map(x => x.inv.id),
-      baterias: e.bats.filter(x => x.bat.id && !conPropia({ marca: marcaDe(x.bat.name), modelo: x.r.modelo || (x.bat.propio ? x.bat.name : "") })).map(x => x.bat.id) });
+      baterias: e.bats.filter(x => x.bat.id && !x.bat.extra && !conPropia({ marca: marcaDe(x.bat.name), modelo: x.r.modelo || (x.bat.propio ? x.bat.name : "") })).map(x => x.bat.id) });
     const propias = await paginasLibreria("ficha", s);
+    // Fichas de las baterías que solo están en sometimientos
+    const base = (window.FEGPropuesta && window.FEGPropuesta.base) || BASE;
+    e.bats.filter(x => x.bat.extra && x.bat.ficha && !conPropia({ marca: marcaDe(x.bat.name), modelo: x.r.modelo || x.bat.name })).forEach(x => {
+      for (let n = 1; n <= (x.bat.paginas || 1); n++) fichas.push({ src: `${base}fichas/${x.bat.ficha}-${n}.jpg`, completa: true });
+    });
     return fichas.map(f => pag("letter", null, `<img src="${f.src}" alt="" style="position:absolute;left:${f.completa ? 0 : 24}pt;top:${f.completa ? 0 : 24}pt;width:${f.completa ? 612 : 564}pt;height:${f.completa ? 792 : 744}pt;object-fit:contain">`)).concat(propias);
   }
   async function paginasCodia() {
@@ -731,7 +798,7 @@
     const e = resumenEquipos(s);
     const modelos = [e.p.qty > 0 && !e.p.modelo ? "modelo del panel" : "", ...e.invs.filter(x => !x.r.modelo).map(() => "modelo del inversor")].filter(Boolean);
     const datosCliente = faltan([[c.nombre, "nombre"], [c.cedula, "cédula"], [s.sum.contrato, "contrato"], [s.sum.medidor, "medidor"]]);
-    const faltaDoc = (tipo) => sinDoc(tipo, s).map(i => "no hay documento para " + (i.modelo || i.nombre + " (escribe el modelo)"));
+    const faltaDoc = (tipo) => sinDoc(tipo, s).map(i => (tipo === "cne" ? "sin certificado CNE para " : tipo === "garantiaFab" ? "sin garantía de fábrica para " : "sin documento para ") + (i.modelo ? `${i.nombre} (${i.modelo})` : i.nombre));
     const D = [];
     if (s.programa === "neta") D.push({ key: "anexoA", nombre: "Anexo A", falta: datosCliente.concat(e.invs.length ? [] : ["inversor"]), pags: async () => anexoA(s) });
     else D.push({ key: "anexoB", nombre: "Anexo B", falta: datosCliente.concat(e.kwp ? [] : ["paneles"]), pags: async () => anexoB(s) });
@@ -832,7 +899,46 @@
 .som-fila b{font-size:14px}.som-fila small{display:block;color:#888;font-size:11.5px;margin-top:2px}
 .som-chipp{font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:999px;background:#fff4d6;color:#8a5a00;border:1px solid #ffd98a}
 @media (hover:hover) and (pointer:fine){.som-fila:hover,.som-doc:hover{border-color:#ffcf4d}.som-btn.nar:hover{background:#ffbd1f}.som-btn.top:hover{background:rgba(255,255,255,.16)}}
-@media (max-width:900px){.som-body{flex-direction:column;overflow-y:auto}.som-lado{width:auto;border-right:0;overflow:visible}.som-main{overflow:visible}}
+#somBody{flex-direction:column}
+.som-sub{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px;background:#fff;border-bottom:1px solid #ececea}
+.som-sub .som-tabs{margin:0;min-width:260px}
+.som-guardado{font-size:11px;color:#8a8a86}
+.som-vista{flex:1;min-height:0;overflow:auto}
+.som-datos{max-width:1180px;margin:0 auto;padding:18px 16px 80px;columns:2 440px;column-gap:16px}
+.som-datos>*{break-inside:avoid}
+.som-datos .som-sec{display:inline-block;width:100%;background:#fff;margin-bottom:14px}
+.som-span{column-span:all;margin-bottom:14px}
+.som-docsv{display:flex}
+.som-nav{width:270px;flex-shrink:0;overflow-y:auto;background:#fff;border-right:1px solid #ececea;padding:12px 10px 40px}
+.som-nav-tit{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#9a9a96;padding:4px 8px 8px}
+.som-navi{display:flex;align-items:center;gap:9px;width:100%;text-align:left;padding:8px 9px;border-radius:10px;font-size:12.5px;font-weight:600;color:#444;border:0;background:none;cursor:pointer;transition:background-color 140ms var(--e)}
+.som-navi .n{width:21px;height:21px;border-radius:7px;background:#f1f1ef;font-size:10.5px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#777;transition:background-color 140ms var(--e)}
+.som-navi .t{flex:1;min-width:0;line-height:1.25}
+.som-navi.on{background:#fff4d6;color:#2b2b2b}.som-navi.on .n{background:#ffab00;color:#2b2b2b}
+.som-docsv .som-main{flex:1;min-width:0;overflow:auto;padding:16px 16px 60px}
+.som-cargando{padding:40px;text-align:center;color:#9a9a96;font-size:13px}
+.som-imp{position:absolute;inset:0;z-index:5;background:rgba(15,15,15,.45);display:flex;align-items:center;justify-content:center;padding:16px;animation:som-fondo 180ms ease both}
+@keyframes som-fondo{from{opacity:0}}
+.som-imp-caja{width:100%;max-width:1000px;max-height:100%;display:flex;flex-direction:column;background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 30px 70px -20px rgba(0,0,0,.45);animation:som-abre 240ms var(--e) both}
+.som-imp-cab{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid #eee}
+.som-imp-cab b{font-size:16px;font-family:Montserrat,Inter,sans-serif}.som-imp-cab small{display:block;font-size:12px;color:#8a8a86;margin-top:2px}
+.som-imp-cuerpo{flex:1;min-height:120px;overflow:auto;padding:6px 18px 12px}
+.som-imp-doc{padding:10px 0;border-bottom:1px dashed #ececea}
+.som-imp-doc.vacio{opacity:.5}
+.som-imp-dcab{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:700;cursor:pointer}
+.som-imp-dcab input{accent-color:#ffab00;width:16px;height:16px}
+.som-imp-sin{margin-left:auto;font-size:11px;color:#9a9a96;font-weight:600}
+.som-imp-pags{display:flex;gap:10px;overflow-x:auto;padding:10px 2px 4px}
+.som-thumb{position:relative;flex-shrink:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:10.5px;font-weight:600;color:#8a8a86}
+.som-thumb input{position:absolute;top:6px;left:6px;z-index:2;accent-color:#ffab00;width:16px;height:16px}
+.som-mini{position:relative;overflow:hidden;border-radius:6px;background:#fff;box-shadow:0 0 0 1.5px #e3e3df;transition:box-shadow 150ms var(--e),opacity 150ms var(--e)}
+.som-thumb input:checked~.som-mini{box-shadow:0 0 0 2.5px #ffab00}
+.som-thumb input:not(:checked)~.som-mini{opacity:.4}
+.som-mini .som-page{box-shadow:none!important}
+.som-imp-pie{display:flex;align-items:center;gap:8px;padding:12px 18px;border-top:1px solid #eee;background:#fafaf8}
+.som-imp-cuenta{margin-left:auto;margin-right:6px;font-size:12.5px;font-weight:700;color:#555}
+@media (hover:hover) and (pointer:fine){.som-navi:hover:not(.on){background:#f6f6f4}}
+@media (max-width:900px){.som-docsv{flex-direction:column}.som-nav{width:auto;border-right:0;border-bottom:1px solid #ececea;max-height:190px;padding-bottom:10px}.som-docsv .som-main{overflow:visible}.som-datos{columns:1}}
 @media (prefers-reduced-motion:reduce){#somOverlay,#somOverlay *{animation:none!important;transition:none!important}}
 #somPrint{display:none}
 @page sletter{size:letter;margin:0}
@@ -864,7 +970,12 @@
       </div>
       <div class="som-body" id="somBody"></div>`;
     document.body.appendChild(d);
-    $("somVolver").onclick = () => { if (actual) { guardar(true); actual = null; pintarLista(); } else cerrar(); };
+    $("somVolver").onclick = () => {
+      if (actual) {
+        const a = document.activeElement; if (a && a.closest && a.closest("#somOverlay") && a.blur) a.blur();   // guarda lo que se estaba escribiendo
+        clearTimeout(tEscribir); guardar(true); actual = null; vista = "datos"; pintarLista();
+      } else cerrar();
+    };
     const p = document.createElement("div"); p.id = "somPrint"; document.body.appendChild(p);
     window.addEventListener("afterprint", () => { document.body.classList.remove("som-imprimiendo"); $("somPrint").innerHTML = ""; });
     window.addEventListener("resize", () => { if ($("somOverlay").style.display !== "none") escalar(); });
@@ -891,7 +1002,7 @@
   }
 
   // Campos del panel lateral
-  const campo = (ruta, etiqueta, val, extra) => `<label class="som-lab">${etiqueta}<input class="som-in ${val ? "" : "vacio"}" value="${esc(val)}" ${extra || ""} onchange="FEGSometimiento.set('${ruta}', this.value)"></label>`;
+  const campo = (ruta, etiqueta, val, extra) => `<label class="som-lab">${etiqueta}<input class="som-in ${val ? "" : "vacio"}" value="${esc(val)}" ${extra || ""} oninput="FEGSometimiento.escribir('${ruta}', this.value)" onchange="FEGSometimiento.set('${ruta}', this.value)"></label>`;
   const seg = (ruta, val, opciones) => `<div class="som-seg">${opciones.map(([v, t]) => `<button type="button" class="${val === v ? "on" : ""}" onclick="FEGSometimiento.set('${ruta}', '${v}')">${t}</button>`).join("")}</div>`;
   function htmlArchivos(k, titulo, acepta, nota) {
     const l = actual.archivos[k] || [];
@@ -918,10 +1029,18 @@
       <span style="flex:1;min-width:0;font-size:11px;color:${d ? "#3f7d43" : "#999"};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d ? "✓ Datasheet propio cargado" : "Datasheet: el del sistema"}</span>
       <label class="som-btn cla" style="padding:5px 10px;font-size:11.5px">${d ? "Cambiar" : "+ Subir datasheet"}<input type="file" accept="image/*,application/pdf" style="display:none" onchange="FEGSometimiento.subirFicha('${cual}', ${i}, this)"></label></div>`;
   }
+  // Aviso del certificado CNE que corresponde al equipo (o que falta)
+  function notaCNE(item, auto, mostrar) {
+    if (!mostrar || !item.cap) return "";
+    const c = certDe(item);
+    if (!c) return `<p class="som-nota" style="color:#b45309">Sin certificado CNE para ${esc(String(item.marca || "").toUpperCase())} ${item.tipoEq === "panel" ? esc(item.cap) + "W" : nt(item.cap) + "kW"}. Súbelo en “Documentos de Freedom”.</p>`;
+    return `<p class="som-nota" style="color:#3f7d43">✓ Certificado ${esc(c.registro || c.nombre)}${auto ? " · modelo tomado del certificado" : ""}</p>`;
+  }
   function htmlLado() {
     const s = actual, c = s.cliente, su = s.sum, e = s.eq;
     const optsInv = typeof buildGroupedOptions === "function" ? buildGroupedOptions(settings.inverters, "") : "";
-    const optsBat = typeof buildGroupedOptions === "function" ? buildGroupedOptions(settings.batteries, "") : "";
+    const optsBat = (typeof buildGroupedOptions === "function" ? buildGroupedOptions(settings.batteries, "") : "")
+      + `<optgroup label="Solo para sometimientos">${Object.values(BATERIAS_SOM).map(b => `<option value="${b.id}">${esc(b.name)}</option>`).join("")}</optgroup>`;
     const cot = typeof readQuotes === "function" ? readQuotes() : [];
     const certs = bibliotecaCompleta();
     const TIPO_TXT = { cne: "CNE", distribuidor: "Distribuidor", garantiaFab: "Garantía", ficha: "Datasheet" };
@@ -968,12 +1087,14 @@
       <div class="som-eqrow"><div class="som-lab" style="font-weight:700;color:#2b2b2b">Paneles</div>
         <div class="som-2">${campo("eq.paneles.qty", "Cantidad", e.paneles.qty || "", 'type="number" min="0"')}${campo("eq.paneles.w", "Vatios (W)", e.paneles.w, 'type="number"')}</div>
         <div class="som-2">${campo("eq.paneles.marca", "Marca", e.paneles.marca, 'list="somMarcasPanel"')}${campo("eq.paneles.modelo", "Modelo exacto", e.paneles.modelo, 'placeholder="JKM635N-78HL4-BDV"')}</div>
-        <datalist id="somMarcasPanel"><option value="JINKO Solar"><option value="JA Solar"></datalist>
+        <datalist id="somMarcasPanel"><option value="JINKO Solar"><option value="JA Solar"><option value="LONGi"><option value="YC Solar"></datalist>
+        ${notaCNE({ marca: e.paneles.marca, modelo: e.paneles.modelo, tipoEq: "panel", cap: Number(e.paneles.w) }, e.paneles.modeloAuto, Number(e.paneles.qty) > 0)}
         ${btnFicha("panel", 0)}</div>
       ${e.inversores.map((r, i) => `<div class="som-eqrow"><button type="button" class="som-x" onclick="FEGSometimiento.quitarEq('inversores', ${i})">×</button>
         <div class="som-lab" style="font-weight:700;color:#2b2b2b">Inversor ${e.inversores.length > 1 ? i + 1 : ""}</div>
         <label class="som-lab">Equipo<select class="som-in" onchange="FEGSometimiento.set('eq.inversores.${i}.invId', this.value)"><option value="">Elegir…</option>${optsInv.replace(`value="${r.invId}"`, `value="${r.invId}" selected`)}</select></label>
         <div class="som-2">${campo(`eq.inversores.${i}.qty`, "Cantidad", r.qty, 'type="number" min="1"')}${campo(`eq.inversores.${i}.modelo`, "Modelo exacto", r.modelo, 'placeholder="SUN-12K-SG05LP2-US-SM3"')}</div>
+        ${invDe(r) ? notaCNE({ marca: marcaDe(invDe(r).name), modelo: r.modelo, tipoEq: "inv", cap: Number(invDe(r).kw) }, r.modeloAuto, true) : ""}
         <div class="som-2"><label class="som-lab">Conexión<select class="som-in" onchange="FEGSometimiento.set('eq.inversores.${i}.fase', this.value)"><option value="mono" ${r.fase !== "tri" ? "selected" : ""}>Monofásica</option><option value="tri" ${r.fase === "tri" ? "selected" : ""}>Trifásica</option></select></label>
         ${campo(`eq.inversores.${i}.corriente`, "Corriente nominal (A)", r.corriente || "", 'placeholder="automática"')}</div>
         ${btnFicha("inversor", i)}</div>`).join("")}
@@ -981,7 +1102,7 @@
       ${e.baterias.map((r, i) => `<div class="som-eqrow"><button type="button" class="som-x" onclick="FEGSometimiento.quitarEq('baterias', ${i})">×</button>
         <div class="som-lab" style="font-weight:700;color:#2b2b2b">Batería ${e.baterias.length > 1 ? i + 1 : ""}</div>
         <label class="som-lab">Equipo<select class="som-in" onchange="FEGSometimiento.set('eq.baterias.${i}.batId', this.value)"><option value="">Elegir…</option>${optsBat.replace(`value="${r.batId}"`, `value="${r.batId}" selected`)}<option value="otra" ${r.batId === "otra" ? "selected" : ""}>Otra (no está en el sistema)</option></select></label>
-        <div class="som-2">${campo(`eq.baterias.${i}.qty`, "Cantidad", r.qty, 'type="number" min="1"')}${campo(`eq.baterias.${i}.nombre`, r.batId === "otra" ? "Nombre de la batería" : "Nombre en los documentos", r.nombre || "", `placeholder="${esc(r.batId && r.batId !== "otra" && typeof getBattery === "function" && getBattery(r.batId) ? getBattery(r.batId).name : "Soluna de 10k")}"`)}</div>
+        <div class="som-2">${campo(`eq.baterias.${i}.qty`, "Cantidad", r.qty, 'type="number" min="1"')}${campo(`eq.baterias.${i}.nombre`, r.batId === "otra" ? "Nombre de la batería" : "Nombre en los documentos", r.nombre || "", `placeholder="${esc(BATERIAS_SOM[r.batId] ? BATERIAS_SOM[r.batId].name : r.batId && r.batId !== "otra" && typeof getBattery === "function" && getBattery(r.batId) ? getBattery(r.batId).name : "Nombre de la batería")}"`)}</div>
         <p class="som-nota" style="margin-top:-4px">No necesita modelo. Lo que escribas aquí es lo que sale en las cartas.</p>
         ${btnFicha("bateria", i)}</div>`).join("")}
       <button type="button" class="som-btn cla" style="width:100%" onclick="FEGSometimiento.agregarEq('baterias')">+ Agregar batería</button>
@@ -989,7 +1110,7 @@
 
     <details class="som-sec"><summary>6. Descripción del proyecto (opcional)</summary><div class="in">
       <label class="som-lab">Explica el proyecto si necesita más detalle. Sale en la carta de descripción, debajo de los equipos.
-        <textarea class="som-in" rows="6" placeholder="Ej.:&#10;72 paneles que se distribuyen en:&#10;→ 52 paneles para autoconsumo y almacenamiento&#10;→ 20 paneles para inyección a red" onchange="FEGSometimiento.set('descripcion', this.value)">${esc(s.descripcion)}</textarea></label>
+        <textarea class="som-in" rows="6" placeholder="Ej.:&#10;72 paneles que se distribuyen en:&#10;→ 52 paneles para autoconsumo y almacenamiento&#10;→ 20 paneles para inyección a red" oninput="FEGSometimiento.escribir('descripcion', this.value)" onchange="FEGSometimiento.set('descripcion', this.value)">${esc(s.descripcion)}</textarea></label>
       <p class="som-nota">Las líneas que empiecen con → o con guion salen como lista. Además, puedes tocar el texto de cualquier carta para cambiarlo.</p>
     </div></details>
 
@@ -1024,21 +1145,37 @@
 
   async function pintarEditor(mantenerScroll) {
     const s = actual;
+    if (autoModelos(s)) guardar();
     $("somVolver").textContent = "← Sometimientos";
     $("somTitulo").textContent = "Sometimiento • " + (s.cliente.nombre || "Sin nombre");
     $("somSub").textContent = (s.programa === "neta" ? "Programa de medición neta (inyección a red)" : "Programa de medición neta — inyección cero") + (s.creadoNombre ? " • Trabajado por " + s.creadoNombre : "");
-    $("somAcciones").innerHTML = `<button type="button" class="som-btn nar" onclick="FEGSometimiento.imprimirSel()">Imprimir seleccionados</button>`;
-    const yL = $("somLado") ? $("somLado").scrollTop : 0;
+    $("somAcciones").innerHTML = `<button type="button" class="som-btn nar" onclick="FEGSometimiento.abrirImpresion()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6M6 18H4a1 1 0 0 1-1-1v-6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6a1 1 0 0 1-1 1h-2M7 14h10v7H7z"/></svg>Imprimir / Guardar PDF</button>`;
+    if (!$("somVistaDatos")) {
+      $("somBody").innerHTML = `
+        <div class="som-sub"><div class="som-seg som-tabs" id="somTabs"><button type="button" data-v="datos" onclick="FEGSometimiento.vista('datos')">Datos</button><button type="button" data-v="docs" onclick="FEGSometimiento.vista('docs')">Documentos</button></div>
+          <span class="som-guardado" id="somGuardado"></span></div>
+        <div class="som-vista" id="somVistaDatos"><div class="som-datos" id="somLado"></div></div>
+        <div class="som-vista som-docsv" id="somVistaDocs"><nav class="som-nav" id="somNav"></nav><div class="som-main" id="somMain"></div></div>`;
+    }
+    const cont = $("somVistaDatos"), y = cont.scrollTop;
     const abiertos = [...document.querySelectorAll("#somLado details")].map(d => d.open);
-    if (!$("somLado")) $("somBody").innerHTML = `<aside class="som-lado" id="somLado"></aside><div class="som-main" id="somMain"></div>`;
-    $("somLado").innerHTML = (puedeEditar() ? "" : `<div class="som-aviso" style="margin-bottom:10px">Tu usuario puede ver e imprimir este sometimiento, pero no cambiarlo.</div>`) + htmlLado();
+    $("somLado").innerHTML = (puedeEditar() ? "" : `<div class="som-aviso som-span">Tu usuario puede ver e imprimir este sometimiento, pero no cambiarlo.</div>`) + htmlLado();
     if (!puedeEditar()) {
       $("somLado").querySelectorAll("input, select, textarea").forEach(el => el.disabled = true);
       $("somLado").querySelectorAll("button, label.som-btn").forEach(el => el.style.display = "none");
     }
     if (mantenerScroll && abiertos.length) document.querySelectorAll("#somLado details").forEach((d, i) => { if (abiertos[i] !== undefined) d.open = abiertos[i]; });
-    $("somLado").scrollTop = yL;
-    await pintarDocs();
+    else document.querySelectorAll("#somLado details").forEach(d => d.open = true);
+    cont.scrollTop = y;
+    mostrarVista();
+    if (vista === "docs") await pintarDocs();
+  }
+  function mostrarVista() {
+    if (!$("somVistaDatos")) return;
+    $("somVistaDatos").style.display = vista === "datos" ? "" : "none";
+    $("somVistaDocs").style.display = vista === "docs" ? "flex" : "none";
+    document.querySelectorAll("#somTabs button").forEach(b => b.classList.toggle("on", b.dataset.v === vista));
   }
 
   let turno = 0;
@@ -1048,23 +1185,80 @@
     const D = documentos(s);
     if (!docActivo || !D.some(d => d.key === docActivo)) docActivo = D[0].key;
     const d = D.find(x => x.key === docActivo);
+    $("somNav").innerHTML = `<div class="som-nav-tit">Documentos</div>` + D.map((x, i) => `<button type="button" class="som-navi ${x.key === docActivo ? "on" : ""}" onclick="FEGSometimiento.ver('${x.key}')" title="${x.falta.length ? "Falta: " + esc(x.falta.join(", ")) : "Listo"}">
+        <span class="n">${i + 1}</span><span class="t">${esc(x.nombre)}</span><span class="som-dot ${x.falta.length ? "f" : ""}"></span></button>`).join("");
+    $("somMain").innerHTML = `<div class="som-cargando">Preparando el documento…</div>`;
     const pags = await d.pags();
     if (t !== turno) return;
-    const y = $("somMain").scrollTop;
     $("somMain").innerHTML = `
-      <div class="som-docs">${D.map(x => `<div class="som-doc ${x.key === docActivo ? "on" : ""}" onclick="FEGSometimiento.ver('${x.key}')" title="${x.falta.length ? "Falta: " + esc(x.falta.join(", ")) : "Listo"}">
-        <input type="checkbox" ${x.incluir ? "checked" : ""} onclick="event.stopPropagation()" onchange="FEGSometimiento.incluir('${x.key}', this.checked)">
-        <span class="som-dot ${x.falta.length ? "f" : ""}"></span>${esc(x.nombre)}</div>`).join("")}</div>
-      <div class="som-barra"><b style="font-size:14px">${esc(d.nombre)}</b>
-        <button type="button" class="som-btn osc" onclick="FEGSometimiento.imprimir('${d.key}')">Imprimir este documento</button>
+      <div class="som-barra"><b style="font-size:15px">${esc(d.nombre)}</b><span class="som-chipp" style="background:transparent">${pags.length} ${pags.length === 1 ? "página" : "páginas"}</span>
         ${d.key in { descripcion: 1, autorizacion: 1, garantia: 1 } && s.edits[d.key] ? `<button type="button" class="som-btn cla" onclick="FEGSometimiento.restaurar('${d.key}')">Volver al texto automático</button>` : ""}</div>
       ${d.falta.length ? `<div class="som-aviso">Falta: ${esc(d.falta.join(", "))}. Igual se puede imprimir; esos espacios quedan en blanco.</div>` : ""}
-      ${d.key in { descripcion: 1, autorizacion: 1, garantia: 1 } ? `<p class="som-nota" style="margin-top:-4px">Toca el texto de la carta para cambiar lo que necesites.</p>` : ""}
+      ${d.key in { descripcion: 1, autorizacion: 1, garantia: 1 } && puedeEditar() ? `<p class="som-nota" style="margin-top:-4px">Toca el texto de la carta para cambiar lo que necesites.</p>` : ""}
       <div id="somPags">${pags.length ? pags.map(p => `<div class="som-wrap">${htmlPagina(p, s)}</div>`).join("") : `<div class="som-aviso">Este documento todavía no tiene páginas (sube el archivo o el certificado correspondiente).</div>`}</div>`;
-    $("somMain").scrollTop = y;
+    $("somMain").scrollTop = 0;
     activarEdicion();
     escalar();
   }
+
+  // ---------------------------------------------------------------------
+  // Imprimir / guardar PDF: se eligen los documentos y las páginas
+  // ---------------------------------------------------------------------
+  let impDatos = [];
+  async function abrirImpresion() {
+    const s = actual; if (!s) return;
+    const prev = $("somImp"); if (prev) prev.remove();
+    const m = document.createElement("div"); m.id = "somImp"; m.className = "som-imp";
+    m.innerHTML = `<div class="som-imp-caja"><div class="som-imp-cab"><div><b>Imprimir o guardar en PDF</b><small>Marca las páginas que quieres.</small></div>
+      <button type="button" class="som-x" style="position:static;font-size:20px" onclick="FEGSometimiento.cerrarImpresion()">×</button></div>
+      <div class="som-imp-cuerpo"><div class="som-cargando">Preparando las páginas…</div></div></div>`;
+    m.addEventListener("click", (e) => { if (e.target === m) m.remove(); });
+    $("somOverlay").appendChild(m);
+    const D = documentos(s);
+    impDatos = [];
+    for (const d of D) { try { impDatos.push({ d, pags: await d.pags() }); } catch (e) { impDatos.push({ d, pags: [] }); } }
+    if (!$("somImp")) return;
+    const exc = s.excluir || {};
+    const mini = (p) => { const [W, H] = SIZES[p.size]; const sc = 110 / (W * 96 / 72); return `<div class="som-mini" style="width:${Math.round(W * 96 / 72 * sc)}px;height:${Math.round(H * 96 / 72 * sc)}px"><div style="transform:scale(${sc});transform-origin:0 0;position:absolute;left:0;top:0">${htmlPagina(p, s)}</div></div>`; };
+    $("somImp").querySelector(".som-imp-cuerpo").innerHTML = impDatos.map(({ d, pags }) => {
+      const on = d.incluir;
+      if (!pags.length) return `<div class="som-imp-doc vacio"><div class="som-imp-dcab"><span class="t">${esc(d.nombre)}</span><span class="som-imp-sin">Sin páginas</span></div></div>`;
+      return `<div class="som-imp-doc"><label class="som-imp-dcab"><input type="checkbox" data-docall="${d.key}" ${on ? "checked" : ""} onchange="FEGSometimiento.marcarDoc('${d.key}', this.checked)">
+          <span class="t">${esc(d.nombre)}</span><span class="som-imp-sin">${pags.length} pág.</span></label>
+        <div class="som-imp-pags">${pags.map((p, i) => `<label class="som-thumb"><input type="checkbox" data-doc="${d.key}" data-i="${i}" ${on && !(exc[d.key] || []).includes(i) ? "checked" : ""} onchange="FEGSometimiento.contarImp()">${mini(p)}<span>${i + 1}</span></label>`).join("")}</div></div>`;
+    }).join("");
+    $("somImp").querySelector(".som-imp-caja").insertAdjacentHTML("beforeend", `<div class="som-imp-pie">
+      <button type="button" class="som-btn cla" onclick="FEGSometimiento.marcarTodo(true)">Todo</button>
+      <button type="button" class="som-btn cla" onclick="FEGSometimiento.marcarTodo(false)">Nada</button>
+      <span id="somImpCuenta" class="som-imp-cuenta"></span>
+      <button type="button" class="som-btn nar" onclick="FEGSometimiento.imprimirElegidas()">Imprimir / Guardar PDF</button></div>`);
+    contarImp();
+  }
+  function contarImp() {
+    const n = document.querySelectorAll("#somImp input[data-doc]:checked").length;
+    const c = $("somImpCuenta"); if (c) c.textContent = n === 1 ? "1 página" : `${n} páginas`;
+    impDatos.forEach(({ d }) => {
+      const all = document.querySelector(`#somImp input[data-docall="${d.key}"]`); if (!all) return;
+      const cs = [...document.querySelectorAll(`#somImp input[data-doc="${d.key}"]`)], k = cs.filter(x => x.checked).length;
+      all.checked = k > 0; all.indeterminate = k > 0 && k < cs.length;
+    });
+  }
+  async function imprimirElegidas() {
+    const s = actual; const elegidas = []; const excluir = {};
+    impDatos.forEach(({ d, pags }) => {
+      if (!pags.length) return;
+      const cs = [...document.querySelectorAll(`#somImp input[data-doc="${d.key}"]`)];
+      const si = cs.filter(c => c.checked).map(c => Number(c.dataset.i));
+      s.incluir[d.key] = si.length > 0;
+      if (si.length && si.length < pags.length) excluir[d.key] = pags.map((_, i) => i).filter(i => !si.includes(i));
+      si.forEach(i => elegidas.push(pags[i]));
+    });
+    s.excluir = excluir; guardar();
+    if (!elegidas.length) { showToast("Marca al menos una página", "error"); return; }
+    const m = $("somImp"); if (m) m.remove();
+    await imprimirPaginas(elegidas, elegidas.length === impDatos.reduce((a, x) => a + x.pags.length, 0) ? "documentos" : "seleccion");
+  }
+
   function htmlPagina(p, s) {
     const [W, H] = SIZES[p.size];
     let html = p.html;
@@ -1106,16 +1300,20 @@
   }
 
   async function imprimirDocs(keys) {
+    const D = documentos(actual).filter(d => keys.includes(d.key));
+    const pags = []; for (const d of D) pags.push(...await d.pags());
+    await imprimirPaginas(pags, D.length === 1 ? D[0].nombre : "documentos");
+  }
+  async function imprimirPaginas(pags, etiqueta) {
     const s = actual;
-    const D = documentos(s).filter(d => keys.includes(d.key));
-    let html = "";
-    for (const d of D) { const pags = await d.pags(); html += pags.map(p => htmlPagina(p, s)).join(""); }
+    const D = [{ nombre: etiqueta }];
+    const html = pags.map(p => htmlPagina(p, s)).join("");
     if (!html) { showToast("No hay páginas para imprimir", "error"); return; }
     $("somPrint").innerHTML = html;
     document.querySelectorAll("#somPrint .som-carta").forEach(el => el.removeAttribute("contenteditable"));
     document.body.classList.add("som-imprimiendo");
     const t = document.title;
-    document.title = `Sometimiento ${s.cliente.nombre || ""} - ${D.length === 1 ? D[0].nombre : "documentos"}`.trim();
+    document.title = `Sometimiento ${s.cliente.nombre || ""}`.trim().replace(/[\\/:*?"<>|]+/g, " ");
     await Promise.all([...document.querySelectorAll("#somPrint img")].map(i => i.complete ? 0 : new Promise(r => { i.onload = i.onerror = r; })));
     try { await document.fonts.ready; } catch (e) { }
     setTimeout(() => { window.print(); setTimeout(() => { document.title = t; }, 800); }, 80);
@@ -1162,6 +1360,8 @@
       let d = textoDigital && textoDigital.replace(/\s/g, "").length > 60 ? analizar(textoDigital) : {};
       const util = (x) => Object.keys(x).length >= (k === "cedula" ? 2 : 3);
       if (!util(d) && imgs.length) d = Object.assign(analizar(await ocr(imgs.slice(0, 3))), d);
+      // La ubicación se escribe a mano (la de la factura no siempre es la del sistema)
+      if (k === "factura") ["calle", "sector", "municipio", "provincia"].forEach(c => delete d[c]);
       if (aplicar(d, origen, sobrescribir).length) await pintarEditor(true);
     } catch (e) { showToast("No se pudo leer el archivo automáticamente; escribe los datos a mano.", "error"); }
   }
@@ -1179,8 +1379,8 @@
       await Promise.all([sincronizar(), sincronizarBiblio()]); if (!actual) pintarLista();
     },
     cerrar,
-    nuevo() { if (!puedeEditar()) return; actual = nuevo(); docActivo = null; $("somBody").innerHTML = ""; guardar(true); pintarEditor(); },
-    abrirS(id) { actual = normalizar(JSON.parse(JSON.stringify(lista.find(s => s.id === id)))); docActivo = null; $("somBody").innerHTML = ""; pintarEditor(); },
+    nuevo() { if (!puedeEditar()) return; actual = nuevo(); docActivo = null; vista = "datos"; $("somBody").innerHTML = ""; guardar(true); pintarEditor(); },
+    abrirS(id) { actual = normalizar(JSON.parse(JSON.stringify(lista.find(s => s.id === id)))); docActivo = null; vista = "datos"; $("somBody").innerHTML = ""; pintarEditor(); },
     borrar(id) {
       if (!puedeEditar()) return;
       const s = lista.find(x => x.id === id);
@@ -1189,11 +1389,29 @@
       lista = lista.filter(x => x.id !== id); escribirLocal(); borrarNube(id); pintarLista();
     },
     set(ruta, v) {
+      if (!actual) return;
       if (ruta === "instalado") v = v === "si";
       setRuta(actual, ruta, typeof v === "string" ? v.trim() : v);
       if (/^cliente\.nombre$/.test(ruta)) actual.cliente.nombre = actual.cliente.nombre.toUpperCase();
+      const m = ruta.match(/^eq\.(paneles|inversores\.\d+)\.modelo$/);
+      if (m) { const o = m[1] === "paneles" ? actual.eq.paneles : actual.eq.inversores[Number(m[1].split(".")[1])]; if (o) o.modeloAuto = false; }
+      autoModelos(actual);
       guardar(); pintarEditor(true);
     },
+    // Mientras se escribe: se guarda enseguida, sin volver a dibujar la pantalla
+    escribir(ruta, v) {
+      if (!actual || !puedeEditar()) return;
+      setRuta(actual, ruta, v);
+      clearTimeout(tEscribir); tEscribir = setTimeout(() => guardar(), 400);
+      marcarGuardado();
+    },
+    vista(v) { vista = v === "docs" ? "docs" : "datos"; mostrarVista(); if (vista === "docs") pintarDocs(); },
+    abrirImpresion() { abrirImpresion(); },
+    cerrarImpresion() { const m = $("somImp"); if (m) m.remove(); },
+    marcarDoc(k, on) { document.querySelectorAll(`#somImp input[data-doc="${k}"]`).forEach(c => c.checked = on); contarImp(); },
+    marcarTodo(on) { document.querySelectorAll("#somImp input[data-doc]").forEach(c => c.checked = on); document.querySelectorAll("#somImp input[data-docall]").forEach(c => c.checked = on); contarImp(); },
+    contarImp() { contarImp(); },
+    imprimirElegidas() { imprimirElegidas(); },
     agregarEq(k) {
       if (k === "inversores") actual.eq.inversores.push({ invId: "", qty: 1, modelo: "", fase: "mono", corriente: "" });
       else actual.eq.baterias.push({ batId: "", qty: 1, modelo: "" });
@@ -1242,11 +1460,11 @@
       await leerDocumento(k, data.paginas, "", true);
     },
     firma(i, on) { const a = actual.archivos.planos[i]; if (a) { a.firma = !!on; guardar(); pintarEditor(true); } },
-    ver(k) { docActivo = k; pintarDocs(); $("somMain").scrollTop = 0; },
+    ver(k) { docActivo = k; pintarDocs(); },
     incluir(k, on) { actual.incluir[k] = !!on; guardar(); },
     restaurar(k) { delete actual.edits[k]; guardar(); pintarDocs(); },
     imprimir(k) { imprimirDocs([k]); },
-    imprimirSel() {
+    imprimirSel() { abrirImpresion(); return;
       const keys = documentos(actual).filter(d => d.incluir).map(d => d.key);
       if (!keys.length) { showToast("Marca al menos un documento", "error"); return; }
       imprimirDocs(keys);
