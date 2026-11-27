@@ -157,7 +157,7 @@
       body:not(.pp-abierto) { background: #fff !important; display: block !important; min-height: 0 !important; }
       body:not(.pp-abierto) .feg-entra { animation: none !important; }
       /* La hoja se imprime entera, escalada, en una sola página (sin cortes) */
-      body:not(.pp-abierto) .feg-hoja-impresa { position: fixed !important; top: 0; left: 0; width: 740px !important;
+      body:not(.pp-abierto) .feg-hoja-impresa { position: fixed !important; top: var(--feg-arriba, 0px); left: var(--feg-izq, 0px); width: 740px !important;
         transform: scale(var(--feg-escala, 1)); transform-origin: 0 0; margin: 0 !important; }
       /* En la hoja impresa se mantienen las columnas que se ven en la computadora */
       body:not(.pp-abierto) .feg-hoja-impresa .md\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
@@ -169,6 +169,10 @@
       body:not(.pp-abierto) #colResultados > * + * { margin-top: 10px !important; }
       body:not(.pp-abierto) .shadow-sm { box-shadow: none !important; }
       body:not(.pp-abierto) * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      /* Marca de agua en la hoja de cotización */
+      body:not(.pp-abierto) #viewComercial.feg-hoja-impresa::after { content: "PRELIMINAR"; position: absolute; left: 50%; top: 50%; z-index: 50; pointer-events: none;
+        transform: translate(-50%, -50%) rotate(-35deg); font-family: 'Montserrat', 'Inter', sans-serif; font-weight: 900; font-size: 108px; letter-spacing: .05em;
+        color: rgba(43, 43, 43, .09); white-space: nowrap; mix-blend-mode: multiply; }
     }
 
     /* Encabezado oscuro con línea naranja */
@@ -527,7 +531,13 @@
     /* Lo que se oculta según los permisos */
     body.feg-no-crea .feg-solo-crea, body.feg-no-crea [onclick^="nuevaCotizacion"] { display: none !important; }
     body.feg-sin-costos #tabBtnContabilidad, body.feg-sin-costos #tabBtnPrecios, body.feg-sin-costos [onclick="switchTab('precios')"],
-    body.feg-sin-costos #viewContabilidad, body.feg-sin-costos #viewPrecios { display: none !important; }
+    body.feg-sin-costos #viewContabilidad, body.feg-sin-costos #viewPrecios, body.feg-sin-costos #cardEquiposLog { display: none !important; }
+    .feg-solo-vend { display: none; }
+    .feg-aviso-ing { margin-top: 8px; padding: 8px 10px; border-radius: 10px; background: #fdecea; border: 1px solid #f6c9c3; color: #a3271a; font-size: 12.5px; font-weight: 700; }
+    body.feg-sin-costos .feg-solo-vend { display: block; }
+    .feg-solo-vend .grid button { padding: 7px 6px; border-radius: 9px; font-size: 12px; font-weight: 600; color: #64748b; transition: background-color 150ms, color 150ms; }
+    .feg-solo-vend .grid button.on { background: #fff; color: #0f172a; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+    html[data-tema="oscuro"] .feg-solo-vend .grid button.on { background: #2b2b2b; color: #fff; }
     .feg-portada-opciones > [hidden] { display: none !important; }
     .feg-lectura-aviso { display: none; }
     body.feg-solo-lectura .feg-lectura-aviso { display: flex; }
@@ -1019,6 +1029,25 @@
               </div>
             </div>
 
+            <!-- Lista de precio para los vendedores (sin mostrar los factores) -->
+            <div class="feg-solo-vend">
+              <label class="block text-xs font-medium text-slate-600 mb-1">Tipo de precio</label>
+              <div class="grid grid-cols-3 gap-1.5 p-1 bg-slate-100 rounded-xl">
+                <button type="button" id="vBtnPriceStandard" onclick="setTipoPrecio('standard')">Estándar</button>
+                <button type="button" id="vBtnPricePreferencial" onclick="setTipoPrecio('preferencial')">Preferencial</button>
+                <button type="button" id="vBtnPriceConsensuado" onclick="setTipoPrecio('consensuado')">Consensuado</button>
+              </div>
+              <div id="vConsensuadoBox" class="mt-2 grid grid-cols-2 gap-2" style="display:none">
+                <label class="text-[11px] font-medium text-slate-600">Precio acordado (US$)
+                  <input type="number" id="vPrecioConsensuado" min="0" step="0.01" placeholder="0.00" oninput="vConsensuado('usd', this.value)" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-slate-400 mt-1" />
+                </label>
+                <label class="text-[11px] font-medium text-slate-600">o en RD$
+                  <input type="number" id="vPrecioConsensuadoDop" min="0" step="1" placeholder="0" oninput="vConsensuado('dop', this.value)" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-slate-400 mt-1" />
+                </label>
+              </div>
+              <p id="vConsensuadoAviso" class="feg-aviso-ing" style="display:none">⚠ Consultar con ingeniería</p>
+            </div>
+
             <!-- Índice de costos de la provincia (entra en la fórmula del precio) -->
             <div class="hidden" style="display:none">
               <div>
@@ -1105,7 +1134,7 @@
         </div>
 
         <!-- Tarjeta 2: Tabla Editable de Equipos, Materiales y Adicionales -->
-        <div class="m-datos order-4 lg:order-none bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 sm:p-5">
+        <div id="cardEquiposLog" class="m-datos order-4 lg:order-none bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 sm:p-5">
           <div class="flex items-start sm:items-center justify-between gap-2 mb-3">
             <div>
               <h2 class="text-sm font-semibold text-slate-900 uppercase tracking-wider">2. Equipos, Logística y Viáticos</h2>
@@ -2462,12 +2491,16 @@
       v.classList.add("feg-hoja-impresa");
       const alto = v.offsetHeight;   // alto real, sin contar la escala
       const disponible = (11 - 0.79) * 96 - 8;   // alto útil de una hoja carta con márgenes de 10 mm
-      v.style.setProperty("--feg-escala", String(Math.min(1, 0.97 * disponible / Math.max(1, alto))));
+      const esc = Math.min(1, 0.97 * disponible / Math.max(1, alto));
+      const ancho = (8.5 - 0.79) * 96;   // ancho útil de la hoja carta
+      v.style.setProperty("--feg-escala", String(esc));
+      v.style.setProperty("--feg-izq", Math.max(0, (ancho - 740 * esc) / 2) + "px");     // centrada a lo ancho
+      v.style.setProperty("--feg-arriba", Math.max(0, (disponible - alto * esc) / 2) + "px");   // y a lo alto
     });
     window.addEventListener("afterprint", () => {
       if (tituloAntesDeImprimir !== null) { const t = tituloAntesDeImprimir; tituloAntesDeImprimir = null; setTimeout(() => { document.title = t; }, 300); }
       document.body.classList.remove("feg-imprimiendo");
-      document.querySelectorAll(".feg-hoja-impresa").forEach(el => { el.classList.remove("feg-hoja-impresa"); el.style.removeProperty("--feg-escala"); });
+      document.querySelectorAll(".feg-hoja-impresa").forEach(el => { el.classList.remove("feg-hoja-impresa"); el.style.removeProperty("--feg-escala"); el.style.removeProperty("--feg-izq"); el.style.removeProperty("--feg-arriba"); });
     });
 
     // Fundido corto al entrar a una pantalla o pestaña
@@ -3579,10 +3612,23 @@
       document.getElementById("btnPricePreferencial").className = tipo === "preferencial" ? on : off;
       document.getElementById("btnPriceConsensuado").className = tipo === "consensuado" ? on : off;
       document.getElementById("consensuadoBox").style.display = tipo === "consensuado" ? "" : "none";
+      [["standard", "vBtnPriceStandard"], ["preferencial", "vBtnPricePreferencial"], ["consensuado", "vBtnPriceConsensuado"]].forEach(([k, id]) => { const b = document.getElementById(id); if (b) b.classList.toggle("on", tipo === k); });
+      const vb = document.getElementById("vConsensuadoBox");
+      if (vb) {
+        vb.style.display = tipo === "consensuado" ? "" : "none";
+        document.getElementById("vPrecioConsensuado").value = document.getElementById("precioConsensuado").value;
+        document.getElementById("vPrecioConsensuadoDop").value = document.getElementById("precioConsensuadoDop").value;
+        if (tipo === "consensuado" && !silent && document.body.classList.contains("feg-sin-costos")) setTimeout(() => document.getElementById("vPrecioConsensuado").focus(), 0);
+      }
       if (tipo === "consensuado" && !silent) setTimeout(() => document.getElementById("precioConsensuado").focus(), 0);
       if (!silent) { saveParams(); recalculateAll(); }
     }
 
+    // Campos del precio consensuado que ven los vendedores: pasan al campo principal
+    function vConsensuado(tipo, v) {
+      if (tipo === "usd") { document.getElementById("precioConsensuado").value = v; onConsensuadoUsd(); document.getElementById("vPrecioConsensuadoDop").value = document.getElementById("precioConsensuadoDop").value; }
+      else { document.getElementById("precioConsensuadoDop").value = v; onConsensuadoDop(); document.getElementById("vPrecioConsensuado").value = document.getElementById("precioConsensuado").value; }
+    }
     // Precio consensuado: US$ ↔ RD$ con la tasa de venta
     function onConsensuadoUsd() {
       const usd = parseFloat(document.getElementById("precioConsensuado").value);
@@ -3601,6 +3647,8 @@
       const has = usd !== undefined && usd !== null && usd !== "";
       document.getElementById("precioConsensuado").value = has ? usd : "";
       document.getElementById("precioConsensuadoDop").value = has ? Math.round(Number(usd) * tasa * 100) / 100 : "";
+      const vu = document.getElementById("vPrecioConsensuado"), vd = document.getElementById("vPrecioConsensuadoDop");
+      if (vu) { vu.value = document.getElementById("precioConsensuado").value; vd.value = document.getElementById("precioConsensuadoDop").value; }
     }
 
     const isMobile = () => window.matchMedia("(max-width: 1023px)").matches;
@@ -3705,12 +3753,15 @@
       const precioConsensuado = parseFloat(document.getElementById("precioConsensuado").value) || 0;
       const totalEjecucion = selectedTipoPrecio === "consensuado" ? precioConsensuado
         : selectedTipoPrecio === "preferencial" ? precioPreferencial : precioStandard;
+      // Precio consensuado por debajo del precio estándar: hay que consultarlo con ingeniería
+      const bajoEstandar = selectedTipoPrecio === "consensuado" && precioConsensuado > 0 && precioConsensuado < precioStandard - 0.005;
+      const avV = document.getElementById("vConsensuadoAviso"); if (avV) avV.style.display = bajoEstandar ? "" : "none";
       if (selectedTipoPrecio === "consensuado") {
         const info = document.getElementById("consensuadoInfo");
         if (!(precioConsensuado > 0)) info.innerHTML = `<strong class="text-rose-700">⚠ Falta el monto: la propuesta saldrá en $0 hasta que lo escribas.</strong>`;
         else {
           const mb = precioConsensuado - costoDirectoTotal;
-          info.innerHTML = `Margen bruto con este precio: <strong>${fmtUSD(mb)} (${(mb / precioConsensuado * 100).toFixed(1)}%)</strong> • Standard sería ${fmtUSD(precioStandard)}`;
+          info.innerHTML = `Margen bruto con este precio: <strong>${fmtUSD(mb)} (${(mb / precioConsensuado * 100).toFixed(1)}%)</strong> • Standard sería ${fmtUSD(precioStandard)}` + (bajoEstandar ? `<span class="feg-aviso-ing" style="display:block">⚠ Consultar con ingeniería: está por debajo del precio estándar</span>` : "");
         }
       }
       const totalDop = totalEjecucion * tasaVenta;
